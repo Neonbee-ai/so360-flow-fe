@@ -33,6 +33,7 @@ export default defineConfig({
     },
     server: {
         port: 3022,
+        strictPort: true,
         cors: true,
         proxy: {
             '/v1/flow': {
@@ -47,6 +48,7 @@ export default defineConfig({
     },
     preview: {
         port: 3022,
+        strictPort: true,
         cors: true,
         proxy: {
             '/v1/flow': {
