@@ -13,9 +13,13 @@ export const FlowDashboard = () => {
     const modules = [
         { code: 'module:crm:lead', name: 'CRM - Leads' },
         { code: 'module:crm:deal', name: 'CRM - Deals' },
-        { code: 'module:inventory', name: 'Inventory' },
-        { code: 'module:accounting', name: 'Accounting' },
-        { code: 'module:projects', name: 'Projects' },
+        { code: 'module:projects:task', name: 'Projects - Tasks' },
+        { code: 'module:procurement:purchase_request', name: 'Procurement - PRs' },
+        { code: 'module:timesheet:batch', name: 'Timesheet - Batches' },
+        { code: 'module:accounting:expense', name: 'Accounting - Expenses' },
+        { code: 'module:dailystore:order', name: 'Daily Store - Orders' },
+        { code: 'module:fulfillment:order', name: 'Fulfillment - Orders' },
+        { code: 'module:support:ticket', name: 'Support - Tickets' },
     ];
 
     useEffect(() => {
@@ -48,6 +52,18 @@ export const FlowDashboard = () => {
                         </p>
                     </div>
                     <div className="flex gap-2">
+                        <button
+                            onClick={() => navigate('/flow/simulator')}
+                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                        >
+                            Simulator
+                        </button>
+                        <button
+                            onClick={() => navigate('/flow/approvals/policies')}
+                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                        >
+                            Approval Policies
+                        </button>
                         <button
                             onClick={() => navigate('/flow/instances')}
                             className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"

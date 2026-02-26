@@ -20,9 +20,16 @@ export const FlowBuilder = () => {
     const modules = [
         { code: 'module:crm:lead', name: 'CRM - Leads' },
         { code: 'module:crm:deal', name: 'CRM - Deals' },
-        { code: 'module:inventory', name: 'Inventory' },
-        { code: 'module:accounting', name: 'Accounting' },
-        { code: 'module:projects', name: 'Projects' },
+        { code: 'module:projects:task', name: 'Projects - Tasks' },
+        { code: 'module:projects:lifecycle', name: 'Projects - Lifecycle' },
+        { code: 'module:procurement:purchase_request', name: 'Procurement - Purchase Requests' },
+        { code: 'module:procurement:purchase_order', name: 'Procurement - Purchase Orders' },
+        { code: 'module:timesheet:batch', name: 'Timesheet - Batches' },
+        { code: 'module:accounting:expense', name: 'Accounting - Expenses' },
+        { code: 'module:accounting:invoice', name: 'Accounting - Invoices' },
+        { code: 'module:dailystore:order', name: 'Daily Store - Orders' },
+        { code: 'module:fulfillment:order', name: 'Fulfillment - Orders' },
+        { code: 'module:support:ticket', name: 'Support - Tickets' },
     ];
 
     useEffect(() => {
