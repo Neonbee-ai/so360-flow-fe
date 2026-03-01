@@ -1,8 +1,8 @@
-import { useContext, useEffect, useState } from 'react';
-import { ShellContext } from '@so360/shell-context';
+import { useEffect, useState } from 'react';
+import { useShellBridge } from '@so360/shell-context';
 
 export const MfeShellInitializer = ({ children }: { children: React.ReactNode }) => {
-    const shell = useContext(ShellContext);
+    const shell = useShellBridge();
     const [isSynced, setIsSynced] = useState(false);
 
     useEffect(() => {
