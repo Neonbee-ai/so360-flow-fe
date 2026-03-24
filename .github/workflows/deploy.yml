@@ -42,7 +42,7 @@ jobs:
           ln -sfn "/github/SO360 V.2/so360-shell-fe" "$(dirname "${BUILD_DIR}")/so360-shell-fe" 2>/dev/null || true
           npm install --legacy-peer-deps
           export VITE_BASE_URL=https://dev.flow.skyoffice360.com/
-          export VITE_SO360_FLOW_API=https://dev.api.skyoffice360.com/flow/v1/flow
+          export VITE_SO360_FLOW_API=https://dev.api.skyoffice360.com/flow
           npm run build
           mkdir -p "${NGINX_ROOT}"
           cp -r dist/* "${NGINX_ROOT}/"
@@ -69,7 +69,7 @@ jobs:
           ln -sfn "/github/SO360 V.2/so360-shell-fe" "$(dirname "${BUILD_DIR}")/so360-shell-fe" 2>/dev/null || true
           npm install --legacy-peer-deps
           export VITE_BASE_URL=https://staging.flow.skyoffice360.com/
-          export VITE_SO360_FLOW_API=https://staging.api.skyoffice360.com/flow/v1/flow
+          export VITE_SO360_FLOW_API=https://staging.api.skyoffice360.com/flow
           npm run build
           mkdir -p "${NGINX_ROOT}"
           cp -r dist/* "${NGINX_ROOT}/"
