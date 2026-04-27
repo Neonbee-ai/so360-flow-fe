@@ -15,103 +15,51 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
+    - name: Checkout this repo
       uses: actions/checkout@v4
+      with:
+        path: workspace/this-repo
+
+    - name: Checkout shell-fe
+      uses: actions/checkout@v4
+      with:
+        repository: Neonbee-ai/so360-shell-fe
+        ref: ${{ github.ref_name }}
+        path: workspace/so360-shell-fe
+        token: ${{ secrets.PAT_TOKEN }}
 
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
 
-    - name: Deploy to Dev
-      if: github.ref == 'refs/heads/develop'
-      env:
-        SERVER_IP: ${{ secrets.SERVER_IP }}
-        DOMAIN: dev.flow.skyoffice360.com
-        BUILD_DIR: /github/SO360 V.2/so360-flow/so360-flow-fe
-        NGINX_ROOT: /var/www/dev.flow.skyoffice360.com/html
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Build shell-fe shared packages
+      working-directory: workspace/so360-shell-fe
       run: |
-        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-        ssh $SSH_OPTS root@$SERVER_IP "mkdir -p '$BUILD_DIR'"
-        rsync -avz --delete --exclude 'node_modules' --exclude 'dist' --exclude '.git' ./ "root@$SERVER_IP:$BUILD_DIR/"
-        ssh $SSH_OPTS root@$SERVER_IP "BUILD_DIR='$BUILD_DIR' DOMAIN='$DOMAIN' NGINX_ROOT='$NGINX_ROOT' bash -s" << 'DEPLOY_SCRIPT'
-          set -e
-          cd "${BUILD_DIR}"
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm use 22
-          ln -sfn "/github/SO360 V.2/so360-shell-fe" "$(dirname "${BUILD_DIR}")/so360-shell-fe" 2>/dev/null || true
-          npm install --legacy-peer-deps
+        (cd packages/shell-context && npm install --no-audit --no-fund && npm run build)
+        (cd packages/design-system && npm install --no-audit --no-fund && npm run build)
+        (cd packages/event-bus     && npm install --no-audit --no-fund && npm run build)
+        (cd packages/formatters    && npm install --no-audit --no-fund && npm run build)
+
+    - name: Build artefact on runner
+      working-directory: workspace/this-repo
+      run: |
+        npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline
+        if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
           export VITE_BASE_URL=https://dev.flow.skyoffice360.com/
           export VITE_SO360_CORE_API=https://dev.api.skyoffice360.com/core
           export VITE_SO360_FLOW_API=https://dev.api.skyoffice360.com/flow
-          npm run build
-          mkdir -p "${NGINX_ROOT}"
-          cp -r dist/* "${NGINX_ROOT}/"
-          echo "✅ Deployed to https://${DOMAIN}"
-        DEPLOY_SCRIPT
-
-    - name: Deploy to Staging
-      if: github.ref == 'refs/heads/qa'
-      env:
-        SERVER_IP: ${{ secrets.SERVER_IP }}
-        DOMAIN: staging.flow.skyoffice360.com
-        BUILD_DIR: /github/SO360 V.2/so360-flow/so360-flow-fe
-        NGINX_ROOT: /var/www/staging.flow.skyoffice360.com/html
-      run: |
-        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-        ssh $SSH_OPTS root@$SERVER_IP "mkdir -p '$BUILD_DIR'"
-        rsync -avz --delete --exclude 'node_modules' --exclude 'dist' --exclude '.git' ./ "root@$SERVER_IP:$BUILD_DIR/"
-        ssh $SSH_OPTS root@$SERVER_IP "BUILD_DIR='$BUILD_DIR' DOMAIN='$DOMAIN' NGINX_ROOT='$NGINX_ROOT' bash -s" << 'DEPLOY_SCRIPT'
-          set -e
-          cd "${BUILD_DIR}"
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm use 22
-          ln -sfn "/github/SO360 V.2/so360-shell-fe" "$(dirname "${BUILD_DIR}")/so360-shell-fe" 2>/dev/null || true
-          npm install --legacy-peer-deps
+        elif [ "${{ github.ref }}" = "refs/heads/qa" ]; then
           export VITE_BASE_URL=https://staging.flow.skyoffice360.com/
           export VITE_SO360_CORE_API=https://staging.api.skyoffice360.com/core
           export VITE_SO360_FLOW_API=https://staging.api.skyoffice360.com/flow
-          npm run build
-          mkdir -p "${NGINX_ROOT}"
-          cp -r dist/* "${NGINX_ROOT}/"
-          echo "✅ Deployed to https://${DOMAIN}"
-        DEPLOY_SCRIPT
-
-    - name: Deployment Summary
-      if: always()
-      run: |
-        echo "========================================="
-        if [ "${{ github.ref }}" == "refs/heads/develop" ]; then
-          echo "Environment: Development"
-          echo "Frontend: https://dev.flow.skyoffice360.com"
-        elif [ "${{ github.ref }}" == "refs/heads/qa" ]; then
-          echo "Environment: Staging"
-          echo "Frontend: https://staging.flow.skyoffice360.com"
-        fi
-        echo "========================================="
-
-    - name: Deploy to Production
-      if: github.ref == 'refs/heads/main'
-      env:
-        SERVER_IP: ${{ secrets.PROD_NGINX_VM }}
-        DOMAIN: cdn.neonbee.app
-        BUILD_DIR: /github/SO360 V.2/so360-flow/so360-flow-fe
-        NGINX_ROOT: /var/www/cdn.neonbee.app/html/flow
-      run: |
-        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-        ssh $SSH_OPTS root@$SERVER_IP "mkdir -p '$BUILD_DIR'"
-        rsync -avz --delete --exclude 'node_modules' --exclude 'dist' --exclude '.git' ./ "root@$SERVER_IP:$BUILD_DIR/"
-        ssh $SSH_OPTS root@$SERVER_IP "BUILD_DIR='$BUILD_DIR' DOMAIN='$DOMAIN' NGINX_ROOT='$NGINX_ROOT' MODULE='flow' bash -s" << 'DEPLOY_SCRIPT'
-          set -e
-          cd "${BUILD_DIR}"
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm use 22
-          ln -sfn "/github/SO360 V.2/so360-shell-fe" "$(dirname "${BUILD_DIR}")/so360-shell-fe" 2>/dev/null || true
-          npm install --legacy-peer-deps
-          export VITE_BASE_URL=https://cdn.neonbee.app/${MODULE}/
+        elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          export VITE_BASE_URL=https://cdn.neonbee.app/flow/
           export VITE_SO360_CORE_API=https://api.neonbee.app/core
           export VITE_SO360_CRM_API=https://api.neonbee.app/crm
           export VITE_SO360_INVENTORY_API=https://api.neonbee.app/inventory
@@ -129,12 +77,44 @@ jobs:
           export VITE_SO360_SUPPORT_API=https://api.neonbee.app/support
           export VITE_SO360_SUBSCRIPTION_API=https://api.neonbee.app/subscription
           export VITE_SO360_STOREFRONT_PREVIEW_URL=https://neonbee.store
-          npm run build
-          mkdir -p "${NGINX_ROOT}"
-          rm -rf "${NGINX_ROOT:?}"/*
-          cp -r dist/* "${NGINX_ROOT}/"
-          echo "✅ Deployed to https://cdn.neonbee.app/${MODULE}/"
-        DEPLOY_SCRIPT
+        fi
+        npm run build
+
+    - name: Deploy dist to Dev
+      if: github.ref == 'refs/heads/develop'
+      env:
+        SERVER_IP: ${{ secrets.SERVER_IP }}
+        NGINX_ROOT: /var/www/dev.flow.skyoffice360.com/html
+      run: |
+        SSH_OPTS="-o ServerAliveInterval=30 -o ServerAliveCountMax=20 -o ConnectTimeout=30"
+        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+        ssh $SSH_OPTS root@$SERVER_IP "mkdir -p '$NGINX_ROOT' && rm -rf '$NGINX_ROOT'/*"
+        rsync -avz --delete -e "ssh $SSH_OPTS" workspace/this-repo/dist/ "root@$SERVER_IP:$NGINX_ROOT/"
+        echo "✅ Deployed to https://dev.flow.skyoffice360.com"
+
+    - name: Deploy dist to Staging
+      if: github.ref == 'refs/heads/qa'
+      env:
+        SERVER_IP: ${{ secrets.SERVER_IP }}
+        NGINX_ROOT: /var/www/staging.flow.skyoffice360.com/html
+      run: |
+        SSH_OPTS="-o ServerAliveInterval=30 -o ServerAliveCountMax=20 -o ConnectTimeout=30"
+        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+        ssh $SSH_OPTS root@$SERVER_IP "mkdir -p '$NGINX_ROOT' && rm -rf '$NGINX_ROOT'/*"
+        rsync -avz --delete -e "ssh $SSH_OPTS" workspace/this-repo/dist/ "root@$SERVER_IP:$NGINX_ROOT/"
+        echo "✅ Deployed to https://staging.flow.skyoffice360.com"
+
+    - name: Deploy dist to Production
+      if: github.ref == 'refs/heads/main'
+      env:
+        SERVER_IP: ${{ secrets.PROD_NGINX_VM }}
+        NGINX_ROOT: /var/www/cdn.neonbee.app/html/flow
+      run: |
+        SSH_OPTS="-o ServerAliveInterval=30 -o ServerAliveCountMax=20 -o ConnectTimeout=30"
+        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+        ssh $SSH_OPTS root@$SERVER_IP "mkdir -p '$NGINX_ROOT' && rm -rf '$NGINX_ROOT'/*"
+        rsync -avz --delete -e "ssh $SSH_OPTS" workspace/this-repo/dist/ "root@$SERVER_IP:$NGINX_ROOT/"
+        echo "✅ Deployed to https://cdn.neonbee.app/flow/"
 
     - name: Purge Cloudflare cache for /flow/
       if: github.ref == 'refs/heads/main'
