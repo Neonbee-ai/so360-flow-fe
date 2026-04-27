@@ -127,6 +127,7 @@ jobs:
 
     - name: Purge Cloudflare cache for /flow/
       if: github.ref == 'refs/heads/main'
+      continue-on-error: true
       run: |
         echo "🌀 Purging cdn.neonbee.app/flow/ from Cloudflare edge cache"
         RESP=$(curl -sX POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
@@ -134,5 +135,5 @@ jobs:
           -H "Content-Type: application/json" \
           -d '{"files":["https://cdn.neonbee.app/flow/assets/remoteEntry.js","https://cdn.neonbee.app/flow/index.html"]}')
         echo "$RESP"
-        echo "$RESP" | grep -q '"success":true' || { echo "❌ CF purge failed"; exit 1; }
+        echo "$RESP" | grep -q '"success":true' || { echo "⚠️ CF purge failed (deploy still succeeded)"; exit 0; }
         echo "✅ Cloudflare cache purged for /flow/"
