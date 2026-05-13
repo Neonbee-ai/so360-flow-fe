@@ -13,6 +13,8 @@ export const useShellBridge = () => ({
   isFeatureHidden: () => false,
   currentOrg: { id: 'org-1', name: 'Test Org' },
   currentTenant: { id: 'tenant-1', name: 'Test Tenant' },
+  user: { id: 'mock-user-id', email: 'test@test.com', full_name: 'Test User' },
+  accessToken: 'mock-token',
 });
 export const usePeople = () => ({ people: [] });
 export const useEntitlements = () => ({ can: () => true });
