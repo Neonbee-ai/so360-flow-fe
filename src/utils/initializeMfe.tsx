@@ -12,6 +12,8 @@ export const MfeShellInitializer = ({ children }: { children: React.ReactNode })
             localStorage.setItem('currentTenantId', shell.currentTenant.id);
             localStorage.setItem('currentOrgId', shell.currentOrg.id);
             localStorage.setItem('flowAuthToken', accessToken);
+            // Bridge for UserSelector component (reads sb-access-token)
+            localStorage.setItem('sb-access-token', accessToken);
             if (shell.user?.id) {
                 localStorage.setItem('userId', shell.user.id);
             }
