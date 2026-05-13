@@ -7,6 +7,8 @@ import { InstanceViewer } from './pages/InstanceViewer';
 import { InstanceList } from './pages/InstanceList';
 import { ApprovalPoliciesPage } from './pages/ApprovalPoliciesPage';
 import { FlowSimulatorPage } from './pages/FlowSimulatorPage';
+import { ApprovalHistoryPage } from './pages/ApprovalHistoryPage';
+import { ApprovalDashboard } from './pages/ApprovalDashboard';
 import './index.css';
 
 function App() {
@@ -20,6 +22,8 @@ function App() {
                 <Route path="instance/:instanceId" element={<InstanceViewer />} />
                 <Route path="instances" element={<InstanceList />} />
                 <Route path="simulator" element={<FlowSimulatorPage />} />
+                <Route path="approvals/history/:entityType/:entityId" element={<ApprovalHistoryPage />} />
+                <Route path="approvals/dashboard" element={<ApprovalDashboard />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </MfeShellInitializer>
