@@ -22,6 +22,9 @@ export const FlowDashboard = () => {
         { code: 'module:accounting:invoice', name: 'Accounting - Invoices' },
         { code: 'module:dailystore:order', name: 'Daily Store - Orders' },
         { code: 'module:fulfillment:order', name: 'Fulfillment - Orders' },
+        { code: 'module:inbox:conversation', name: 'Inbox - Conversations' },
+        { code: 'module:inventory:item', name: 'Inventory - Items' },
+        { code: 'module:people:leave', name: 'People Connect - Leave Requests' },
         { code: 'module:support:ticket', name: 'Support - Tickets' },
     ];
 
