@@ -57,3 +57,7 @@ export const Printer = createIcon('Printer');
 export const Info = createIcon('Info');
 export const Pencil = createIcon('Pencil');
 export const Percent = createIcon('Percent');
+export const Play = createIcon('Play');
+export const GitBranch = createIcon('GitBranch');
+export const Database = createIcon('Database');
+export const History = createIcon('History');
