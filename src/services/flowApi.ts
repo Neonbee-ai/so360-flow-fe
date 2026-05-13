@@ -104,4 +104,19 @@ export const flowApi = {
 
     createApprovalStep: (ruleId: string, data: CreateApprovalStepDto) =>
         api.post(`/approval/rules/${ruleId}/steps`, data),
+
+    getRoles: () =>
+        api.get('/approval/roles'),
+
+    updatePolicy: (policyId: string, data: { name?: string; description?: string; priority?: number; is_active?: boolean }) =>
+        api.patch(`/approval/policies/${policyId}`, data),
+
+    deactivatePolicy: (policyId: string) =>
+        api.delete(`/approval/policies/${policyId}`),
+
+    simulatePolicy: (policyId: string, entityData: any) =>
+        api.post(`/approval/policies/${policyId}/simulate`, { entity_data: entityData }),
+
+    getApprovalStats: () =>
+        api.get('/approval/stats'),
 };

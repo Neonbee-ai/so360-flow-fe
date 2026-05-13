@@ -228,3 +228,16 @@ export interface ApprovalActionDto {
     comment?: string;
     delegate_to_user_id?: string;
 }
+
+export interface ApprovalStats {
+    pending_count: number;
+    overdue_count: number;
+    avg_cycle_hours: number;
+    by_entity_type: Record<string, number>;
+}
+
+export interface RoleOption {
+    role_id: string;
+    role_name: string;
+    user_count: number;
+}
