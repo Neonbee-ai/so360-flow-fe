@@ -286,7 +286,7 @@ export const ApprovalPoliciesPage = () => {
                             <label className="text-sm text-slate-400 mb-1 block">Policy Name *</label>
                             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                                 className="w-full bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 rounded-lg"
-                                placeholder="e.g., Finance Approval for Expenses > $5000" />
+                                placeholder="e.g., Manager Approval for Expenses" />
                         </div>
                         {!editingId && (
                             <div>
@@ -456,6 +456,8 @@ export const ApprovalPoliciesPage = () => {
                                         <p className="text-slate-100 font-medium">{policy.name}</p>
                                         <p className="text-slate-400 text-xs mt-0.5">
                                             {MODULE_OPTIONS.find(m => m.entity_type === policy.entity_type)?.name || policy.entity_type}
+                                            {' · '}{policy.approval_mode || 'SEQUENTIAL'}
+                                            {policy.steps?.length ? ` · ${policy.steps.length} step${policy.steps.length !== 1 ? 's' : ''}` : ''}
                                             {' · Priority: '}{policy.priority}
                                         </p>
                                     </div>

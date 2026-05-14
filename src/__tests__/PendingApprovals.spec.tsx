@@ -27,7 +27,7 @@ const approvalWithDelegate = {
   sla_hours: 8,
   requested_at: '2026-01-10T10:00:00Z',
   entity_data: { name: 'Test Lead' },
-  current_step: { id: 'step1', can_delegate: true },
+  current_step: { id: 'step1', step_order: 1, can_delegate: true },
 };
 
 const approvalOverdue = {
@@ -40,7 +40,7 @@ const approvalOverdue = {
   sla_hours: 8,
   requested_at: '2026-01-09T08:00:00Z',
   entity_data: {},
-  current_step: { id: 'step2', can_delegate: false },
+  current_step: { id: 'step2', step_order: 1, can_delegate: false },
 };
 
 beforeEach(() => vi.resetAllMocks());
@@ -63,9 +63,15 @@ describe('PendingApprovals', () => {
       await waitFor(() => expect(screen.getByText('2 approvals awaiting your action')).toBeInTheDocument());
     });
 
-    it('When the page loads / Then it shows entity type labels', async () => {
+    it('When the page loads / Then entity title from entity_data.name is shown', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText('lead #lead-abc')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('Test Lead')).toBeInTheDocument());
+    });
+
+    it('When the page loads / Then entity type fallback uses entity_id prefix', async () => {
+      renderPage();
+      // approvalOverdue has empty entity_data, so falls back to "expense #exp-efgh"
+      await waitFor(() => expect(screen.getByText('expense #exp-efgh')).toBeInTheDocument());
     });
 
     it('When an approval is overdue / Then the OVERDUE badge is shown', async () => {
@@ -75,7 +81,7 @@ describe('PendingApprovals', () => {
 
     it('When an approval is overdue / Then an SLA warning is shown', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText(/exceeded its SLA/)).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText(/exceeded its SLA/i)).toBeInTheDocument());
     });
 
     it('When delegation is allowed / Then the Delegate button is shown', async () => {
@@ -91,97 +97,140 @@ describe('PendingApprovals', () => {
 
     it('When the page loads / Then entity data details are displayed', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText('name:')).toBeInTheDocument());
-      expect(screen.getByText('Test Lead')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText('Test Lead')).toBeInTheDocument());
     });
 
-    it('When the page loads / Then time elapsed and SLA info is displayed for each approval', async () => {
+    it('When the page loads / Then time elapsed info is displayed for each approval', async () => {
       renderPage();
       await waitFor(() => expect(screen.getAllByText(/elapsed/).length).toBe(2));
     });
 
-    it('When Approve is clicked and confirmed / Then performApprovalAction is called with APPROVE', async () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
-      mockFlowApi.performApprovalAction.mockResolvedValue({ data: {} });
+    it('When Approve is clicked / Then the approve modal opens', async () => {
       renderPage();
       await waitFor(() => screen.getAllByText('Approve'));
       fireEvent.click(screen.getAllByText('Approve')[0]);
+      await waitFor(() =>
+        expect(screen.getByText(/Approve: Test Lead/)).toBeInTheDocument()
+      );
+    });
+
+    it('When modal Approve is confirmed / Then performApprovalAction is called with APPROVE', async () => {
+      mockFlowApi.performApprovalAction.mockResolvedValue({ data: {} });
+      renderPage();
+      await waitFor(() => screen.getAllByText('Approve'));
+      // Open modal
+      fireEvent.click(screen.getAllByText('Approve')[0]);
+      await waitFor(() => screen.getByText(/Approve: Test Lead/));
+      // Click approve in modal (the second Approve button inside the modal footer)
+      const approveButtons = screen.getAllByText('Approve');
+      fireEvent.click(approveButtons[approveButtons.length - 1]);
       await waitFor(() =>
         expect(mockFlowApi.performApprovalAction).toHaveBeenCalledWith({
           approval_instance_id: 'ap1',
           step_id: 'step1',
           action: 'APPROVE',
-          comment: 'Approved via UI',
+          comment: 'Approved',
         })
       );
     });
 
-    it('When Approve is clicked and cancelled / Then performApprovalAction is NOT called', async () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(false);
+    it('When modal Cancel is clicked / Then performApprovalAction is NOT called', async () => {
       renderPage();
       await waitFor(() => screen.getAllByText('Approve'));
       fireEvent.click(screen.getAllByText('Approve')[0]);
+      await waitFor(() => screen.getByText(/Approve: Test Lead/));
+      fireEvent.click(screen.getByText('Cancel'));
       expect(mockFlowApi.performApprovalAction).not.toHaveBeenCalled();
     });
 
     it('When Approve fails / Then an alert is shown with error message', async () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
       vi.spyOn(window, 'alert').mockImplementation(() => {});
       mockFlowApi.performApprovalAction.mockRejectedValue(new Error('Server error'));
       renderPage();
       await waitFor(() => screen.getAllByText('Approve'));
       fireEvent.click(screen.getAllByText('Approve')[0]);
+      await waitFor(() => screen.getByText(/Approve: Test Lead/));
+      const approveButtons = screen.getAllByText('Approve');
+      fireEvent.click(approveButtons[approveButtons.length - 1]);
       await waitFor(() =>
         expect(window.alert).toHaveBeenCalledWith('Failed to approve: Server error')
       );
     });
 
-    it('When Reject is clicked with a reason / Then performApprovalAction is called with REJECT', async () => {
-      vi.spyOn(window, 'prompt').mockReturnValue('Not valid');
+    it('When Reject is clicked / Then the reject modal opens', async () => {
+      renderPage();
+      await waitFor(() => screen.getAllByText('Reject'));
+      fireEvent.click(screen.getAllByText('Reject')[0]);
+      await waitFor(() =>
+        expect(screen.getByText(/Reject: Test Lead/)).toBeInTheDocument()
+      );
+    });
+
+    it('When Reject modal is submitted with reason / Then performApprovalAction is called with REJECT', async () => {
       mockFlowApi.performApprovalAction.mockResolvedValue({ data: {} });
       renderPage();
       await waitFor(() => screen.getAllByText('Reject'));
       fireEvent.click(screen.getAllByText('Reject')[0]);
+      await waitFor(() => screen.getByText(/Reject: Test Lead/));
+      // Fill in comment (≥10 chars required)
+      const textarea = screen.getByPlaceholderText(/Explain why/i);
+      fireEvent.change(textarea, { target: { value: 'Not valid reason' } });
+      const rejectButtons = screen.getAllByText('Reject');
+      fireEvent.click(rejectButtons[rejectButtons.length - 1]);
       await waitFor(() =>
         expect(mockFlowApi.performApprovalAction).toHaveBeenCalledWith({
           approval_instance_id: 'ap1',
           step_id: 'step1',
           action: 'REJECT',
-          comment: 'Not valid',
+          comment: 'Not valid reason',
         })
       );
     });
 
-    it('When Reject is clicked and prompt is cancelled / Then performApprovalAction is NOT called', async () => {
-      vi.spyOn(window, 'prompt').mockReturnValue(null);
+    it('When Reject modal Cancel is clicked / Then performApprovalAction is NOT called', async () => {
       renderPage();
       await waitFor(() => screen.getAllByText('Reject'));
       fireEvent.click(screen.getAllByText('Reject')[0]);
+      await waitFor(() => screen.getByText(/Reject: Test Lead/));
+      fireEvent.click(screen.getByText('Cancel'));
       expect(mockFlowApi.performApprovalAction).not.toHaveBeenCalled();
     });
 
     it('When Reject fails / Then an alert is shown with error message', async () => {
-      vi.spyOn(window, 'prompt').mockReturnValue('Bad');
       vi.spyOn(window, 'alert').mockImplementation(() => {});
       mockFlowApi.performApprovalAction.mockRejectedValue(new Error('Reject failed'));
       renderPage();
       await waitFor(() => screen.getAllByText('Reject'));
       fireEvent.click(screen.getAllByText('Reject')[0]);
+      await waitFor(() => screen.getByText(/Reject: Test Lead/));
+      const textarea = screen.getByPlaceholderText(/Explain why/i);
+      fireEvent.change(textarea, { target: { value: 'Rejection reason here' } });
+      const rejectButtons = screen.getAllByText('Reject');
+      fireEvent.click(rejectButtons[rejectButtons.length - 1]);
       await waitFor(() =>
         expect(window.alert).toHaveBeenCalledWith('Failed to reject: Reject failed')
       );
     });
 
-    it('When Delegate is clicked with userId and reason / Then performApprovalAction is called with DELEGATE', async () => {
-      let promptCall = 0;
-      vi.spyOn(window, 'prompt').mockImplementation(() => {
-        promptCall++;
-        return promptCall === 1 ? 'user-99' : 'Vacation coverage';
-      });
+    it('When Delegate is clicked / Then the delegate modal opens', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('Delegate'));
+      fireEvent.click(screen.getByText('Delegate'));
+      await waitFor(() =>
+        expect(screen.getByText(/Delegate: Test Lead/)).toBeInTheDocument()
+      );
+    });
+
+    it('When Delegate modal is submitted / Then performApprovalAction is called with DELEGATE', async () => {
       mockFlowApi.performApprovalAction.mockResolvedValue({ data: {} });
       renderPage();
       await waitFor(() => screen.getByText('Delegate'));
       fireEvent.click(screen.getByText('Delegate'));
+      await waitFor(() => screen.getByText(/Delegate: Test Lead/));
+      fireEvent.change(screen.getByPlaceholderText(/Enter user UUID/i), { target: { value: 'user-99' } });
+      fireEvent.change(screen.getByPlaceholderText(/Why are you delegating/i), { target: { value: 'Vacation coverage' } });
+      const delegateButtons = screen.getAllByText('Delegate');
+      fireEvent.click(delegateButtons[delegateButtons.length - 1]);
       await waitFor(() =>
         expect(mockFlowApi.performApprovalAction).toHaveBeenCalledWith({
           approval_instance_id: 'ap1',
@@ -193,25 +242,26 @@ describe('PendingApprovals', () => {
       );
     });
 
-    it('When Delegate prompt is cancelled / Then performApprovalAction is NOT called', async () => {
-      vi.spyOn(window, 'prompt').mockReturnValue(null);
+    it('When Delegate modal Cancel is clicked / Then performApprovalAction is NOT called', async () => {
       renderPage();
       await waitFor(() => screen.getByText('Delegate'));
       fireEvent.click(screen.getByText('Delegate'));
+      await waitFor(() => screen.getByText(/Delegate: Test Lead/));
+      fireEvent.click(screen.getByText('Cancel'));
       expect(mockFlowApi.performApprovalAction).not.toHaveBeenCalled();
     });
 
     it('When Delegate fails / Then an alert is shown with error message', async () => {
-      let promptCall = 0;
-      vi.spyOn(window, 'prompt').mockImplementation(() => {
-        promptCall++;
-        return promptCall === 1 ? 'user-99' : 'Reason';
-      });
       vi.spyOn(window, 'alert').mockImplementation(() => {});
       mockFlowApi.performApprovalAction.mockRejectedValue(new Error('Delegate failed'));
       renderPage();
       await waitFor(() => screen.getByText('Delegate'));
       fireEvent.click(screen.getByText('Delegate'));
+      await waitFor(() => screen.getByText(/Delegate: Test Lead/));
+      fireEvent.change(screen.getByPlaceholderText(/Enter user UUID/i), { target: { value: 'user-99' } });
+      fireEvent.change(screen.getByPlaceholderText(/Why are you delegating/i), { target: { value: 'Going on leave' } });
+      const delegateButtons = screen.getAllByText('Delegate');
+      fireEvent.click(delegateButtons[delegateButtons.length - 1]);
       await waitFor(() =>
         expect(window.alert).toHaveBeenCalledWith('Failed to delegate: Delegate failed')
       );

@@ -215,7 +215,12 @@ export const PendingApprovals: React.FC = () => {
                 <h1 className="text-3xl font-bold text-slate-100 mb-2">Pending Approvals</h1>
                 <div className="flex items-center gap-4">
                     <p className="text-slate-400">{approvals.length} approval{approvals.length !== 1 ? 's' : ''} awaiting your action</p>
-                    {error && <p className="text-red-400 text-sm">{error}</p>}
+                    {error && (
+                        <>
+                            <p className="text-red-400 text-sm">{error}</p>
+                            <button onClick={fetchPendingApprovals} className="text-xs text-blue-400 hover:text-blue-300 underline">Retry</button>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -287,7 +292,7 @@ export const PendingApprovals: React.FC = () => {
                                 <div className="mt-4 flex items-start gap-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
                                     <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                                     <div className="text-sm text-red-300">
-                                        Exceeded SLA of {approval.sla_hours}h. Immediate action required.
+                                        Exceeded its SLA of {approval.sla_hours}h. Immediate action required.
                                     </div>
                                 </div>
                             )}
