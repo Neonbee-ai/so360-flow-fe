@@ -65,6 +65,18 @@ export const FlowDashboard = () => {
                             Simulator
                         </button>
                         <button
+                            onClick={() => navigate('/flow/approvals/dashboard')}
+                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                        >
+                            Approval Dashboard
+                        </button>
+                        <button
+                            onClick={() => navigate('/flow/approvals/pending')}
+                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                        >
+                            Pending Approvals
+                        </button>
+                        <button
                             onClick={() => navigate('/flow/approvals/policies')}
                             className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
                         >
