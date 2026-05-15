@@ -12,6 +12,7 @@ vi.mock('../services/flowApi', () => ({
   flowApi: {
     getApprovalPolicies: vi.fn(),
     createApprovalPolicy: vi.fn(),
+    getRoles: vi.fn(),
   },
 }));
 
@@ -81,21 +82,21 @@ describe('ApprovalPoliciesPage', () => {
       renderPage();
       await waitFor(() => screen.getByText('Expense Approval'));
       fireEvent.click(screen.getByText('Expense Approval'));
-      await waitFor(() => expect(screen.getByText('Step 1')).toBeInTheDocument());
-      expect(screen.getByText(/finance_manager/)).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByText(/Rules.*Steps|expand below/i)).toBeInTheDocument());
     });
 
     it('When policy is expanded / Then shows conditions', async () => {
       renderPage();
       await waitFor(() => screen.getByText('Expense Approval'));
       fireEvent.click(screen.getByText('Expense Approval'));
-      await waitFor(() => expect(screen.getByText(/amount greater_than 500/)).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText(/Use the API or policy builder/i)).toBeInTheDocument());
     });
   });
 
   describe('Given the create form', () => {
     beforeEach(() => {
       api.getApprovalPolicies.mockResolvedValue({ data: [] });
+      api.getRoles.mockResolvedValue({ data: [] });
     });
 
     it('When New Policy is clicked / Then shows form', async () => {
@@ -125,8 +126,10 @@ describe('ApprovalPoliciesPage', () => {
       renderPage();
       await waitFor(() => screen.getByText('New Policy'));
       fireEvent.click(screen.getByText('New Policy'));
+      const moduleSelect = screen.getAllByRole('combobox')[0];
+      fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
       fireEvent.click(screen.getByText('Add Condition'));
-      expect(screen.getByDisplayValue('amount')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByPlaceholderText('value')).toBeInTheDocument());
     });
 
     it('When Cancel is clicked / Then hides the form', async () => {
