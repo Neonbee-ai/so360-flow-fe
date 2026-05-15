@@ -61,3 +61,6 @@ export const Play = createIcon('Play');
 export const GitBranch = createIcon('GitBranch');
 export const Database = createIcon('Database');
 export const History = createIcon('History');
+export const FlaskConical = createIcon('FlaskConical');
+export const GripVertical = createIcon('GripVertical');
+export const Power = createIcon('Power');
