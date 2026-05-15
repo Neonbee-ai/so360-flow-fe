@@ -121,9 +121,9 @@ describe('PendingApprovals', () => {
       // Open modal
       fireEvent.click(screen.getAllByText('Approve')[0]);
       await waitFor(() => screen.getByText(/Approve: Test Lead/));
-      // Click approve in modal (the second Approve button inside the modal footer)
+      // Click approve in modal — modal renders first in DOM so index [0] is the modal button
       const approveButtons = screen.getAllByText('Approve');
-      fireEvent.click(approveButtons[approveButtons.length - 1]);
+      fireEvent.click(approveButtons[0]);
       await waitFor(() =>
         expect(mockFlowApi.performApprovalAction).toHaveBeenCalledWith({
           approval_instance_id: 'ap1',
@@ -151,7 +151,7 @@ describe('PendingApprovals', () => {
       fireEvent.click(screen.getAllByText('Approve')[0]);
       await waitFor(() => screen.getByText(/Approve: Test Lead/));
       const approveButtons = screen.getAllByText('Approve');
-      fireEvent.click(approveButtons[approveButtons.length - 1]);
+      fireEvent.click(approveButtons[0]);
       await waitFor(() =>
         expect(window.alert).toHaveBeenCalledWith('Failed to approve: Server error')
       );
@@ -176,7 +176,7 @@ describe('PendingApprovals', () => {
       const textarea = screen.getByPlaceholderText(/Explain why/i);
       fireEvent.change(textarea, { target: { value: 'Not valid reason' } });
       const rejectButtons = screen.getAllByText('Reject');
-      fireEvent.click(rejectButtons[rejectButtons.length - 1]);
+      fireEvent.click(rejectButtons[0]);
       await waitFor(() =>
         expect(mockFlowApi.performApprovalAction).toHaveBeenCalledWith({
           approval_instance_id: 'ap1',
@@ -206,7 +206,7 @@ describe('PendingApprovals', () => {
       const textarea = screen.getByPlaceholderText(/Explain why/i);
       fireEvent.change(textarea, { target: { value: 'Rejection reason here' } });
       const rejectButtons = screen.getAllByText('Reject');
-      fireEvent.click(rejectButtons[rejectButtons.length - 1]);
+      fireEvent.click(rejectButtons[0]);
       await waitFor(() =>
         expect(window.alert).toHaveBeenCalledWith('Failed to reject: Reject failed')
       );
@@ -230,7 +230,7 @@ describe('PendingApprovals', () => {
       fireEvent.change(screen.getByPlaceholderText(/Enter user UUID/i), { target: { value: 'user-99' } });
       fireEvent.change(screen.getByPlaceholderText(/Why are you delegating/i), { target: { value: 'Vacation coverage' } });
       const delegateButtons = screen.getAllByText('Delegate');
-      fireEvent.click(delegateButtons[delegateButtons.length - 1]);
+      fireEvent.click(delegateButtons[0]);
       await waitFor(() =>
         expect(mockFlowApi.performApprovalAction).toHaveBeenCalledWith({
           approval_instance_id: 'ap1',
@@ -261,7 +261,7 @@ describe('PendingApprovals', () => {
       fireEvent.change(screen.getByPlaceholderText(/Enter user UUID/i), { target: { value: 'user-99' } });
       fireEvent.change(screen.getByPlaceholderText(/Why are you delegating/i), { target: { value: 'Going on leave' } });
       const delegateButtons = screen.getAllByText('Delegate');
-      fireEvent.click(delegateButtons[delegateButtons.length - 1]);
+      fireEvent.click(delegateButtons[0]);
       await waitFor(() =>
         expect(window.alert).toHaveBeenCalledWith('Failed to delegate: Delegate failed')
       );
