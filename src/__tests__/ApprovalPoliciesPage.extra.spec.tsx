@@ -119,7 +119,7 @@ describe('ApprovalPoliciesPage — policy list', () => {
     const policyNameEl = screen.getByText('Expense Approval');
     fireEvent.click(policyNameEl);
     await waitFor(() => {
-      expect(screen.getByText(/rules/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/rules/i)[0]).toBeInTheDocument();
     });
   });
 });

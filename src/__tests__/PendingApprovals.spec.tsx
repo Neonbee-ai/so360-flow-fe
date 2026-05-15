@@ -65,7 +65,7 @@ describe('PendingApprovals', () => {
 
     it('When the page loads / Then entity title from entity_data.name is shown', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText('Test Lead')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getAllByText('Test Lead')[0]).toBeInTheDocument());
     });
 
     it('When the page loads / Then entity type fallback uses entity_id prefix', async () => {
@@ -97,7 +97,7 @@ describe('PendingApprovals', () => {
 
     it('When the page loads / Then entity data details are displayed', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText('Test Lead')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getAllByText('Test Lead')[0]).toBeInTheDocument());
     });
 
     it('When the page loads / Then time elapsed info is displayed for each approval', async () => {
