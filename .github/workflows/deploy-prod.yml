@@ -23,7 +23,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
       - name: Install dependencies
         run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Run unit tests
@@ -70,7 +69,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Checkout shell-fe packages
         uses: actions/checkout@v4
