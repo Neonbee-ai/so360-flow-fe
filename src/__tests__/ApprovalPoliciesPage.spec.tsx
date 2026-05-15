@@ -12,6 +12,8 @@ vi.mock('../services/flowApi', () => ({
   flowApi: {
     getApprovalPolicies: vi.fn(),
     createApprovalPolicy: vi.fn(),
+    createApprovalRule: vi.fn(),
+    createApprovalStep: vi.fn(),
     getRoles: vi.fn(),
   },
 }));
@@ -82,7 +84,7 @@ describe('ApprovalPoliciesPage', () => {
       renderPage();
       await waitFor(() => screen.getByText('Expense Approval'));
       fireEvent.click(screen.getByText('Expense Approval'));
-      await waitFor(() => expect(screen.getByText(/Rules.*Steps|expand below/i)).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('Rules & Steps (expand below):')).toBeInTheDocument());
     });
 
     it('When policy is expanded / Then shows conditions', async () => {
@@ -97,6 +99,9 @@ describe('ApprovalPoliciesPage', () => {
     beforeEach(() => {
       api.getApprovalPolicies.mockResolvedValue({ data: [] });
       api.getRoles.mockResolvedValue({ data: [] });
+      api.createApprovalPolicy.mockResolvedValue({ data: { id: 'new-p' } });
+      api.createApprovalRule.mockResolvedValue({ data: { id: 'rule-1' } });
+      api.createApprovalStep.mockResolvedValue({ data: { id: 'step-1' } });
     });
 
     it('When New Policy is clicked / Then shows form', async () => {
