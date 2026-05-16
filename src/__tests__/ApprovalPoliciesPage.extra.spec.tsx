@@ -58,251 +58,263 @@ beforeEach(() => {
 });
 
 describe('ApprovalPoliciesPage — page loads', () => {
-  it('shows Approval Policies heading', async () => {
-    renderPage();
-    await waitFor(() => expect(screen.getByText('Approval Policies')).toBeInTheDocument());
-  });
+  describe('Given the page mounts', () => {
+    it('When the page loads, Then it shows the "Approval Policies" heading', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Approval Policies')).toBeInTheDocument());
+    });
 
-  it('shows New Policy button', async () => {
-    renderPage();
-    await waitFor(() => expect(screen.getByText('New Policy')).toBeInTheDocument());
-  });
+    it('When the page loads, Then it shows the "New Policy" button', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('New Policy')).toBeInTheDocument());
+    });
 
-  it('shows empty state message when no policies', async () => {
-    renderPage();
-    await waitFor(() => expect(screen.getByText(/no approval policies/i)).toBeInTheDocument());
-  });
+    it('When there are no policies, Then it shows the empty state message', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText(/no approval policies/i)).toBeInTheDocument());
+    });
 
-  it('back arrow navigates to /flow', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('Approval Policies'));
-    fireEvent.click(screen.getByTestId('icon-ArrowLeft').closest('button')!);
-    expect(mockNavigate).toHaveBeenCalledWith('/flow');
+    it('When the back arrow is clicked, Then it navigates to /flow', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('Approval Policies'));
+      fireEvent.click(screen.getByTestId('icon-ArrowLeft').closest('button')!);
+      expect(mockNavigate).toHaveBeenCalledWith('/flow');
+    });
   });
 });
 
 describe('ApprovalPoliciesPage — policy list', () => {
-  beforeEach(() => {
-    api.getApprovalPolicies.mockResolvedValue({ data: [samplePolicy] });
-  });
-
-  it('shows policy name', async () => {
-    renderPage();
-    await waitFor(() => expect(screen.getByText('Expense Approval')).toBeInTheDocument());
-  });
-
-  it('shows module name for the policy', async () => {
-    renderPage();
-    await waitFor(() => expect(screen.getByText(/accounting expense/i)).toBeInTheDocument());
-  });
-
-  it('shows SEQUENTIAL approval mode', async () => {
-    renderPage();
-    await waitFor(() => expect(screen.getByText(/sequential/i)).toBeInTheDocument());
-  });
-
-  it('shows step count', async () => {
-    renderPage();
-    await waitFor(() => expect(screen.getByText(/1 step/i)).toBeInTheDocument());
-  });
-
-  it('shows active indicator dot for active policy', async () => {
-    renderPage();
-    await waitFor(() => {
-      expect(screen.getByText('Expense Approval')).toBeInTheDocument();
+  describe('Given a policy exists in the list', () => {
+    beforeEach(() => {
+      api.getApprovalPolicies.mockResolvedValue({ data: [samplePolicy] });
     });
-  });
 
-  it('clicking expand shows rules message', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('Expense Approval'));
-    const policyNameEl = screen.getByText('Expense Approval');
-    fireEvent.click(policyNameEl);
-    await waitFor(() => {
-      expect(screen.getAllByText(/rules/i)[0]).toBeInTheDocument();
+    it('When the page loads, Then the policy name is displayed', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Expense Approval')).toBeInTheDocument());
+    });
+
+    it('When the page loads, Then the module name for the policy is shown', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText(/accounting expense/i)).toBeInTheDocument());
+    });
+
+    it('When the page loads, Then the SEQUENTIAL approval mode is shown', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText(/sequential/i)).toBeInTheDocument());
+    });
+
+    it('When the page loads, Then the step count is shown', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText(/1 step/i)).toBeInTheDocument());
+    });
+
+    it('When the page loads, Then the active indicator dot is visible for an active policy', async () => {
+      renderPage();
+      await waitFor(() => {
+        expect(screen.getByText('Expense Approval')).toBeInTheDocument();
+      });
+    });
+
+    it('When the policy name is clicked, Then the rules section expands', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('Expense Approval'));
+      const policyNameEl = screen.getByText('Expense Approval');
+      fireEvent.click(policyNameEl);
+      await waitFor(() => {
+        expect(screen.getAllByText(/rules/i)[0]).toBeInTheDocument();
+      });
     });
   });
 });
 
 describe('ApprovalPoliciesPage — create form', () => {
-  it('clicking New Policy shows the form', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => expect(screen.getByText('New Approval Policy')).toBeInTheDocument());
-  });
-
-  it('Policy Name input is present in form', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-    const nameInput = screen.getByPlaceholderText(/manager approval/i);
-    expect(nameInput).toBeInTheDocument();
-  });
-
-  it('Module select lists module options', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-    expect(screen.getByText('Procurement PR')).toBeInTheDocument();
-    expect(screen.getByText('Accounting Expense')).toBeInTheDocument();
-  });
-
-  it('selecting a module auto-sets entity_type (no crash)', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-    const moduleSelect = screen.getAllByRole('combobox')[0];
-    fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
-    expect(screen.getByText('New Approval Policy')).toBeInTheDocument();
-  });
-
-  it('Add Step adds a step row', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-    fireEvent.click(screen.getByText('Add Step'));
-    await waitFor(() => {
-      expect(screen.getByText(/Step 1/)).toBeInTheDocument();
+  describe('Given the "New Policy" button is clicked', () => {
+    it('When clicked, Then the create policy form is shown', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => expect(screen.getByText('New Approval Policy')).toBeInTheDocument());
     });
-  });
 
-  it('Add Condition adds a condition row (requires module selected first)', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-    // Select module first (required to enable Add Condition)
-    const moduleSelect = screen.getAllByRole('combobox')[0];
-    fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
-    fireEvent.click(screen.getByText('Add Condition'));
-    await waitFor(() => {
-      // value input appears after a condition row is added
-      expect(screen.getByPlaceholderText('value')).toBeInTheDocument();
+    it('When the form opens, Then the Policy Name input is present', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+      const nameInput = screen.getByPlaceholderText(/manager approval/i);
+      expect(nameInput).toBeInTheDocument();
     });
-  });
 
-  it('shows no conditions message initially', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => {
-      expect(screen.getByText(/no conditions — policy applies to all entities/i)).toBeInTheDocument();
+    it('When the form opens, Then the module select lists available module options', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+      expect(screen.getByText('Procurement PR')).toBeInTheDocument();
+      expect(screen.getByText('Accounting Expense')).toBeInTheDocument();
     });
-  });
 
-  it('Save Policy is disabled when name or module is empty', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-    const saveBtn = screen.getByText(/save policy/i).closest('button');
-    expect(saveBtn).toBeInTheDocument();
-    fireEvent.click(saveBtn!);
-    expect(api.createApprovalPolicy).not.toHaveBeenCalled();
-  });
-
-  it('fills form and saves a new policy', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-
-    const nameInput = screen.getByPlaceholderText(/manager approval/i);
-    fireEvent.change(nameInput, { target: { value: 'My Policy' } });
-
-    const moduleSelect = screen.getAllByRole('combobox')[0];
-    fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
-
-    fireEvent.click(screen.getByText('Add Step'));
-    await waitFor(() => screen.getByText(/Step 1/));
-
-    const saveBtn = screen.getByText(/save policy/i).closest('button');
-    fireEvent.click(saveBtn!);
-    await waitFor(() => {
-      expect(api.createApprovalPolicy).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'My Policy', entity_type: 'expense' })
-      );
+    it('When a module is selected, Then the entity_type is auto-set without crashing', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+      const moduleSelect = screen.getAllByRole('combobox')[0];
+      fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
+      expect(screen.getByText('New Approval Policy')).toBeInTheDocument();
     });
-  });
 
-  it('after save, form closes and policies are refreshed', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-
-    fireEvent.change(screen.getByPlaceholderText(/manager approval/i), { target: { value: 'My Policy' } });
-    const moduleSelect = screen.getAllByRole('combobox')[0];
-    fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
-    fireEvent.click(screen.getByText('Add Step'));
-    await waitFor(() => screen.getByText(/Step 1/));
-    fireEvent.click(screen.getByText(/save policy/i).closest('button')!);
-
-    await waitFor(() => {
-      expect(screen.queryByText('New Approval Policy')).not.toBeInTheDocument();
+    it('When "Add Step" is clicked, Then a new step row is added', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+      fireEvent.click(screen.getByText('Add Step'));
+      await waitFor(() => {
+        expect(screen.getByText(/Step 1/)).toBeInTheDocument();
+      });
     });
-    expect(api.getApprovalPolicies).toHaveBeenCalledTimes(2);
+
+    it('When a module is selected and "Add Condition" is clicked, Then a condition row appears', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+      // Select module first (required to enable Add Condition)
+      const moduleSelect = screen.getAllByRole('combobox')[0];
+      fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
+      fireEvent.click(screen.getByText('Add Condition'));
+      await waitFor(() => {
+        // value input appears after a condition row is added
+        expect(screen.getByPlaceholderText('value')).toBeInTheDocument();
+      });
+    });
+
+    it('When the form opens with no conditions, Then the empty conditions message is shown', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => {
+        expect(screen.getByText(/no conditions — policy applies to all entities/i)).toBeInTheDocument();
+      });
+    });
+
+    it('When Save Policy is clicked without filling in name or module, Then createApprovalPolicy is not called', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+      const saveBtn = screen.getByText(/save policy/i).closest('button');
+      expect(saveBtn).toBeInTheDocument();
+      fireEvent.click(saveBtn!);
+      expect(api.createApprovalPolicy).not.toHaveBeenCalled();
+    });
+
+    it('When the form is filled and Save is clicked, Then createApprovalPolicy is called with the correct args', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+
+      const nameInput = screen.getByPlaceholderText(/manager approval/i);
+      fireEvent.change(nameInput, { target: { value: 'My Policy' } });
+
+      const moduleSelect = screen.getAllByRole('combobox')[0];
+      fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
+
+      fireEvent.click(screen.getByText('Add Step'));
+      await waitFor(() => screen.getByText(/Step 1/));
+
+      const saveBtn = screen.getByText(/save policy/i).closest('button');
+      fireEvent.click(saveBtn!);
+      await waitFor(() => {
+        expect(api.createApprovalPolicy).toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'My Policy', entity_type: 'expense' })
+        );
+      });
+    });
+
+    it('When save completes, Then the form closes and policies are refreshed', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+
+      fireEvent.change(screen.getByPlaceholderText(/manager approval/i), { target: { value: 'My Policy' } });
+      const moduleSelect = screen.getAllByRole('combobox')[0];
+      fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
+      fireEvent.click(screen.getByText('Add Step'));
+      await waitFor(() => screen.getByText(/Step 1/));
+      fireEvent.click(screen.getByText(/save policy/i).closest('button')!);
+
+      await waitFor(() => {
+        expect(screen.queryByText('New Approval Policy')).not.toBeInTheDocument();
+      });
+      expect(api.getApprovalPolicies).toHaveBeenCalledTimes(2);
+    });
   });
 });
 
 describe('ApprovalPoliciesPage — condition manipulation', () => {
-  it('condition value input accepts text', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-    // Select module to enable Add Condition
-    const moduleSelect = screen.getAllByRole('combobox')[0];
-    fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
-    fireEvent.click(screen.getByText('Add Condition'));
-    await waitFor(() => screen.getByPlaceholderText('value'));
-    const valueInput = screen.getByPlaceholderText('value');
-    fireEvent.change(valueInput, { target: { value: '1000' } });
-    expect((valueInput as HTMLInputElement).value).toBe('1000');
-  });
+  describe('Given a condition row has been added', () => {
+    it('When the condition value input is edited, Then it reflects the new value', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+      // Select module to enable Add Condition
+      const moduleSelect = screen.getAllByRole('combobox')[0];
+      fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
+      fireEvent.click(screen.getByText('Add Condition'));
+      await waitFor(() => screen.getByPlaceholderText('value'));
+      const valueInput = screen.getByPlaceholderText('value');
+      fireEvent.change(valueInput, { target: { value: '1000' } });
+      expect((valueInput as HTMLInputElement).value).toBe('1000');
+    });
 
-  it('remove condition button removes the condition row', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-    const moduleSelect = screen.getAllByRole('combobox')[0];
-    fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
-    fireEvent.click(screen.getByText('Add Condition'));
-    await waitFor(() => screen.getByPlaceholderText('value'));
-    const removeBtn = screen.getAllByTestId('icon-Trash2')[0].closest('button')!;
-    fireEvent.click(removeBtn);
-    await waitFor(() => {
-      expect(screen.getByText(/no conditions — policy applies to all entities/i)).toBeInTheDocument();
+    it('When the remove condition button is clicked, Then the condition row is removed', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+      const moduleSelect = screen.getAllByRole('combobox')[0];
+      fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
+      fireEvent.click(screen.getByText('Add Condition'));
+      await waitFor(() => screen.getByPlaceholderText('value'));
+      const removeBtn = screen.getAllByTestId('icon-Trash2')[0].closest('button')!;
+      fireEvent.click(removeBtn);
+      await waitFor(() => {
+        expect(screen.getByText(/no conditions — policy applies to all entities/i)).toBeInTheDocument();
+      });
     });
   });
 });
 
 describe('ApprovalPoliciesPage — approval mode toggle', () => {
-  it('can switch to PARALLEL mode', async () => {
-    renderPage();
-    await waitFor(() => screen.getByText('New Policy'));
-    fireEvent.click(screen.getByText('New Policy'));
-    await waitFor(() => screen.getByText('New Approval Policy'));
-    const modeSelect = screen.getAllByRole('combobox').find(s =>
-      Array.from((s as HTMLSelectElement).options).some((o: any) => o.value === 'PARALLEL')
-    ) as HTMLSelectElement;
-    fireEvent.change(modeSelect, { target: { value: 'PARALLEL' } });
-    expect(modeSelect.value).toBe('PARALLEL');
+  describe('Given the create form is open', () => {
+    it('When the mode select is changed to PARALLEL, Then the value updates', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New Approval Policy'));
+      const modeSelect = screen.getAllByRole('combobox').find(s =>
+        Array.from((s as HTMLSelectElement).options).some((o: any) => o.value === 'PARALLEL')
+      ) as HTMLSelectElement;
+      fireEvent.change(modeSelect, { target: { value: 'PARALLEL' } });
+      expect(modeSelect.value).toBe('PARALLEL');
+    });
   });
 });
 
 describe('ApprovalPoliciesPage — API error handling', () => {
-  it('handles getApprovalPolicies error gracefully (shows empty list)', async () => {
-    api.getApprovalPolicies.mockRejectedValue(new Error('Network error'));
-    renderPage();
-    await waitFor(() => {
-      expect(screen.getByText(/no approval policies/i)).toBeInTheDocument();
+  describe('Given the API call to load policies fails', () => {
+    it('When getApprovalPolicies rejects, Then the empty list state is shown gracefully', async () => {
+      api.getApprovalPolicies.mockRejectedValue(new Error('Network error'));
+      renderPage();
+      await waitFor(() => {
+        expect(screen.getByText(/no approval policies/i)).toBeInTheDocument();
+      });
     });
   });
 });

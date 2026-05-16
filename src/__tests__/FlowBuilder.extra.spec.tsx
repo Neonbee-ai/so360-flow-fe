@@ -64,193 +64,207 @@ beforeEach(() => {
 });
 
 describe('FlowBuilder — module selector', () => {
-  it('shows module dropdown with options', () => {
-    renderNew();
-    expect(screen.getByText('CRM - Leads')).toBeInTheDocument();
-    expect(screen.getByText('CRM - Deals')).toBeInTheDocument();
-    expect(screen.getByText('Fulfillment - Orders')).toBeInTheDocument();
-  });
+  describe('Given a new flow is being created', () => {
+    it('When the component renders, Then the module dropdown contains expected options', () => {
+      renderNew();
+      expect(screen.getByText('CRM - Leads')).toBeInTheDocument();
+      expect(screen.getByText('CRM - Deals')).toBeInTheDocument();
+      expect(screen.getByText('Fulfillment - Orders')).toBeInTheDocument();
+    });
 
-  it('can select a module', () => {
-    renderNew();
-    const moduleSelect = screen.getByRole('combobox');
-    fireEvent.change(moduleSelect, { target: { value: 'module:crm:deal' } });
-    expect((moduleSelect as HTMLSelectElement).value).toBe('module:crm:deal');
+    it('When a module is selected, Then the dropdown value updates', () => {
+      renderNew();
+      const moduleSelect = screen.getByRole('combobox');
+      fireEvent.change(moduleSelect, { target: { value: 'module:crm:deal' } });
+      expect((moduleSelect as HTMLSelectElement).value).toBe('module:crm:deal');
+    });
   });
 });
 
 describe('FlowBuilder — name and description', () => {
-  it('name field is editable', () => {
-    renderNew();
-    const nameInput = screen.getByPlaceholderText(/lead approval flow/i);
-    fireEvent.change(nameInput, { target: { value: 'My New Flow' } });
-    expect((nameInput as HTMLInputElement).value).toBe('My New Flow');
-  });
+  describe('Given a new flow is being created', () => {
+    it('When the name field is edited, Then it reflects the new value', () => {
+      renderNew();
+      const nameInput = screen.getByPlaceholderText(/lead approval flow/i);
+      fireEvent.change(nameInput, { target: { value: 'My New Flow' } });
+      expect((nameInput as HTMLInputElement).value).toBe('My New Flow');
+    });
 
-  it('description field is editable', () => {
-    renderNew();
-    const descInput = screen.getByPlaceholderText(/describe this workflow/i);
-    fireEvent.change(descInput, { target: { value: 'A test flow' } });
-    expect((descInput as HTMLTextAreaElement).value).toBe('A test flow');
+    it('When the description field is edited, Then it reflects the new value', () => {
+      renderNew();
+      const descInput = screen.getByPlaceholderText(/describe this workflow/i);
+      fireEvent.change(descInput, { target: { value: 'A test flow' } });
+      expect((descInput as HTMLTextAreaElement).value).toBe('A test flow');
+    });
   });
 });
 
 describe('FlowBuilder — state management', () => {
-  it('first added state is marked as initial', () => {
-    renderNew();
-    fireEvent.click(screen.getByText('Add State'));
-    // is_initial checkbox should be checked for the first state
-    const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes.length).toBeGreaterThan(0);
-  });
+  describe('Given the user adds states to a new flow', () => {
+    it('When the first state is added, Then it is marked as initial', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add State'));
+      // is_initial checkbox should be checked for the first state
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes.length).toBeGreaterThan(0);
+    });
 
-  it('second added state is not initial', () => {
-    renderNew();
-    fireEvent.click(screen.getByText('Add State'));
-    fireEvent.click(screen.getByText('Add State'));
-    // Two state code inputs should exist
-    expect(screen.getAllByPlaceholderText('e.g., draft').length).toBe(2);
-  });
+    it('When two states are added, Then both state code inputs are present', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add State'));
+      fireEvent.click(screen.getByText('Add State'));
+      // Two state code inputs should exist
+      expect(screen.getAllByPlaceholderText('e.g., draft').length).toBe(2);
+    });
 
-  it('remove state button removes the state', () => {
-    renderNew();
-    fireEvent.click(screen.getByText('Add State'));
-    expect(screen.getAllByPlaceholderText('e.g., draft').length).toBe(1);
-    // Click the remove button (trash icon button in the state row)
-    const removeBtn = screen.getByTestId('icon-Trash2').closest('button')!;
-    fireEvent.click(removeBtn);
-    expect(screen.queryAllByPlaceholderText('e.g., draft').length).toBe(0);
-  });
+    it('When the remove button is clicked on a state, Then that state is removed', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add State'));
+      expect(screen.getAllByPlaceholderText('e.g., draft').length).toBe(1);
+      // Click the remove button (trash icon button in the state row)
+      const removeBtn = screen.getByTestId('icon-Trash2').closest('button')!;
+      fireEvent.click(removeBtn);
+      expect(screen.queryAllByPlaceholderText('e.g., draft').length).toBe(0);
+    });
 
-  it('state code input is editable', () => {
-    renderNew();
-    fireEvent.click(screen.getByText('Add State'));
-    const codeInput = screen.getByPlaceholderText('e.g., draft');
-    fireEvent.change(codeInput, { target: { value: 'approved' } });
-    expect((codeInput as HTMLInputElement).value).toBe('approved');
-  });
+    it('When the state code input is edited, Then it reflects the new value', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add State'));
+      const codeInput = screen.getByPlaceholderText('e.g., draft');
+      fireEvent.change(codeInput, { target: { value: 'approved' } });
+      expect((codeInput as HTMLInputElement).value).toBe('approved');
+    });
 
-  it('state name input is editable', () => {
-    renderNew();
-    fireEvent.click(screen.getByText('Add State'));
-    const nameInput = screen.getByPlaceholderText('e.g., Draft');
-    fireEvent.change(nameInput, { target: { value: 'Approved' } });
-    expect((nameInput as HTMLInputElement).value).toBe('Approved');
+    it('When the state name input is edited, Then it reflects the new value', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add State'));
+      const nameInput = screen.getByPlaceholderText('e.g., Draft');
+      fireEvent.change(nameInput, { target: { value: 'Approved' } });
+      expect((nameInput as HTMLInputElement).value).toBe('Approved');
+    });
   });
 });
 
 describe('FlowBuilder — transition management', () => {
-  it('add transition adds a row', () => {
-    renderNew();
-    fireEvent.click(screen.getByText('Add Transition'));
-    const codeInput = screen.getByPlaceholderText('e.g., submit');
-    expect(codeInput).toBeInTheDocument();
-  });
+  describe('Given the user adds transitions to a new flow', () => {
+    it('When "Add Transition" is clicked, Then a transition row appears', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add Transition'));
+      const codeInput = screen.getByPlaceholderText('e.g., submit');
+      expect(codeInput).toBeInTheDocument();
+    });
 
-  it('transition code is editable', () => {
-    renderNew();
-    fireEvent.click(screen.getByText('Add Transition'));
-    const codeInput = screen.getByPlaceholderText('e.g., submit');
-    fireEvent.change(codeInput, { target: { value: 'approve' } });
-    expect((codeInput as HTMLInputElement).value).toBe('approve');
-  });
+    it('When the transition code input is edited, Then it reflects the new value', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add Transition'));
+      const codeInput = screen.getByPlaceholderText('e.g., submit');
+      fireEvent.change(codeInput, { target: { value: 'approve' } });
+      expect((codeInput as HTMLInputElement).value).toBe('approve');
+    });
 
-  it('remove transition button removes it', () => {
-    renderNew();
-    fireEvent.click(screen.getByText('Add Transition'));
-    expect(screen.getByPlaceholderText('e.g., submit')).toBeInTheDocument();
-    const trashBtns = screen.getAllByTestId('icon-Trash2');
-    fireEvent.click(trashBtns[trashBtns.length - 1].closest('button')!);
-    expect(screen.queryByPlaceholderText('e.g., submit')).not.toBeInTheDocument();
+    it('When the remove transition button is clicked, Then the transition row is removed', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add Transition'));
+      expect(screen.getByPlaceholderText('e.g., submit')).toBeInTheDocument();
+      const trashBtns = screen.getAllByTestId('icon-Trash2');
+      fireEvent.click(trashBtns[trashBtns.length - 1].closest('button')!);
+      expect(screen.queryByPlaceholderText('e.g., submit')).not.toBeInTheDocument();
+    });
   });
 });
 
 describe('FlowBuilder — save new flow', () => {
-  it('save button enabled after name, module, and state added', async () => {
-    renderNew();
-    fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'module:crm:lead' } });
-    fireEvent.click(screen.getByText('Add State'));
-    const saveBtn = screen.getByText('Save Flow').closest('button');
-    expect(saveBtn).not.toBeDisabled();
-  });
+  describe('Given the name, module, and at least one state are filled in', () => {
+    it('When all required fields are complete, Then the Save Flow button is enabled', async () => {
+      renderNew();
+      fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
+      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'module:crm:lead' } });
+      fireEvent.click(screen.getByText('Add State'));
+      const saveBtn = screen.getByText('Save Flow').closest('button');
+      expect(saveBtn).not.toBeDisabled();
+    });
 
-  it('clicking Save creates a new flow and navigates to /flow', async () => {
-    renderNew();
-    fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'module:crm:lead' } });
-    fireEvent.click(screen.getByText('Add State'));
-    fireEvent.click(screen.getByText('Save Flow').closest('button')!);
-    await waitFor(() => {
-      expect(api.createFlowDefinition).toHaveBeenCalledWith(expect.objectContaining({ name: 'My Flow', module_code: 'module:crm:lead' }));
-      expect(mockNavigate).toHaveBeenCalledWith('/flow');
+    it('When Save is clicked, Then createFlowDefinition is called and the user is navigated to /flow', async () => {
+      renderNew();
+      fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
+      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'module:crm:lead' } });
+      fireEvent.click(screen.getByText('Add State'));
+      fireEvent.click(screen.getByText('Save Flow').closest('button')!);
+      await waitFor(() => {
+        expect(api.createFlowDefinition).toHaveBeenCalledWith(expect.objectContaining({ name: 'My Flow', module_code: 'module:crm:lead' }));
+        expect(mockNavigate).toHaveBeenCalledWith('/flow');
+      });
     });
   });
 });
 
 describe('FlowBuilder — save existing flow', () => {
-  it('clicking Save updates the existing flow', async () => {
-    renderExisting();
-    await waitFor(() => screen.getByDisplayValue('Existing Flow'));
-    fireEvent.click(screen.getByText('Save Flow').closest('button')!);
-    await waitFor(() => {
-      expect(api.updateFlowDefinition).toHaveBeenCalledWith('f1', expect.objectContaining({ name: 'Existing Flow' }));
+  describe('Given an existing flow is loaded', () => {
+    it('When Save is clicked, Then updateFlowDefinition is called with the flow id', async () => {
+      renderExisting();
+      await waitFor(() => screen.getByDisplayValue('Existing Flow'));
+      fireEvent.click(screen.getByText('Save Flow').closest('button')!);
+      await waitFor(() => {
+        expect(api.updateFlowDefinition).toHaveBeenCalledWith('f1', expect.objectContaining({ name: 'Existing Flow' }));
+      });
     });
-  });
 
-  it('after save navigates to /flow', async () => {
-    renderExisting();
-    await waitFor(() => screen.getByDisplayValue('Existing Flow'));
-    fireEvent.click(screen.getByText('Save Flow').closest('button')!);
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/flow');
+    it('When Save is clicked, Then the user is navigated to /flow', async () => {
+      renderExisting();
+      await waitFor(() => screen.getByDisplayValue('Existing Flow'));
+      fireEvent.click(screen.getByText('Save Flow').closest('button')!);
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/flow');
+      });
     });
-  });
 
-  it('shows existing states after loading', async () => {
-    renderExisting();
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('draft')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('review')).toBeInTheDocument();
+    it('When the flow loads, Then the existing states are shown', async () => {
+      renderExisting();
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('draft')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('review')).toBeInTheDocument();
+      });
     });
-  });
 
-  it('shows existing transition', async () => {
-    renderExisting();
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('submit')).toBeInTheDocument();
+    it('When the flow loads, Then the existing transition is shown', async () => {
+      renderExisting();
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('submit')).toBeInTheDocument();
+      });
     });
-  });
 
-  it('can add another state to existing flow', async () => {
-    renderExisting();
-    await waitFor(() => screen.getByDisplayValue('draft'));
-    const beforeCount = screen.getAllByPlaceholderText('e.g., draft').length;
-    fireEvent.click(screen.getByText('Add State'));
-    expect(screen.getAllByPlaceholderText('e.g., draft').length).toBe(beforeCount + 1);
-  });
+    it('When a new state is added to an existing flow, Then the state count increases', async () => {
+      renderExisting();
+      await waitFor(() => screen.getByDisplayValue('draft'));
+      const beforeCount = screen.getAllByPlaceholderText('e.g., draft').length;
+      fireEvent.click(screen.getByText('Add State'));
+      expect(screen.getAllByPlaceholderText('e.g., draft').length).toBe(beforeCount + 1);
+    });
 
-  it('removing a state also removes transitions involving it', async () => {
-    renderExisting();
-    await waitFor(() => screen.getByDisplayValue('draft'));
-    // Remove the 'draft' state (first remove button)
-    const trashBtns = screen.getAllByTestId('icon-Trash2');
-    fireEvent.click(trashBtns[0].closest('button')!);
-    // The 'submit' transition from 'draft' should be removed too
-    await waitFor(() => {
-      expect(screen.queryByDisplayValue('submit')).not.toBeInTheDocument();
+    it('When a state is removed, Then transitions that reference it are also removed', async () => {
+      renderExisting();
+      await waitFor(() => screen.getByDisplayValue('draft'));
+      // Remove the 'draft' state (first remove button)
+      const trashBtns = screen.getAllByTestId('icon-Trash2');
+      fireEvent.click(trashBtns[0].closest('button')!);
+      // The 'submit' transition from 'draft' should be removed too
+      await waitFor(() => {
+        expect(screen.queryByDisplayValue('submit')).not.toBeInTheDocument();
+      });
     });
   });
 });
 
 describe('FlowBuilder — save button state label', () => {
-  it('shows "Saving..." while save is in progress', async () => {
-    api.createFlowDefinition.mockImplementation(() => new Promise(res => setTimeout(res, 500)));
-    renderNew();
-    fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'module:crm:lead' } });
-    fireEvent.click(screen.getByText('Add State'));
-    fireEvent.click(screen.getByText('Save Flow').closest('button')!);
-    expect(screen.getByText('Saving...')).toBeInTheDocument();
+  describe('Given a save is initiated', () => {
+    it('When the save is in progress, Then the button shows "Saving..."', async () => {
+      api.createFlowDefinition.mockImplementation(() => new Promise(res => setTimeout(res, 500)));
+      renderNew();
+      fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
+      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'module:crm:lead' } });
+      fireEvent.click(screen.getByText('Add State'));
+      fireEvent.click(screen.getByText('Save Flow').closest('button')!);
+      expect(screen.getByText('Saving...')).toBeInTheDocument();
+    });
   });
 });
