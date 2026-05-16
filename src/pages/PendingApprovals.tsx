@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle, UserPlus, AlertTriangle, X } from 'lucide-react';
+import { useActivity } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { PendingApproval } from '../types/flow';
 
@@ -13,6 +14,7 @@ interface ModalState {
 
 export const PendingApprovals: React.FC = () => {
     const navigate = useNavigate();
+    const { recordActivity } = useActivity();
     const [approvals, setApprovals] = useState<PendingApproval[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -58,6 +60,13 @@ export const PendingApprovals: React.FC = () => {
                 action: 'APPROVE',
                 comment: comment || 'Approved',
             });
+            recordActivity({
+                eventType: 'approval.approved',
+                eventCategory: 'data',
+                description: `Approved ${modal.approval.entity_type} #${modal.approval.entity_id.slice(0, 8)}`,
+                resourceType: 'approval',
+                resourceId: modal.approval.id,
+            }).catch(() => {});
             closeModal();
             await fetchPendingApprovals();
         } catch (err: any) {
@@ -77,6 +86,13 @@ export const PendingApprovals: React.FC = () => {
                 action: 'REJECT',
                 comment,
             });
+            recordActivity({
+                eventType: 'approval.rejected',
+                eventCategory: 'data',
+                description: `Rejected ${modal.approval.entity_type} #${modal.approval.entity_id.slice(0, 8)}`,
+                resourceType: 'approval',
+                resourceId: modal.approval.id,
+            }).catch(() => {});
             closeModal();
             await fetchPendingApprovals();
         } catch (err: any) {
