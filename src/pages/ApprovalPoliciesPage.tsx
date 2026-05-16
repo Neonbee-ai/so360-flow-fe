@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, ChevronDown, ChevronUp, ArrowLeft, Save, Edit2, Power, FlaskConical, GripVertical, X } from 'lucide-react';
+import { useActivity } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import { RoleSelector } from '../components/RoleSelector';
 
@@ -95,6 +96,7 @@ function buildConditionExpression(conditions: ConditionClause[]): any {
 
 export const ApprovalPoliciesPage = () => {
     const navigate = useNavigate();
+    const { recordActivity } = useActivity();
     const [policies, setPolicies] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -161,6 +163,13 @@ export const ApprovalPoliciesPage = () => {
         try {
             if (editingId) {
                 await flowApi.updatePolicy(editingId, { name: form.name, priority: form.priority, is_active: form.is_active });
+                recordActivity({
+                    eventType: 'approval_policy.updated',
+                    eventCategory: 'data',
+                    description: `Updated approval policy "${form.name}"`,
+                    resourceType: 'approval_policy',
+                    resourceId: editingId,
+                }).catch(() => {});
             } else {
                 const policy = await flowApi.createApprovalPolicy({ entity_type: form.entity_type, name: form.name, priority: form.priority });
                 const rule = await flowApi.createApprovalRule(policy.data.id, {
@@ -175,6 +184,13 @@ export const ApprovalPoliciesPage = () => {
                         escalation_role: step.escalation_role,
                     });
                 }
+                recordActivity({
+                    eventType: 'approval_policy.created',
+                    eventCategory: 'data',
+                    description: `Created approval policy "${form.name}"`,
+                    resourceType: 'approval_policy',
+                    resourceId: policy.data.id,
+                }).catch(() => {});
             }
             setShowForm(false); setEditingId(null); setForm(defaultPolicy());
             await loadPolicies();
