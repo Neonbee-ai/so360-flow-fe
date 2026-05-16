@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
+import { useActivity } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
@@ -8,6 +9,7 @@ export const FlowBuilder = () => {
     const { flowId } = useParams<{ flowId: string }>();
     const navigate = useNavigate();
     const isNew = flowId === 'new';
+    const { recordActivity } = useActivity();
 
     const [loading, setLoading] = useState(!isNew);
     const [saving, setSaving] = useState(false);
@@ -69,9 +71,23 @@ export const FlowBuilder = () => {
             };
 
             if (isNew) {
-                await flowApi.createFlowDefinition(data);
+                const created = await flowApi.createFlowDefinition(data);
+                recordActivity({
+                    eventType: 'flow.created',
+                    eventCategory: 'system',
+                    description: `Created flow "${name}"`,
+                    resourceType: 'flow',
+                    resourceId: created.data?.id,
+                }).catch(() => {});
             } else {
                 await flowApi.updateFlowDefinition(flowId!, data);
+                recordActivity({
+                    eventType: 'flow.updated',
+                    eventCategory: 'system',
+                    description: `Updated flow "${name}"`,
+                    resourceType: 'flow',
+                    resourceId: flowId!,
+                }).catch(() => {});
             }
 
             navigate('/flow');
