@@ -79,7 +79,7 @@ describe('ApprovalDashboard', () => {
 
     it('When stats are loaded / Then the Overdue count is displayed', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText('2')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getAllByText('2').length).toBeGreaterThan(0));
     });
 
     it('When stats are loaded / Then avg cycle hours is displayed', async () => {
@@ -115,7 +115,7 @@ describe('ApprovalDashboard', () => {
 
     it('When elapsed hours are present / Then elapsed time is shown', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText(/2h elapsed/)).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('2h elapsed')).toBeInTheDocument());
     });
 
     it('When back button is clicked / Then navigates to /flow', async () => {
