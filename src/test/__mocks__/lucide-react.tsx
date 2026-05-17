@@ -50,7 +50,6 @@ export const Square = createIcon('Square');
 export const DollarSign = createIcon('DollarSign');
 export const BarChart3 = createIcon('BarChart3');
 export const BarChart2 = createIcon('BarChart2');
-export const BarChart2 = createIcon('BarChart2');
 export const BookOpen = createIcon('BookOpen');
 export const FileText = createIcon('FileText');
 export const Receipt = createIcon('Receipt');
