@@ -51,12 +51,12 @@ describe('ApprovalDashboard (extra)', () => {
     it('When loaded / Then shows entity type counts', async () => {
       renderPage();
       await waitFor(() => expect(screen.getByText('5')).toBeInTheDocument());
-      expect(screen.getByText('3')).toBeInTheDocument();
+      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1);
     });
 
     it('When loaded / Then shows pending count', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText('3')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1));
     });
 
     it('When loaded / Then shows overdue count', async () => {

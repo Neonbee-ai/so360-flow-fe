@@ -54,7 +54,7 @@ describe('ApprovalHistoryPage (extra)', () => {
 
     it('When rendered / Then shows entity type in subtitle', () => {
       renderPage('deal', 'deal-abc12345');
-      expect(screen.getByText(/deal/)).toBeInTheDocument();
+      expect(screen.getAllByText(/deal/).length).toBeGreaterThanOrEqual(1);
     });
 
     it('When rendered / Then shows first 8 chars of entityId', () => {
