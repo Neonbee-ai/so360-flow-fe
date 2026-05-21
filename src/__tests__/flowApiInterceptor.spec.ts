@@ -13,6 +13,7 @@ vi.mock('axios', () => {
           interceptorCallback = cb;
         }),
       },
+      response: { use: vi.fn() },
     },
   };
   return { default: { create: vi.fn(() => mockAxiosInstance) } };
