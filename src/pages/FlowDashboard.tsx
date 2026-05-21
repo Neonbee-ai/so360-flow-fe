@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Workflow } from 'lucide-react';
+import { useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition } from '../types/flow';
 
 export const FlowDashboard = () => {
     const navigate = useNavigate();
+    const shell = useShellBridge();
+    const canCreateFlow = shell?.isFeatureEnabled?.('action:flow:definitions:create') ?? true;
+    const canStartInstance = shell?.isFeatureEnabled?.('action:flow:instances:start') ?? true;
+    const canAccessBuilder = shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true;
+    const canAccessPolicies = shell?.isFeatureEnabled?.('submodule:flow:approval_policies') ?? true;
     const [flows, setFlows] = useState<FlowDefinition[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedModule, setSelectedModule] = useState<string>('');
@@ -76,25 +82,29 @@ export const FlowDashboard = () => {
                         >
                             Pending Approvals
                         </button>
-                        <button
-                            onClick={() => navigate('/flow/approvals/policies')}
-                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
-                        >
-                            Approval Policies
-                        </button>
+                        {canAccessPolicies && (
+                            <button
+                                onClick={() => navigate('/flow/approvals/policies')}
+                                className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                            >
+                                Approval Policies
+                            </button>
+                        )}
                         <button
                             onClick={() => navigate('/flow/instances')}
                             className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
                         >
                             View Instances
                         </button>
-                        <button
-                            onClick={() => navigate('/flow/builder/new')}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                        >
-                            <Plus className="w-5 h-5" />
-                            New Flow
-                        </button>
+                        {canCreateFlow && (
+                            <button
+                                onClick={() => navigate('/flow/builder/new')}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                            >
+                                <Plus className="w-5 h-5" />
+                                New Flow
+                            </button>
+                        )}
                     </div>
                 </div>
 

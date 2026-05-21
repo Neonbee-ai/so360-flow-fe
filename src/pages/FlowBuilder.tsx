@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
-import { useActivity } from '@so360/shell-context';
+import { useActivity, useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
@@ -10,6 +10,8 @@ export const FlowBuilder = () => {
     const navigate = useNavigate();
     const isNew = flowId === 'new';
     const { recordActivity } = useActivity();
+    const shell = useShellBridge();
+    const canAccessBuilder = shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true;
 
     const [loading, setLoading] = useState(!isNew);
     const [saving, setSaving] = useState(false);
@@ -135,6 +137,17 @@ export const FlowBuilder = () => {
     const removeTransition = (index: number) => {
         setTransitions(transitions.filter((_, i) => i !== index));
     };
+
+    if (!canAccessBuilder) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-slate-400 font-medium">Workflow Builder</p>
+                    <p className="text-sm text-slate-500 mt-1">This feature is not available on your current plan.</p>
+                </div>
+            </div>
+        );
+    }
 
     if (loading) {
         return (

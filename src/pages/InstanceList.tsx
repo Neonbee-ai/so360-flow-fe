@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Eye, CheckCircle, Clock, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { QuotaBar, QuotaGate } from '@so360/design-system';
+import { useQuota, useShell } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowInstance, FlowDefinition } from '../types/flow';
 
@@ -10,6 +12,13 @@ type StatusFilter = 'all' | 'active' | 'completed' | 'cancelled' | 'suspended';
 
 export const InstanceList = () => {
     const navigate = useNavigate();
+    const { currentOrg } = useShell();
+    const quotaChecks = useMemo(() => [{ module_code: 'flow', quota_key: 'max_flows' }], []);
+    const { getQuota, isExceeded } = useQuota({
+        checks: quotaChecks,
+        orgId: currentOrg?.id || '',
+    });
+    const quotaData = getQuota('max_flows');
     const [instances, setInstances] = useState<FlowInstance[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -95,6 +104,15 @@ export const InstanceList = () => {
                         </button>
                     </div>
                 </div>
+
+                {quotaData && (
+                    <QuotaBar
+                        label="Flows"
+                        used={quotaData.current_usage}
+                        limit={quotaData.limit}
+                        isUnlimited={quotaData.is_unlimited}
+                    />
+                )}
 
                 {/* Filters */}
                 <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 mb-6">

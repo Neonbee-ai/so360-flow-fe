@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle, UserPlus, AlertTriangle, X } from 'lucide-react';
-import { useActivity } from '@so360/shell-context';
+import { useActivity, useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { PendingApproval } from '../types/flow';
 
@@ -15,6 +15,8 @@ interface ModalState {
 export const PendingApprovals: React.FC = () => {
     const navigate = useNavigate();
     const { recordActivity } = useActivity();
+    const shell = useShellBridge();
+    const canApprovalAction = shell?.isFeatureEnabled?.('action:flow:approval:action') ?? true;
     const [approvals, setApprovals] = useState<PendingApproval[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -287,22 +289,24 @@ export const PendingApprovals: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-3">
-                                <button onClick={() => openModal('approve', approval)} disabled={actionInProgress === approval.id}
-                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
-                                    <CheckCircle className="w-4 h-4" /> Approve
-                                </button>
-                                <button onClick={() => openModal('reject', approval)} disabled={actionInProgress === approval.id}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
-                                    <XCircle className="w-4 h-4" /> Reject
-                                </button>
-                                {approval.current_step?.can_delegate && (
-                                    <button onClick={() => openModal('delegate', approval)} disabled={actionInProgress === approval.id}
-                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
-                                        <UserPlus className="w-4 h-4" /> Delegate
+                            {canApprovalAction && (
+                                <div className="flex items-center gap-3">
+                                    <button onClick={() => openModal('approve', approval)} disabled={actionInProgress === approval.id}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
+                                        <CheckCircle className="w-4 h-4" /> Approve
                                     </button>
-                                )}
-                            </div>
+                                    <button onClick={() => openModal('reject', approval)} disabled={actionInProgress === approval.id}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
+                                        <XCircle className="w-4 h-4" /> Reject
+                                    </button>
+                                    {approval.current_step?.can_delegate && (
+                                        <button onClick={() => openModal('delegate', approval)} disabled={actionInProgress === approval.id}
+                                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
+                                            <UserPlus className="w-4 h-4" /> Delegate
+                                        </button>
+                                    )}
+                                </div>
+                            )}
 
                             {approval.is_overdue && (
                                 <div className="mt-4 flex items-start gap-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">

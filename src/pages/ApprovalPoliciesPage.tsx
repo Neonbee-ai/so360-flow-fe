@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, ChevronDown, ChevronUp, ArrowLeft, Save, Edit2, Power, FlaskConical, GripVertical, X } from 'lucide-react';
-import { useActivity } from '@so360/shell-context';
+import { useActivity, useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import { RoleSelector } from '../components/RoleSelector';
 
@@ -97,6 +97,9 @@ function buildConditionExpression(conditions: ConditionClause[]): any {
 export const ApprovalPoliciesPage = () => {
     const navigate = useNavigate();
     const { recordActivity } = useActivity();
+    const shell = useShellBridge();
+    const canAccessPolicies = shell?.isFeatureEnabled?.('submodule:flow:approval_policies') ?? true;
+    const canSimulate = shell?.isFeatureEnabled?.('action:flow:approval:simulate') ?? true;
     const [policies, setPolicies] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -218,6 +221,17 @@ export const ApprovalPoliciesPage = () => {
             setSimModal({ policyId, result: { error: err.message } });
         } finally { setSimLoading(false); }
     };
+
+    if (!canAccessPolicies) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-slate-400 font-medium">Approval Policies</p>
+                    <p className="text-sm text-slate-500 mt-1">This feature is not available on your current plan.</p>
+                </div>
+            </div>
+        );
+    }
 
     if (loading) return (
         <div className="flex items-center justify-center h-screen bg-slate-950">
@@ -479,10 +493,12 @@ export const ApprovalPoliciesPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => { setSimInput('{}'); setSimModal({ policyId: policy.id, result: null }); }}
-                                        title="Test policy" className="p-1.5 text-slate-400 hover:text-blue-400">
-                                        <FlaskConical className="w-4 h-4" />
-                                    </button>
+                                    {canSimulate && (
+                                        <button onClick={() => { setSimInput('{}'); setSimModal({ policyId: policy.id, result: null }); }}
+                                            title="Test policy" className="p-1.5 text-slate-400 hover:text-blue-400">
+                                            <FlaskConical className="w-4 h-4" />
+                                        </button>
+                                    )}
                                     <button onClick={() => startEdit(policy)} title="Edit policy" className="p-1.5 text-slate-400 hover:text-slate-100">
                                         <Edit2 className="w-4 h-4" />
                                     </button>
