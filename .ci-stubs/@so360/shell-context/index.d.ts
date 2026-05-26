@@ -4,3 +4,5 @@ export const eventBus: any;
 export const useActivity: any;
 declare const _: any;
 export default _;
+export const useSandboxLimit: any;
+export const useQuota: any;
