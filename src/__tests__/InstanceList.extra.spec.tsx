@@ -18,6 +18,8 @@ vi.mock('../services/flowApi', () => ({
 
 vi.mock('@so360/shell-context', () => ({
   useSandboxLimit: () => ({ isSandboxMode: false, sandboxEntryLimit: 5, limitItems: (items: any[]) => items, isLimited: () => false }),
+  useShell: () => ({ currentOrg: { id: 'org-1' } }),
+  useQuota: () => ({ isExceeded: () => false, getQuota: () => null }),
 }));
 
 import { InstanceList } from '../pages/InstanceList';
