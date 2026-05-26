@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Eye, CheckCircle, Clock, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { QuotaBar, QuotaGate } from '@so360/design-system';
-import { useQuota, useShell } from '@so360/shell-context';
+import { useQuota, useShell, useSandboxLimit } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowInstance, FlowDefinition } from '../types/flow';
 
@@ -19,6 +19,7 @@ export const InstanceList = () => {
         orgId: currentOrg?.id || '',
     });
     const quotaData = getQuota('max_flows');
+    const { isSandboxMode, sandboxEntryLimit, limitItems, isLimited } = useSandboxLimit();
     const [instances, setInstances] = useState<FlowInstance[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -112,6 +113,13 @@ export const InstanceList = () => {
                         limit={quotaData.limit}
                         isUnlimited={quotaData.is_unlimited}
                     />
+                )}
+
+                {isSandboxMode && isLimited(total) && (
+                    <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border border-amber-500/25 rounded-lg text-amber-400 text-sm">
+                        <span className="font-semibold">Sandbox:</span>
+                        <span>Showing {sandboxEntryLimit} of {total} records. Switch to Production to view all.</span>
+                    </div>
                 )}
 
                 {/* Filters */}
@@ -214,7 +222,7 @@ export const InstanceList = () => {
                 ) : (
                     <>
                         <div className="grid grid-cols-1 gap-4">
-                            {instances.map((instance) => {
+                            {(isSandboxMode ? instances.slice(0, sandboxEntryLimit) : instances).map((instance) => {
                                 const flowDef = instance.flows as unknown as FlowDefinition;
                                 const completed = isCompleted(instance);
 
