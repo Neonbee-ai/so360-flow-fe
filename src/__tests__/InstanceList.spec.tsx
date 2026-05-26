@@ -14,6 +14,10 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
+vi.mock('@so360/shell-context', () => ({
+  useSandboxLimit: () => ({ isSandboxMode: false, sandboxEntryLimit: 5, limitItems: (items: any[]) => items, isLimited: () => false }),
+}));
+
 import { InstanceList } from '../pages/InstanceList';
 import { flowApi } from '../services/flowApi';
 
