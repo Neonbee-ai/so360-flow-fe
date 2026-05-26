@@ -13,7 +13,7 @@ vi.mock('axios', () => {
     put: vi.fn(),
     patch: vi.fn(),
     delete: vi.fn(),
-    interceptors: { request: { use: vi.fn() } },
+    interceptors: { request: { use: vi.fn() }, response: { use: vi.fn() } },
   };
   return { default: { create: vi.fn(() => mockAxiosInstance) } };
 });
