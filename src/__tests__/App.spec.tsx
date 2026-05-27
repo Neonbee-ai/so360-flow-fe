@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+
+let mockShellBridge: any = { isFeatureHidden: () => false };
+
+vi.mock('@so360/shell-context', () => ({
+  useShellBridge: () => mockShellBridge,
+}));
 
 vi.mock('../utils/initializeMfe', () => ({
   MfeShellInitializer: ({ children }: any) => <div data-testid="mfe-init">{children}</div>,
@@ -30,7 +36,10 @@ vi.mock('../pages/FlowSimulatorPage', () => ({
 
 import App from '../App';
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  mockShellBridge = { isFeatureHidden: () => false };
+});
 
 describe('App', () => {
   describe('Given the MFE shell is initialized', () => {
@@ -72,6 +81,50 @@ describe('App', () => {
     it('When navigating to an unknown route / Then it redirects to FlowDashboard', () => {
       render(<MemoryRouter initialEntries={['/nonexistent']}><App /></MemoryRouter>);
       expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
+    });
+  });
+
+  describe('Given FlagGuard on advanced-flow routes', () => {
+    describe('When submodule:flow:advanced is NOT hidden', () => {
+      it('When navigating to /instance/:id / Then InstanceViewer is rendered', () => {
+        mockShellBridge = { isFeatureHidden: () => false };
+        render(<MemoryRouter initialEntries={['/instance/i1']}><App /></MemoryRouter>);
+        expect(screen.getByText('InstanceViewer')).toBeInTheDocument();
+      });
+
+      it('When navigating to /instances / Then InstanceList is rendered', () => {
+        mockShellBridge = { isFeatureHidden: () => false };
+        render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
+        expect(screen.getByText('InstanceList')).toBeInTheDocument();
+      });
+    });
+
+    describe('When submodule:flow:advanced IS hidden', () => {
+      it('When navigating to /instance/:id / Then redirects to FlowDashboard', async () => {
+        mockShellBridge = { isFeatureHidden: (key: string) => key === 'submodule:flow:advanced' };
+        render(<MemoryRouter initialEntries={['/instance/i1']}><App /></MemoryRouter>);
+        await waitFor(() => {
+          expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
+          expect(screen.queryByText('InstanceViewer')).not.toBeInTheDocument();
+        });
+      });
+
+      it('When navigating to /instances / Then redirects to FlowDashboard', async () => {
+        mockShellBridge = { isFeatureHidden: (key: string) => key === 'submodule:flow:advanced' };
+        render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
+        await waitFor(() => {
+          expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
+          expect(screen.queryByText('InstanceList')).not.toBeInTheDocument();
+        });
+      });
+    });
+
+    describe('When shell bridge is not yet available (null)', () => {
+      it('When navigating to /instance/:id / Then renders nothing (FlagGuard returns null while shell loads)', () => {
+        mockShellBridge = null;
+        render(<MemoryRouter initialEntries={['/instance/i1']}><App /></MemoryRouter>);
+        expect(screen.queryByText('InstanceViewer')).not.toBeInTheDocument();
+      });
     });
   });
 });
