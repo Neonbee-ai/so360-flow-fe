@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useShellBridge } from '@so360/shell-context';
+import { FeatureRoute } from '@so360/design-system';
 import { MfeShellInitializer } from './utils/initializeMfe';
 import { FlowDashboard } from './pages/FlowDashboard';
 import { FlowBuilder } from './pages/FlowBuilder';
@@ -13,16 +14,50 @@ import { ApprovalHistoryPage } from './pages/ApprovalHistoryPage';
 import { ApprovalDashboard } from './pages/ApprovalDashboard';
 import './index.css';
 
-// Guards a route behind a feature flag — redirects to Flow designer when hidden
+// Route-level upgrade prompt shown when a feature is `locked` (a higher plan unlocks it).
+const UpgradeLocked = () => {
+    const navigate = useNavigate();
+    return (
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-center px-6">
+            <div>
+                <h2 className="text-lg font-semibold text-slate-100">This feature is part of a higher plan</h2>
+                <p className="text-sm text-slate-400 mt-1">Upgrade your plan to unlock it.</p>
+            </div>
+            <button
+                type="button"
+                onClick={() => navigate('/org/billing')}
+                className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
+            >
+                Upgrade plan
+            </button>
+        </div>
+    );
+};
+
+// Route-level panel shown when a feature is `disabled` (admin turned it off — no upgrade path).
+const FeatureUnavailable = () => (
+    <div className="flex flex-col items-center justify-center min-h-[400px] gap-2 text-center px-6">
+        <h2 className="text-lg font-semibold text-slate-100">Feature unavailable</h2>
+        <p className="text-sm text-slate-400">This feature has been turned off for your organization.</p>
+    </div>
+);
+
+// Guards a route on the resolved 5-state model via the shared FeatureRoute:
+// enabled→render · read_only→inert · locked→upgrade prompt · disabled→unavailable · hidden→redirect.
 const FlagGuard = ({ flagKey, children }: { flagKey: string; children: React.ReactNode }) => {
     const shell = useShellBridge();
-    const navigate = useNavigate();
-    const hidden = shell?.isFeatureHidden ? shell.isFeatureHidden(flagKey) : false;
-    useEffect(() => {
-        if (shell && hidden) navigate('/', { replace: true });
-    }, [hidden, shell, navigate]);
-    if (!shell || hidden) return null;
-    return <>{children}</>;
+    if (!shell) return null;
+    const state = shell.getFeatureState ? shell.getFeatureState(flagKey) : 'enabled';
+    return (
+        <FeatureRoute
+            state={state}
+            hiddenFallback={<Navigate to="/" replace />}
+            lockedFallback={<UpgradeLocked />}
+            disabledFallback={<FeatureUnavailable />}
+        >
+            {children}
+        </FeatureRoute>
+    );
 };
 
 function App() {
