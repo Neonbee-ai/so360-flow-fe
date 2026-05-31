@@ -258,6 +258,7 @@ describe('FlowBuilder — save existing flow', () => {
 describe('FlowBuilder — save button state label', () => {
   describe('Given a save is initiated', () => {
     it('When the save is in progress, Then the button shows "Saving..."', async () => {
+      vi.useFakeTimers();
       api.createFlowDefinition.mockImplementation(() => new Promise(res => setTimeout(res, 500)));
       renderNew();
       fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
@@ -265,6 +266,9 @@ describe('FlowBuilder — save button state label', () => {
       fireEvent.click(screen.getByText('Add State'));
       fireEvent.click(screen.getByText('Save Flow').closest('button')!);
       expect(screen.getByText('Saving...')).toBeInTheDocument();
+      // Advance all timers to drain the pending promise and prevent async leak after teardown
+      await vi.runAllTimersAsync();
+      vi.useRealTimers();
     });
   });
 });

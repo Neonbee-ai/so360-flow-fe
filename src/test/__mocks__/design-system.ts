@@ -7,3 +7,9 @@ export const Card = ({ children, ...rest }: any) => React.createElement('div', r
 export const Badge = ({ children, ...rest }: any) => React.createElement('span', rest, children);
 export const Spinner = () => React.createElement('div', { 'data-testid': 'spinner' }, 'Loading...');
 export const Tooltip = ({ children }: any) => React.createElement('span', null, children);
+export const FeatureRoute = ({ children, state, hiddenFallback, lockedFallback, disabledFallback }: any) => {
+  if (state === 'hidden') return hiddenFallback ?? null;
+  if (state === 'locked') return lockedFallback ?? null;
+  if (state === 'disabled') return disabledFallback ?? null;
+  return children;
+};
