@@ -170,11 +170,11 @@ export const FlowSimulatorPage = () => {
                                         style={{
                                             backgroundColor: state.code === currentState
                                                 ? (state.color + '44') || '#3b82f644'
-                                                : 'rgb(30 41 59 / 0.5)',
+                                                : 'rgb(var(--s-800) / 0.5)',
                                             border: state.code === currentState
                                                 ? `2px solid ${state.color || '#3b82f6'}`
-                                                : '2px solid rgb(51 65 85)',
-                                            color: state.code === currentState ? (state.color || '#3b82f6') : 'rgb(148 163 184)',
+                                                : '2px solid rgb(var(--s-700))',
+                                            color: state.code === currentState ? (state.color || '#3b82f6') : 'rgb(var(--s-400))',
                                         }}
                                     >
                                         {state.code === currentState && <div className="w-2 h-2 rounded-full bg-current animate-pulse" />}

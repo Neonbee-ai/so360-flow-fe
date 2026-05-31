@@ -231,7 +231,7 @@ export const InstanceViewer = () => {
                                     key={transition.code}
                                     onClick={() => handleTransition(transition.code, transition.name)}
                                     disabled={transitioning}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-slate-50 rounded-lg font-medium transition-colors flex items-center gap-2"
                                 >
                                     {transition.name}
                                     {transition.requires_approval && (

@@ -292,16 +292,16 @@ export const PendingApprovals: React.FC = () => {
                             {canApprovalAction && (
                                 <div className="flex items-center gap-3">
                                     <button onClick={() => openModal('approve', approval)} disabled={actionInProgress === approval.id}
-                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 text-slate-50 rounded-lg font-medium">
                                         <CheckCircle className="w-4 h-4" /> Approve
                                     </button>
                                     <button onClick={() => openModal('reject', approval)} disabled={actionInProgress === approval.id}
-                                        className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-slate-50 rounded-lg font-medium">
                                         <XCircle className="w-4 h-4" /> Reject
                                     </button>
                                     {approval.current_step?.can_delegate && (
                                         <button onClick={() => openModal('delegate', approval)} disabled={actionInProgress === approval.id}
-                                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
+                                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-slate-50 rounded-lg font-medium">
                                             <UserPlus className="w-4 h-4" /> Delegate
                                         </button>
                                     )}
