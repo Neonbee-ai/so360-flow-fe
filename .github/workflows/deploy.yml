@@ -2,7 +2,7 @@ name: Deploy Flow Frontend
 
 on:
   push:
-    branches: [main]
+    branches: [develop, qa]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
