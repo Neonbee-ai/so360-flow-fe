@@ -16,6 +16,16 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
+let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+vi.mock('@so360/shell-context', async () => {
+  const actual = await vi.importActual('@so360/shell-context');
+  return {
+    ...actual,
+    useShellBridge: () => mockShellBridgeValue,
+    useActivity: () => ({ recordActivity: async () => {} }),
+  };
+});
+
 import { FlowBuilder } from '../pages/FlowBuilder';
 import { flowApi } from '../services/flowApi';
 
@@ -47,7 +57,10 @@ const renderExisting = () => {
   );
 };
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+});
 
 describe('FlowBuilder', () => {
   describe('Given a new flow is being created', () => {
@@ -97,6 +110,41 @@ describe('FlowBuilder', () => {
       await waitFor(() => expect(screen.getByText('Back to Flows')).toBeInTheDocument());
       fireEvent.click(screen.getByText('Back to Flows'));
       expect(mockNavigate).toHaveBeenCalledWith('/flow');
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is false (flags not yet resolved)', () => {
+    beforeEach(() => {
+      mockShellBridgeValue = { effectiveFlagsLoaded: false, isFeatureEnabled: () => true };
+    });
+
+    it('When flags are not loaded / Then the "not available" notice is shown instead of the builder', () => {
+      renderNew();
+      expect(screen.getByText('Workflow Builder')).toBeInTheDocument();
+      expect(screen.getByText(/This feature is not available on your current plan/i)).toBeInTheDocument();
+      expect(screen.queryByText('Flow Information')).not.toBeInTheDocument();
+    });
+
+    it('When flags are not loaded / Then the Save Flow button is absent', () => {
+      renderNew();
+      expect(screen.queryByText('Save Flow')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is true (flags resolved)', () => {
+    beforeEach(() => {
+      mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+    });
+
+    it('When flags are loaded and builder is enabled / Then the Flow Information section is shown', () => {
+      renderNew();
+      expect(screen.getByText('Flow Information')).toBeInTheDocument();
+      expect(screen.queryByText(/not available on your current plan/i)).not.toBeInTheDocument();
+    });
+
+    it('When flags are loaded and builder is enabled / Then the Save Flow button is present', () => {
+      renderNew();
+      expect(screen.getByText('Save Flow')).toBeInTheDocument();
     });
   });
 });

@@ -14,6 +14,15 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
+let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+vi.mock('@so360/shell-context', async () => {
+  const actual = await vi.importActual('@so360/shell-context');
+  return {
+    ...actual,
+    useShellBridge: () => mockShellBridgeValue,
+  };
+});
+
 import { FlowDashboard } from '../pages/FlowDashboard';
 import { flowApi } from '../services/flowApi';
 
@@ -22,7 +31,10 @@ const mockFlowApi = flowApi as any;
 const renderPage = () =>
   render(<MemoryRouter><FlowDashboard /></MemoryRouter>);
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+});
 
 describe('FlowDashboard', () => {
   describe('Given flows are loaded', () => {
@@ -88,6 +100,46 @@ describe('FlowDashboard', () => {
     it('When the page loads / Then the empty state is shown', async () => {
       renderPage();
       await waitFor(() => expect(screen.getByText('No flows created yet')).toBeInTheDocument());
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is false (flags not yet resolved)', () => {
+    beforeEach(() => {
+      mockShellBridgeValue = { effectiveFlagsLoaded: false, isFeatureEnabled: () => true };
+      mockFlowApi.getFlowDefinitions.mockResolvedValue({
+        data: [{ id: 'f1', name: 'Lead Approval', module_code: 'module:crm:lead', is_active: true, description: null, states: [], transitions: [] }],
+      });
+    });
+
+    it('When flags are not loaded / Then the New Flow button is absent (canCreateFlow false)', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Flow Definitions')).toBeInTheDocument());
+      expect(screen.queryByText('New Flow')).not.toBeInTheDocument();
+    });
+
+    it('When flags are not loaded / Then the Approval Policies button is absent (canAccessPolicies false)', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Flow Definitions')).toBeInTheDocument());
+      expect(screen.queryByText('Approval Policies')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is true (flags resolved)', () => {
+    beforeEach(() => {
+      mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+      mockFlowApi.getFlowDefinitions.mockResolvedValue({
+        data: [{ id: 'f1', name: 'Lead Approval', module_code: 'module:crm:lead', is_active: true, description: null, states: [], transitions: [] }],
+      });
+    });
+
+    it('When flags are loaded and create is enabled / Then the New Flow button is shown', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('New Flow')).toBeInTheDocument());
+    });
+
+    it('When flags are loaded and policies is enabled / Then the Approval Policies button is shown', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Approval Policies')).toBeInTheDocument());
     });
   });
 });

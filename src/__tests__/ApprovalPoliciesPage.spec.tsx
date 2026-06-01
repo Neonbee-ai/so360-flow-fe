@@ -18,6 +18,16 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
+let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+vi.mock('@so360/shell-context', async () => {
+  const actual = await vi.importActual('@so360/shell-context');
+  return {
+    ...actual,
+    useShellBridge: () => mockShellBridgeValue,
+    useActivity: () => ({ recordActivity: async () => {} }),
+  };
+});
+
 import { ApprovalPoliciesPage } from '../pages/ApprovalPoliciesPage';
 import { flowApi } from '../services/flowApi';
 
@@ -40,7 +50,10 @@ const makePolicy = (overrides: any = {}) => ({
   ...overrides,
 });
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+});
 
 describe('ApprovalPoliciesPage', () => {
   describe('Given policies are loading', () => {
@@ -168,6 +181,51 @@ describe('ApprovalPoliciesPage', () => {
       await waitFor(() => screen.getByText('Expense Approval'));
       const dot = document.querySelector('.bg-slate-500');
       expect(dot).not.toBeNull();
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is false (flags not yet resolved)', () => {
+    beforeEach(() => {
+      api.getApprovalPolicies.mockResolvedValue({ data: [makePolicy()] });
+      mockShellBridgeValue = { effectiveFlagsLoaded: false, isFeatureEnabled: () => true };
+    });
+
+    it('When flags are not loaded / Then canAccessPolicies is false and the access-denied banner is shown', async () => {
+      renderPage();
+      await waitFor(() =>
+        expect(screen.getByText('Approval Policies')).toBeInTheDocument()
+      );
+      // canAccessPolicies === false → renders the "not available" notice, not the policy list
+      expect(screen.getByText(/This feature is not available on your current plan/i)).toBeInTheDocument();
+      expect(screen.queryByText('New Policy')).not.toBeInTheDocument();
+    });
+
+    it('When flags are not loaded / Then the simulate button is absent for any policy row', async () => {
+      renderPage();
+      await waitFor(() =>
+        expect(screen.getByText('Approval Policies')).toBeInTheDocument()
+      );
+      // canSimulate === false → no FlaskConical simulate button should appear
+      expect(document.querySelector('[data-testid="icon-FlaskConical"]')).toBeNull();
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is true (flags resolved)', () => {
+    beforeEach(() => {
+      api.getApprovalPolicies.mockResolvedValue({ data: [makePolicy()] });
+      mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+    });
+
+    it('When flags are loaded and feature is enabled / Then the full policies page with New Policy button is shown', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('New Policy')).toBeInTheDocument());
+      expect(screen.queryByText(/not available on your current plan/i)).not.toBeInTheDocument();
+    });
+
+    it('When flags are loaded and feature is enabled / Then the simulate button appears for each policy row', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Expense Approval')).toBeInTheDocument());
+      expect(document.querySelector('[title="Test policy"]')).not.toBeNull();
     });
   });
 });

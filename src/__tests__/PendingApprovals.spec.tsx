@@ -9,6 +9,16 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
+let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+vi.mock('@so360/shell-context', async () => {
+  const actual = await vi.importActual('@so360/shell-context');
+  return {
+    ...actual,
+    useShellBridge: () => mockShellBridgeValue,
+    useActivity: () => ({ recordActivity: async () => {} }),
+  };
+});
+
 import { PendingApprovals } from '../pages/PendingApprovals';
 import { flowApi } from '../services/flowApi';
 
@@ -43,7 +53,10 @@ const approvalOverdue = {
   current_step: { id: 'step2', step_order: 1, can_delegate: false },
 };
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+});
 
 describe('PendingApprovals', () => {
   describe('Given pending approvals exist', () => {
@@ -309,6 +322,45 @@ describe('PendingApprovals', () => {
       mockFlowApi.getPendingApprovals.mockResolvedValueOnce({ data: [] });
       fireEvent.click(screen.getByText('Retry'));
       await waitFor(() => expect(mockFlowApi.getPendingApprovals).toHaveBeenCalledTimes(2));
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is false (flags not yet resolved)', () => {
+    beforeEach(() => {
+      mockShellBridgeValue = { effectiveFlagsLoaded: false, isFeatureEnabled: () => true };
+      mockFlowApi.getPendingApprovals.mockResolvedValue({ data: [approvalWithDelegate] });
+    });
+
+    it('When flags are not loaded / Then the Approve / Reject action buttons are absent', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Pending Approvals')).toBeInTheDocument());
+      // canApprovalAction === false → action button group not rendered
+      expect(screen.queryByText('Approve')).not.toBeInTheDocument();
+      expect(screen.queryByText('Reject')).not.toBeInTheDocument();
+    });
+
+    it('When flags are not loaded / Then the Delegate button is absent', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Pending Approvals')).toBeInTheDocument());
+      expect(screen.queryByText('Delegate')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is true (flags resolved)', () => {
+    beforeEach(() => {
+      mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+      mockFlowApi.getPendingApprovals.mockResolvedValue({ data: [approvalWithDelegate] });
+    });
+
+    it('When flags are loaded and action is enabled / Then the Approve and Reject buttons are shown', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Approve')).toBeInTheDocument());
+      expect(screen.getByText('Reject')).toBeInTheDocument();
+    });
+
+    it('When flags are loaded and action is enabled / Then the Delegate button is shown for delegatable approvals', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Delegate')).toBeInTheDocument());
     });
   });
 });

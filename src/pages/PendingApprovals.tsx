@@ -16,7 +16,7 @@ export const PendingApprovals: React.FC = () => {
     const navigate = useNavigate();
     const { recordActivity } = useActivity();
     const shell = useShellBridge();
-    const canApprovalAction = shell?.isFeatureEnabled?.('action:flow:approval:action') ?? true;
+    const canApprovalAction = (shell?.effectiveFlagsLoaded ?? false) && (shell?.isFeatureEnabled?.('action:flow:approval:action') ?? true);
     const [approvals, setApprovals] = useState<PendingApproval[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

@@ -98,8 +98,8 @@ export const ApprovalPoliciesPage = () => {
     const navigate = useNavigate();
     const { recordActivity } = useActivity();
     const shell = useShellBridge();
-    const canAccessPolicies = shell?.isFeatureEnabled?.('submodule:flow:approval_policies') ?? true;
-    const canSimulate = shell?.isFeatureEnabled?.('action:flow:approval:simulate') ?? true;
+    const canAccessPolicies = (shell?.effectiveFlagsLoaded ?? false) && (shell?.isFeatureEnabled?.('submodule:flow:approval_policies') ?? true);
+    const canSimulate = (shell?.effectiveFlagsLoaded ?? false) && (shell?.isFeatureEnabled?.('action:flow:approval:simulate') ?? true);
     const [policies, setPolicies] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
