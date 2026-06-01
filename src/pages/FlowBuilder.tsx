@@ -11,7 +11,7 @@ export const FlowBuilder = () => {
     const isNew = flowId === 'new';
     const { recordActivity } = useActivity();
     const shell = useShellBridge();
-    const canAccessBuilder = (shell?.effectiveFlagsLoaded ?? false) && (shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true);
+    const canAccessBuilder = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true);
 
     const [loading, setLoading] = useState(!isNew);
     const [saving, setSaving] = useState(false);
