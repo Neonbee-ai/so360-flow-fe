@@ -5,6 +5,7 @@ import { flowApi } from '../services/flowApi';
 import { ApprovalHistory } from '../components/ApprovalHistory';
 import type { FlowInstance, FlowHistory, FlowDefinition } from '../types/flow';
 import { FlowStateGraph } from '../components/FlowStateGraph';
+import { useFlowFormatters } from '../utils/formatters';
 
 interface InstanceContext {
     instance: FlowInstance;
@@ -20,6 +21,7 @@ interface InstanceContext {
 export const InstanceViewer = () => {
     const { instanceId } = useParams<{ instanceId: string }>();
     const navigate = useNavigate();
+    const formatters = useFlowFormatters();
 
     const [context, setContext] = useState<InstanceContext | null>(null);
     const [loading, setLoading] = useState(true);
@@ -175,14 +177,14 @@ export const InstanceViewer = () => {
                         <div>
                             <div className="text-xs text-slate-500 mb-1">Started At</div>
                             <div className="text-slate-100 text-sm">
-                                {new Date(context.instance.started_at).toLocaleString()}
+                                {formatters.formatDateTime(context.instance.started_at)}
                             </div>
                         </div>
                         {isCompleted && (
                             <div>
                                 <div className="text-xs text-slate-500 mb-1">Completed At</div>
                                 <div className="text-slate-100 text-sm">
-                                    {new Date(context.instance.completed_at!).toLocaleString()}
+                                    {formatters.formatDateTime(context.instance.completed_at!)}
                                 </div>
                             </div>
                         )}
@@ -296,7 +298,7 @@ export const InstanceViewer = () => {
                                                 </span>
                                             </div>
                                             <span className="text-xs text-slate-500">
-                                                {new Date(record.transitioned_at).toLocaleString()}
+                                                {formatters.formatDateTime(record.transitioned_at)}
                                             </span>
                                         </div>
                                         {record.comment && (

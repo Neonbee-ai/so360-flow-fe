@@ -4,6 +4,7 @@ import { Clock, CheckCircle, XCircle, UserPlus, AlertTriangle, X } from 'lucide-
 import { useActivity, useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { PendingApproval } from '../types/flow';
+import { useFlowFormatters } from '../utils/formatters';
 
 type ModalType = 'approve' | 'reject' | 'delegate' | null;
 
@@ -16,6 +17,7 @@ export const PendingApprovals: React.FC = () => {
     const navigate = useNavigate();
     const { recordActivity } = useActivity();
     const shell = useShellBridge();
+    const formatters = useFlowFormatters();
     const canApprovalAction = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:approval:action') ?? true);
     const [approvals, setApprovals] = useState<PendingApproval[]>([]);
     const [loading, setLoading] = useState(true);
@@ -268,7 +270,7 @@ export const PendingApprovals: React.FC = () => {
                                             <Clock className="w-4 h-4" />
                                             <span>{approval.time_elapsed_hours}h elapsed{approval.sla_hours ? ` / ${approval.sla_hours}h SLA` : ''}</span>
                                         </div>
-                                        <span>Requested {new Date(approval.requested_at).toLocaleString()}</span>
+                                        <span>Requested {formatters.formatDateTime(approval.requested_at)}</span>
                                         <button onClick={() => navigate(`/flow/approvals/history/${approval.entity_type}/${approval.entity_id}`)}
                                             className="text-blue-400 hover:text-blue-300 text-xs">View History →</button>
                                     </div>

@@ -5,6 +5,7 @@ import { QuotaBar, QuotaGate } from '@so360/design-system';
 import { useQuota, useShell, useSandboxLimit } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowInstance, FlowDefinition } from '../types/flow';
+import { useFlowFormatters } from '../utils/formatters';
 
 const PAGE_SIZE = 20;
 
@@ -13,6 +14,7 @@ type StatusFilter = 'all' | 'active' | 'completed' | 'cancelled' | 'suspended';
 export const InstanceList = () => {
     const navigate = useNavigate();
     const { currentOrg } = useShell();
+    const formatters = useFlowFormatters();
     const quotaChecks = useMemo(() => [{ module_code: 'flow', quota_key: 'max_flows' }], []);
     const { getQuota, isExceeded } = useQuota({
         checks: quotaChecks,
@@ -288,8 +290,8 @@ export const InstanceList = () => {
                                                 </div>
                                                 <div className="text-slate-300">
                                                     {completed
-                                                        ? new Date(instance.completed_at!).toLocaleDateString()
-                                                        : new Date(instance.started_at).toLocaleDateString()}
+                                                        ? formatters.formatDate(instance.completed_at!)
+                                                        : formatters.formatDate(instance.started_at)}
                                                 </div>
                                             </div>
                                             <div>

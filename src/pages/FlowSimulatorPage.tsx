@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, ChevronRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition } from '../types/flow';
+import { useFlowFormatters } from '../utils/formatters';
 
 interface SimStep {
     from_state: string;
@@ -14,6 +15,7 @@ interface SimStep {
 
 export const FlowSimulatorPage = () => {
     const navigate = useNavigate();
+    const formatters = useFlowFormatters();
     const [flows, setFlows] = useState<FlowDefinition[]>([]);
     const [selectedFlowId, setSelectedFlowId] = useState<string>('');
     const [selectedFlow, setSelectedFlow] = useState<FlowDefinition | null>(null);
@@ -62,7 +64,7 @@ export const FlowSimulatorPage = () => {
     };
 
     const applyTransition = (transition: any) => {
-        const now = new Date().toLocaleTimeString();
+        const now = formatters.formatDate(new Date().toISOString(), { hour: '2-digit', minute: '2-digit' });
         setHistory(prev => [...prev, {
             from_state: currentState,
             to_state: transition.to_state,

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, UserPlus, AlertCircle, Clock } from 'lucide-react';
 import { flowApi } from '../services/flowApi';
 import type { ApprovalHistory as ApprovalHistoryType, ApprovalAction } from '../types/flow';
+import { useFlowFormatters } from '../utils/formatters';
 
 interface ApprovalHistoryProps {
     entityType: string;
@@ -9,6 +10,7 @@ interface ApprovalHistoryProps {
 }
 
 export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, entityId }) => {
+    const formatters = useFlowFormatters();
     const [history, setHistory] = useState<ApprovalHistoryType[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -119,7 +121,7 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
                                 Approval Request #{instanceIdx + 1}
                             </div>
                             <div className="text-xs text-slate-500">
-                                Started: {new Date(instance.requested_at).toLocaleString()}
+                                Started: {formatters.formatDateTime(instance.requested_at)}
                             </div>
                         </div>
                         <span
@@ -155,7 +157,7 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
                                                 {action.action_type}
                                             </div>
                                             <div className="text-xs text-slate-400 mt-1">
-                                                {new Date(action.action_at).toLocaleString()}
+                                                {formatters.formatDateTime(action.action_at)}
                                             </div>
                                         </div>
                                         <div className="text-xs text-slate-500">
@@ -182,7 +184,7 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
                     {/* Completion info */}
                     {instance.completed_at && (
                         <div className="mt-4 pt-4 border-t border-slate-800 text-xs text-slate-500">
-                            Completed: {new Date(instance.completed_at).toLocaleString()}
+                            Completed: {formatters.formatDateTime(instance.completed_at)}
                         </div>
                     )}
                 </div>
