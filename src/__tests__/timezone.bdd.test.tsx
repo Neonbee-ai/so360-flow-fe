@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import React from 'react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
@@ -447,5 +447,62 @@ describe('Given PendingApprovals with UTC requested_at', () => {
       expect(screen.getByText('All Caught Up!')).toBeInTheDocument()
     );
     expect(screen.queryByText(/Jun 1, 2025/)).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PendingApprovals — modal panels capped at max-h-[90vh]
+// ---------------------------------------------------------------------------
+
+describe('Given PendingApprovals modals / Then each panel is capped at max-h-[90vh]', () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  const renderPending = async () => {
+    mockFlowApi.getPendingApprovals.mockResolvedValue({
+      data: [
+        {
+          id: 'pa-modal-1',
+          entity_type: 'lead',
+          entity_id: 'lead-modal',
+          status: 'PENDING',
+          is_overdue: false,
+          time_elapsed_hours: 1,
+          sla_hours: 24,
+          requested_at: UTC_DT,
+          current_step: { id: 'step-1', step_order: 1, can_delegate: true },
+          entity_data: { name: 'Modal Approval' },
+        },
+      ],
+    });
+    render(<MemoryRouter><PendingApprovals /></MemoryRouter>);
+    // 'Modal Approval' renders twice (card heading + entity-details grid),
+    // so use findAllByText to avoid the multiple-match error from findByText.
+    await screen.findAllByText('Modal Approval');
+  };
+
+  const cappedPanels = () =>
+    Array.from(document.querySelectorAll('div')).filter(el =>
+      el.className.includes('max-h-[90vh]')
+    );
+
+  it('When the Approve modal is opened / Then a max-h-[90vh] panel exists', async () => {
+    await renderPending();
+    fireEvent.click(screen.getByRole('button', { name: /Approve/i }));
+    await screen.findByText(/Approve: Modal Approval/);
+    expect(cappedPanels().length).toBeGreaterThan(0);
+  });
+
+  it('When the Reject modal is opened / Then a max-h-[90vh] panel exists', async () => {
+    await renderPending();
+    fireEvent.click(screen.getByRole('button', { name: /Reject/i }));
+    await screen.findByText(/Reject: Modal Approval/);
+    expect(cappedPanels().length).toBeGreaterThan(0);
+  });
+
+  it('When the Delegate modal is opened / Then a max-h-[90vh] panel exists', async () => {
+    await renderPending();
+    fireEvent.click(screen.getByRole('button', { name: /Delegate/i }));
+    await screen.findByText(/Delegate: Modal Approval/);
+    expect(cappedPanels().length).toBeGreaterThan(0);
   });
 });
