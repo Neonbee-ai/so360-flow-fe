@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { ShellContext } from '@so360/shell-context';
+import { parseUtcDate } from './datetime';
 
 // Self-contained formatters — does not depend on @so360/formatters package
 // so flow-fe doesn't need it as a dependency.
@@ -14,7 +15,7 @@ export function useFlowFormatters() {
         if (!date) return '-';
         try {
             const opts = options ?? { year: 'numeric', month: 'short', day: 'numeric' };
-            return new Intl.DateTimeFormat(locale, { ...opts, timeZone: timezone }).format(new Date(date as any));
+            return new Intl.DateTimeFormat(locale, { ...opts, timeZone: timezone }).format(parseUtcDate(date));
         } catch { return String(date); }
     };
 
