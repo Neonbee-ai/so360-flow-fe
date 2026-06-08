@@ -245,7 +245,7 @@ export const ApprovalPoliciesPage = () => {
         <div className="min-h-screen bg-slate-950 p-6">
             {/* Confirm Delete Modal */}
             {confirmDelete && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
                     <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto">
                         <h3 className="text-lg font-semibold text-slate-100 mb-2">Deactivate Policy?</h3>
                         <p className="text-slate-400 text-sm mb-4">This will deactivate the policy. No new approvals will be triggered by it.</p>
@@ -259,7 +259,7 @@ export const ApprovalPoliciesPage = () => {
 
             {/* Simulation Modal */}
             {simModal && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
                     <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-slate-100">Policy Simulation</h3>

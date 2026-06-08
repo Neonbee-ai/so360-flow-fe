@@ -148,7 +148,7 @@ export const PendingApprovals: React.FC = () => {
         <div className="min-h-screen bg-slate-950 p-8">
             {/* Approve Modal */}
             {modal.type === 'approve' && modal.approval && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
                     <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-slate-100">Approve: {getEntityTitle(modal.approval)}</h3>
@@ -173,7 +173,7 @@ export const PendingApprovals: React.FC = () => {
 
             {/* Reject Modal */}
             {modal.type === 'reject' && modal.approval && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
                     <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-slate-100">Reject: {getEntityTitle(modal.approval)}</h3>
@@ -201,7 +201,7 @@ export const PendingApprovals: React.FC = () => {
 
             {/* Delegate Modal */}
             {modal.type === 'delegate' && modal.approval && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
                     <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-slate-100">Delegate: {getEntityTitle(modal.approval)}</h3>
