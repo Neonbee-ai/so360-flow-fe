@@ -42,7 +42,12 @@ export const PendingApprovals: React.FC = () => {
 
     useEffect(() => {
         fetchPendingApprovals();
-        pollRef.current = setInterval(fetchPendingApprovals, 30000);
+        // Skip polling while the tab is backgrounded — a hidden approvals view
+        // doesn't need fresh data, and we refetch immediately on the next tick.
+        pollRef.current = setInterval(() => {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            fetchPendingApprovals();
+        }, 30000);
         return () => { if (pollRef.current) clearInterval(pollRef.current); };
     }, [fetchPendingApprovals]);
 
