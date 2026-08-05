@@ -5,14 +5,26 @@ import { useActivity, useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import { RoleSelector } from '../components/RoleSelector';
 
+type ApproverType = 'ROLE' | 'USER' | 'DYNAMIC_FIELD' | 'DEPARTMENT_HEAD';
+
 interface LocalApprovalStep {
     step_order: number;
-    approver_type: 'ROLE';
-    approver_config: { role_id: string; role_name?: string };
+    approver_type: ApproverType;
+    // Shape depends on approver_type: { role_id } for ROLE, { user_id } for
+    // USER, { field } for DYNAMIC_FIELD, {} for DEPARTMENT_HEAD (resolved
+    // dynamically per submitter — nothing to configure on the step).
+    approver_config: { role_id?: string; role_name?: string; user_id?: string; field?: string };
     sla_hours: number;
     can_delegate: boolean;
     escalation_role?: string;
 }
+
+const APPROVER_TYPE_OPTIONS: { value: ApproverType; label: string }[] = [
+    { value: 'ROLE', label: 'Users with a role' },
+    { value: 'USER', label: 'Specific user' },
+    { value: 'DYNAMIC_FIELD', label: 'Field on the submitted record' },
+    { value: 'DEPARTMENT_HEAD', label: "Submitter's department head" },
+];
 
 interface ConditionClause {
     field: string;
@@ -181,7 +193,7 @@ export const ApprovalPoliciesPage = () => {
                 });
                 for (const step of form.steps) {
                     await flowApi.createApprovalStep(rule.data.id, {
-                        step_order: step.step_order, approver_type: 'ROLE',
+                        step_order: step.step_order, approver_type: step.approver_type,
                         approver_config: step.approver_config,
                         sla_hours: step.sla_hours, can_delegate: step.can_delegate,
                         escalation_role: step.escalation_role,
@@ -422,11 +434,12 @@ export const ApprovalPoliciesPage = () => {
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-xs text-slate-500 mb-1 block">Approver Role</label>
-                                                <RoleSelector
-                                                    value={step.approver_config.role_id}
-                                                    onChange={roleId => updateStep(i, { approver_config: { role_id: roleId } })}
-                                                />
+                                                <label className="text-xs text-slate-500 mb-1 block">Approver Type</label>
+                                                <select value={step.approver_type}
+                                                    onChange={e => updateStep(i, { approver_type: e.target.value as ApproverType, approver_config: {} })}
+                                                    className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm">
+                                                    {APPROVER_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                                </select>
                                             </div>
                                             <div>
                                                 <label className="text-xs text-slate-500 mb-1 block">SLA (hours)</label>
@@ -434,6 +447,40 @@ export const ApprovalPoliciesPage = () => {
                                                     onChange={e => updateStep(i, { sla_hours: parseInt(e.target.value) || 48 })}
                                                     className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm" />
                                             </div>
+                                        </div>
+                                        <div className="mt-3">
+                                            {step.approver_type === 'ROLE' && (
+                                                <div>
+                                                    <label className="text-xs text-slate-500 mb-1 block">Role</label>
+                                                    <RoleSelector
+                                                        value={step.approver_config.role_id || ''}
+                                                        onChange={roleId => updateStep(i, { approver_config: { role_id: roleId } })}
+                                                    />
+                                                </div>
+                                            )}
+                                            {step.approver_type === 'USER' && (
+                                                <div>
+                                                    <label className="text-xs text-slate-500 mb-1 block">User ID</label>
+                                                    <input value={step.approver_config.user_id || ''}
+                                                        onChange={e => updateStep(i, { approver_config: { user_id: e.target.value } })}
+                                                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                                        placeholder="Platform user id" />
+                                                </div>
+                                            )}
+                                            {step.approver_type === 'DYNAMIC_FIELD' && (
+                                                <div>
+                                                    <label className="text-xs text-slate-500 mb-1 block">Field (on submitted record)</label>
+                                                    <input value={step.approver_config.field || ''}
+                                                        onChange={e => updateStep(i, { approver_config: { field: e.target.value } })}
+                                                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                                        placeholder="e.g. manager_id" />
+                                                </div>
+                                            )}
+                                            {step.approver_type === 'DEPARTMENT_HEAD' && (
+                                                <p className="text-xs text-slate-500">
+                                                    Resolved automatically from the submitter's department hierarchy — nothing to configure.
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="grid grid-cols-2 gap-3 mt-3">
                                             <div>
