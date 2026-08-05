@@ -137,7 +137,7 @@ export interface ApprovalStep {
     id: string;
     rule_id: string;
     step_order: number;
-    approver_type: 'ROLE' | 'USER' | 'DYNAMIC_FIELD';
+    approver_type: 'ROLE' | 'USER' | 'DYNAMIC_FIELD' | 'DEPARTMENT_HEAD';
     approver_config: any;
     sla_hours?: number;
     escalation_role?: string;
@@ -214,7 +214,7 @@ export interface CreateApprovalRuleDto {
 
 export interface CreateApprovalStepDto {
     step_order: number;
-    approver_type: 'ROLE' | 'USER' | 'DYNAMIC_FIELD';
+    approver_type: 'ROLE' | 'USER' | 'DYNAMIC_FIELD' | 'DEPARTMENT_HEAD';
     approver_config: any;
     sla_hours?: number;
     escalation_role?: string;
