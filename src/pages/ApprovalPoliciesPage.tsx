@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, ChevronDown, ChevronUp, ArrowLeft, Save, Edit2, Power, FlaskConical, GripVertical, X } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
+import { toast } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import { RoleSelector } from '../components/RoleSelector';
 
@@ -207,9 +208,10 @@ export const ApprovalPoliciesPage = () => {
                     resourceId: policy.data.id,
                 }).catch(() => {});
             }
+            toast.success(editingId ? 'Policy updated' : 'Policy created');
             setShowForm(false); setEditingId(null); setForm(defaultPolicy());
             await loadPolicies();
-        } catch (err) { console.error('Failed to save policy:', err); }
+        } catch (err) { console.error('Failed to save policy:', err); /* Error toast comes from the flowApi interceptor. */ }
         finally { setSaving(false); }
     };
 
@@ -219,8 +221,8 @@ export const ApprovalPoliciesPage = () => {
     };
 
     const handleDelete = async (policyId: string) => {
-        try { await flowApi.deactivatePolicy(policyId); setConfirmDelete(null); await loadPolicies(); }
-        catch (err) { console.error('Failed to delete policy:', err); }
+        try { await flowApi.deactivatePolicy(policyId); toast.success('Policy deleted'); setConfirmDelete(null); await loadPolicies(); }
+        catch (err) { console.error('Failed to delete policy:', err); /* Error toast comes from the flowApi interceptor. */ }
     };
 
     const handleSimulate = async (policyId: string) => {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { attachToastErrorHandler } from '@so360/design-system';
 import type {
     FlowDefinition,
     FlowInstance,
@@ -57,6 +58,11 @@ api.interceptors.response.use(
         return Promise.reject(error);
     },
 );
+
+// Baseline user-visible error surfacing: every failed MUTATION toasts the
+// normalized server message. 401/402 stay with their existing handlers; reads
+// never toast; opt out per-call with { suppressToast: true }.
+attachToastErrorHandler(api);
 
 export const flowApi = {
     // Flow Definitions

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle, UserPlus, AlertTriangle, X } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
+import { toast } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { PendingApproval } from '../types/flow';
 import { useFlowFormatters } from '../utils/formatters';
@@ -77,9 +78,10 @@ export const PendingApprovals: React.FC = () => {
                 resourceId: modal.approval.id,
             }).catch(() => {});
             closeModal();
+            toast.success('Approved');
             await fetchPendingApprovals();
-        } catch (err: any) {
-            alert(`Failed to approve: ${err.message}`);
+        } catch {
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setActionInProgress(null);
         }
@@ -103,9 +105,10 @@ export const PendingApprovals: React.FC = () => {
                 resourceId: modal.approval.id,
             }).catch(() => {});
             closeModal();
+            toast.success('Rejected');
             await fetchPendingApprovals();
-        } catch (err: any) {
-            alert(`Failed to reject: ${err.message}`);
+        } catch {
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setActionInProgress(null);
         }
@@ -123,9 +126,10 @@ export const PendingApprovals: React.FC = () => {
                 delegate_to_user_id: delegateTo.trim(),
             });
             closeModal();
+            toast.success('Delegated');
             await fetchPendingApprovals();
-        } catch (err: any) {
-            alert(`Failed to delegate: ${err.message}`);
+        } catch {
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setActionInProgress(null);
         }

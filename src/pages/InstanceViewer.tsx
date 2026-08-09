@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Activity, GitBranch, Database, History } from 'lucide-react';
+import { toast } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import { ApprovalHistory } from '../components/ApprovalHistory';
 import type { FlowInstance, FlowHistory, FlowDefinition } from '../types/flow';
@@ -59,11 +60,12 @@ export const InstanceViewer = () => {
             await flowApi.transitionFlowInstance(instanceId!, {
                 transition_code: transitionCode,
             });
+            toast.success(`Transition "${transitionName}" executed`);
             // Reload instance context to see new state
             await loadInstanceContext();
         } catch (err: any) {
             console.error('Failed to execute transition:', err);
-            alert(err.response?.data?.message || 'Failed to execute transition');
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setTransitioning(false);
         }

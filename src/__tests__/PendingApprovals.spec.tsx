@@ -33,6 +33,7 @@ vi.mock('../utils/formatters', () => ({
 
 import { PendingApprovals } from '../pages/PendingApprovals';
 import { flowApi } from '../services/flowApi';
+import { toast } from '@so360/design-system';
 
 const mockFlowApi = flowApi as any;
 
@@ -140,6 +141,7 @@ describe('PendingApprovals', () => {
     });
 
     it('When modal Approve is confirmed / Then performApprovalAction is called with APPROVE', async () => {
+      const successSpy = vi.spyOn(toast, 'success');
       mockFlowApi.performApprovalAction.mockResolvedValue({ data: {} });
       renderPage();
       await waitFor(() => screen.getAllByText('Approve'));
@@ -157,6 +159,7 @@ describe('PendingApprovals', () => {
           comment: 'Approved',
         })
       );
+      await waitFor(() => expect(successSpy).toHaveBeenCalledWith('Approved'));
     });
 
     it('When modal Cancel is clicked / Then performApprovalAction is NOT called', async () => {
@@ -168,8 +171,8 @@ describe('PendingApprovals', () => {
       expect(mockFlowApi.performApprovalAction).not.toHaveBeenCalled();
     });
 
-    it('When Approve fails / Then an alert is shown with error message', async () => {
-      vi.spyOn(window, 'alert').mockImplementation(() => {});
+    it('When Approve fails / Then no native alert fires (error toast comes from the flowApi interceptor)', async () => {
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
       mockFlowApi.performApprovalAction.mockRejectedValue(new Error('Server error'));
       renderPage();
       await waitFor(() => screen.getAllByText('Approve'));
@@ -177,9 +180,10 @@ describe('PendingApprovals', () => {
       await waitFor(() => screen.getByText(/Approve: Test Lead/));
       const approveButtons = screen.getAllByText('Approve');
       fireEvent.click(approveButtons[0]);
-      await waitFor(() =>
-        expect(window.alert).toHaveBeenCalledWith('Failed to approve: Server error')
-      );
+      await waitFor(() => expect(mockFlowApi.performApprovalAction).toHaveBeenCalled());
+      // Modal stays open so the user can retry; surfacing the error is the interceptor's job.
+      expect(screen.getByText(/Approve: Test Lead/)).toBeInTheDocument();
+      expect(alertSpy).not.toHaveBeenCalled();
     });
 
     it('When Reject is clicked / Then the reject modal opens', async () => {
@@ -221,8 +225,8 @@ describe('PendingApprovals', () => {
       expect(mockFlowApi.performApprovalAction).not.toHaveBeenCalled();
     });
 
-    it('When Reject fails / Then an alert is shown with error message', async () => {
-      vi.spyOn(window, 'alert').mockImplementation(() => {});
+    it('When Reject fails / Then no native alert fires (error toast comes from the flowApi interceptor)', async () => {
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
       mockFlowApi.performApprovalAction.mockRejectedValue(new Error('Reject failed'));
       renderPage();
       await waitFor(() => screen.getAllByText('Reject'));
@@ -232,9 +236,9 @@ describe('PendingApprovals', () => {
       fireEvent.change(textarea, { target: { value: 'Rejection reason here' } });
       const rejectButtons = screen.getAllByText('Reject');
       fireEvent.click(rejectButtons[0]);
-      await waitFor(() =>
-        expect(window.alert).toHaveBeenCalledWith('Failed to reject: Reject failed')
-      );
+      await waitFor(() => expect(mockFlowApi.performApprovalAction).toHaveBeenCalled());
+      expect(screen.getByText(/Reject: Test Lead/)).toBeInTheDocument();
+      expect(alertSpy).not.toHaveBeenCalled();
     });
 
     it('When Delegate is clicked / Then the delegate modal opens', async () => {
@@ -276,8 +280,8 @@ describe('PendingApprovals', () => {
       expect(mockFlowApi.performApprovalAction).not.toHaveBeenCalled();
     });
 
-    it('When Delegate fails / Then an alert is shown with error message', async () => {
-      vi.spyOn(window, 'alert').mockImplementation(() => {});
+    it('When Delegate fails / Then no native alert fires (error toast comes from the flowApi interceptor)', async () => {
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
       mockFlowApi.performApprovalAction.mockRejectedValue(new Error('Delegate failed'));
       renderPage();
       await waitFor(() => screen.getByText('Delegate'));
@@ -287,9 +291,9 @@ describe('PendingApprovals', () => {
       fireEvent.change(screen.getByPlaceholderText(/Why are you delegating/i), { target: { value: 'Going on leave' } });
       const delegateButtons = screen.getAllByText('Delegate');
       fireEvent.click(delegateButtons[0]);
-      await waitFor(() =>
-        expect(window.alert).toHaveBeenCalledWith('Failed to delegate: Delegate failed')
-      );
+      await waitFor(() => expect(mockFlowApi.performApprovalAction).toHaveBeenCalled());
+      expect(screen.getByText(/Delegate: Test Lead/)).toBeInTheDocument();
+      expect(alertSpy).not.toHaveBeenCalled();
     });
   });
 

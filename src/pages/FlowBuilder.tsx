@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
+import { toast } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
@@ -92,9 +93,11 @@ export const FlowBuilder = () => {
                 }).catch(() => {});
             }
 
+            toast.success(isNew ? 'Flow created' : 'Flow updated');
             navigate('/flow');
         } catch (error) {
             console.error('Failed to save flow:', error);
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setSaving(false);
         }
