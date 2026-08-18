@@ -87,13 +87,13 @@ describe('App', () => {
   describe('Given FlagGuard on advanced-flow routes (5-state model)', () => {
     describe('When submodule:flow:advanced is enabled', () => {
       it('When navigating to /instance/:id / Then InstanceViewer is rendered', () => {
-        mockShellBridge = { getFeatureState: () => 'enabled' };
+        mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: () => 'enabled' };
         render(<MemoryRouter initialEntries={['/instance/i1']}><App /></MemoryRouter>);
         expect(screen.getByText('InstanceViewer')).toBeInTheDocument();
       });
 
       it('When navigating to /instances / Then InstanceList is rendered', () => {
-        mockShellBridge = { getFeatureState: () => 'enabled' };
+        mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: () => 'enabled' };
         render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
         expect(screen.getByText('InstanceList')).toBeInTheDocument();
       });
@@ -101,7 +101,7 @@ describe('App', () => {
 
     describe('When submodule:flow:advanced is hidden', () => {
       it('When navigating to /instance/:id / Then redirects to FlowDashboard', async () => {
-        mockShellBridge = { getFeatureState: (key: string) => key === 'submodule:flow:advanced' ? 'hidden' : 'enabled' };
+        mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: (key: string) => key === 'submodule:flow:advanced' ? 'hidden' : 'enabled' };
         render(<MemoryRouter initialEntries={['/instance/i1']}><App /></MemoryRouter>);
         await waitFor(() => {
           expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe('App', () => {
       });
 
       it('When navigating to /instances / Then redirects to FlowDashboard', async () => {
-        mockShellBridge = { getFeatureState: (key: string) => key === 'submodule:flow:advanced' ? 'hidden' : 'enabled' };
+        mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: (key: string) => key === 'submodule:flow:advanced' ? 'hidden' : 'enabled' };
         render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
         await waitFor(() => {
           expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('App', () => {
 
     describe('When submodule:flow:advanced is locked', () => {
       it('When navigating to /instances / Then the upgrade prompt is shown instead of the page', () => {
-        mockShellBridge = { getFeatureState: () => 'locked' };
+        mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: () => 'locked' };
         render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
         expect(screen.getByText(/upgrade plan/i)).toBeInTheDocument();
         expect(screen.queryByText('InstanceList')).not.toBeInTheDocument();
@@ -130,7 +130,7 @@ describe('App', () => {
 
     describe('When submodule:flow:advanced is disabled', () => {
       it('When navigating to /instances / Then the unavailable panel is shown and NO upgrade prompt', () => {
-        mockShellBridge = { getFeatureState: () => 'disabled' };
+        mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: () => 'disabled' };
         render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
         expect(screen.getByText(/feature unavailable/i)).toBeInTheDocument();
         expect(screen.queryByText(/upgrade plan/i)).not.toBeInTheDocument();

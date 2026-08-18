@@ -16,7 +16,7 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
-let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
 vi.mock('@so360/shell-context', async () => {
   const actual = await vi.importActual('@so360/shell-context');
   return {
@@ -59,7 +59,7 @@ const renderExisting = () => {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+  mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
 });
 
 describe('FlowBuilder', () => {
@@ -115,7 +115,7 @@ describe('FlowBuilder', () => {
 
   describe('Given effectiveFlagsLoaded is false (flags not yet resolved)', () => {
     beforeEach(() => {
-      mockShellBridgeValue = { effectiveFlagsLoaded: false, isFeatureEnabled: () => true };
+      mockShellBridgeValue = { effectiveFlagsLoaded: false, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
     });
 
     it('When flags are not loaded / Then the "not available" notice is shown instead of the builder', () => {
@@ -133,7 +133,7 @@ describe('FlowBuilder', () => {
 
   describe('Given effectiveFlagsLoaded is true (flags resolved)', () => {
     beforeEach(() => {
-      mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+      mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
     });
 
     it('When flags are loaded and builder is enabled / Then the Flow Information section is shown', () => {

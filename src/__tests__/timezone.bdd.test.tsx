@@ -66,8 +66,8 @@ vi.mock('@so360/shell-context', async () => {
     ...base,
     useShell: () => ({ isModuleEnabled: () => true, currentOrg: { id: 'org-1' } }),
     useShellBridge: () => ({
-      effectiveFlagsLoaded: true,
-      isFeatureEnabled: () => true,
+      permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, effectiveFlagsLoaded: true,
+      permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true,
       isFeatureHidden: () => false,
     }),
     useActivity: () => ({ recordActivity: async () => {} }),

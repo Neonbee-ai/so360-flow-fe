@@ -9,7 +9,7 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
-let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
 vi.mock('@so360/shell-context', async () => {
   const actual = await vi.importActual('@so360/shell-context');
   return {
@@ -68,7 +68,7 @@ const approvalOverdue = {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+  mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
 });
 
 describe('PendingApprovals', () => {
@@ -343,7 +343,7 @@ describe('PendingApprovals', () => {
 
   describe('Given effectiveFlagsLoaded is false (flags not yet resolved)', () => {
     beforeEach(() => {
-      mockShellBridgeValue = { effectiveFlagsLoaded: false, isFeatureEnabled: () => true };
+      mockShellBridgeValue = { effectiveFlagsLoaded: false, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
       mockFlowApi.getPendingApprovals.mockResolvedValue({ data: [approvalWithDelegate] });
     });
 
@@ -364,7 +364,7 @@ describe('PendingApprovals', () => {
 
   describe('Given effectiveFlagsLoaded is true (flags resolved)', () => {
     beforeEach(() => {
-      mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+      mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
       mockFlowApi.getPendingApprovals.mockResolvedValue({ data: [approvalWithDelegate] });
     });
 

@@ -18,7 +18,7 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
-let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
 vi.mock('@so360/shell-context', async () => {
   const actual = await vi.importActual('@so360/shell-context');
   return {
@@ -52,7 +52,7 @@ const makePolicy = (overrides: any = {}) => ({
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+  mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
 });
 
 describe('ApprovalPoliciesPage', () => {
@@ -249,7 +249,7 @@ describe('ApprovalPoliciesPage', () => {
   describe('Given effectiveFlagsLoaded is false (flags not yet resolved)', () => {
     beforeEach(() => {
       api.getApprovalPolicies.mockResolvedValue({ data: [makePolicy()] });
-      mockShellBridgeValue = { effectiveFlagsLoaded: false, isFeatureEnabled: () => true };
+      mockShellBridgeValue = { effectiveFlagsLoaded: false, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
     });
 
     it('When flags are not loaded / Then canAccessPolicies is false and the access-denied banner is shown', async () => {
@@ -275,7 +275,7 @@ describe('ApprovalPoliciesPage', () => {
   describe('Given effectiveFlagsLoaded is true (flags resolved)', () => {
     beforeEach(() => {
       api.getApprovalPolicies.mockResolvedValue({ data: [makePolicy()] });
-      mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+      mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
     });
 
     it('When flags are loaded and feature is enabled / Then the full policies page with New Policy button is shown', async () => {
