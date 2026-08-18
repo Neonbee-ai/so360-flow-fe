@@ -14,7 +14,7 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
-let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
 vi.mock('@so360/shell-context', async () => {
   const actual = await vi.importActual('@so360/shell-context');
   return {
@@ -33,7 +33,7 @@ const renderPage = () =>
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+  mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
 });
 
 describe('FlowDashboard', () => {
@@ -105,7 +105,7 @@ describe('FlowDashboard', () => {
 
   describe('Given effectiveFlagsLoaded is false (flags not yet resolved)', () => {
     beforeEach(() => {
-      mockShellBridgeValue = { effectiveFlagsLoaded: false, isFeatureEnabled: () => true };
+      mockShellBridgeValue = { effectiveFlagsLoaded: false, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
       mockFlowApi.getFlowDefinitions.mockResolvedValue({
         data: [{ id: 'f1', name: 'Lead Approval', module_code: 'module:crm:lead', is_active: true, description: null, states: [], transitions: [] }],
       });
@@ -126,7 +126,7 @@ describe('FlowDashboard', () => {
 
   describe('Given effectiveFlagsLoaded is true (flags resolved)', () => {
     beforeEach(() => {
-      mockShellBridgeValue = { effectiveFlagsLoaded: true, isFeatureEnabled: () => true };
+      mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
       mockFlowApi.getFlowDefinitions.mockResolvedValue({
         data: [{ id: 'f1', name: 'Lead Approval', module_code: 'module:crm:lead', is_active: true, description: null, states: [], transitions: [] }],
       });

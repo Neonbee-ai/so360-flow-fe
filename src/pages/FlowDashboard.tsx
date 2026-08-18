@@ -8,7 +8,7 @@ import type { FlowDefinition } from '../types/flow';
 export const FlowDashboard = () => {
     const navigate = useNavigate();
     const shell = useShellBridge();
-    const canCreateFlow = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:definitions:create') ?? true);
+    const canCreateFlow = (shell?.permissionsLoaded === true) && (shell?.hasPermission?.('workflows.create') ?? false) && (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:definitions:create') ?? true);
     const canStartInstance = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:instances:start') ?? true);
     const canAccessBuilder = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true);
     const canAccessPolicies = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:approval_policies') ?? true);
