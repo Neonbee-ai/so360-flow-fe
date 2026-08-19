@@ -2,7 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-let mockShellBridge: any = { isFeatureHidden: () => false };
+// Entitlements default to unrestricted so the routing/flag specs exercise those
+// behaviours alone; the permission specs below drive this down to a real code set.
+const unrestrictedBridge = () => ({
+  isFeatureHidden: () => false,
+  permissionsLoaded: true,
+  hasPermission: () => true,
+  hasAnyPermission: () => true,
+});
+
+let mockShellBridge: any = unrestrictedBridge();
 
 vi.mock('@so360/shell-context', () => ({
   useShellBridge: () => mockShellBridge,
@@ -38,7 +47,7 @@ import App from '../App';
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mockShellBridge = { isFeatureHidden: () => false };
+  mockShellBridge = unrestrictedBridge();
 });
 
 describe('App', () => {
@@ -81,6 +90,50 @@ describe('App', () => {
     it('When navigating to an unknown route / Then it redirects to FlowDashboard', () => {
       render(<MemoryRouter initialEntries={['/nonexistent']}><App /></MemoryRouter>);
       expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
+    });
+  });
+
+  describe('Given a page gated on role permissions', () => {
+    const bridgeWith = (codes: string[], permissionsLoaded = true) => ({
+      isFeatureHidden: () => false,
+      getFeatureState: () => 'enabled',
+      permissionsLoaded,
+      hasPermission: (c: string) => codes.includes(c),
+      hasAnyPermission: (...cs: string[]) => cs.some((c) => codes.includes(c)),
+    });
+
+    it('When the user holds the page code / Then the page renders', () => {
+      mockShellBridge = bridgeWith(['instances.view']);
+      render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
+      expect(screen.getByText('InstanceList')).toBeInTheDocument();
+    });
+
+    it('When the user lacks the page code / Then the page is withheld with a notice', () => {
+      mockShellBridge = bridgeWith(['workflows.read']);
+      render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
+      expect(screen.getByText(/don't have access to this page/i)).toBeInTheDocument();
+      expect(screen.queryByText('InstanceList')).not.toBeInTheDocument();
+    });
+
+    it('When entitlements have not resolved / Then no denial flashes', () => {
+      mockShellBridge = bridgeWith([], false);
+      render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
+      expect(screen.queryByText('InstanceList')).not.toBeInTheDocument();
+      expect(screen.queryByText(/don't have access/i)).not.toBeInTheDocument();
+    });
+
+    it('When the landing route is opened with no page codes / Then it stays reachable', () => {
+      mockShellBridge = bridgeWith([]);
+      render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>);
+      expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
+      expect(screen.queryByText(/don't have access/i)).not.toBeInTheDocument();
+    });
+
+    it('When the plan flag is locked AND the code is missing / Then the permission notice wins over the upgrade prompt', () => {
+      mockShellBridge = { ...bridgeWith([]), getFeatureState: () => 'locked' };
+      render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
+      expect(screen.getByText(/don't have access to this page/i)).toBeInTheDocument();
+      expect(screen.queryByText(/upgrade plan/i)).not.toBeInTheDocument();
     });
   });
 
