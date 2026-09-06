@@ -1,8 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Eye, CheckCircle, Clock, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { QuotaBar, QuotaGate } from '@so360/design-system';
+import { useQuota, useShell, useSandboxLimit } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowInstance, FlowDefinition } from '../types/flow';
+import { useFlowFormatters } from '../utils/formatters';
 
 const PAGE_SIZE = 20;
 
@@ -10,6 +13,15 @@ type StatusFilter = 'all' | 'active' | 'completed' | 'cancelled' | 'suspended';
 
 export const InstanceList = () => {
     const navigate = useNavigate();
+    const { currentOrg } = useShell();
+    const formatters = useFlowFormatters();
+    const quotaChecks = useMemo(() => [{ module_code: 'flow', quota_key: 'max_flows' }], []);
+    const { getQuota, isExceeded } = useQuota({
+        checks: quotaChecks,
+        orgId: currentOrg?.id || '',
+    });
+    const quotaData = getQuota('max_flows');
+    const { isSandboxMode, sandboxEntryLimit, limitItems, isLimited } = useSandboxLimit();
     const [instances, setInstances] = useState<FlowInstance[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -95,6 +107,22 @@ export const InstanceList = () => {
                         </button>
                     </div>
                 </div>
+
+                {quotaData && (
+                    <QuotaBar
+                        label="Flows"
+                        used={quotaData.current_usage}
+                        limit={quotaData.limit}
+                        isUnlimited={quotaData.is_unlimited}
+                    />
+                )}
+
+                {isSandboxMode && isLimited(total) && (
+                    <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border border-amber-500/25 rounded-lg text-amber-400 text-sm">
+                        <span className="font-semibold">Sandbox:</span>
+                        <span>Showing {sandboxEntryLimit} of {total} records. Switch to Production to view all.</span>
+                    </div>
+                )}
 
                 {/* Filters */}
                 <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 mb-6">
@@ -196,7 +224,7 @@ export const InstanceList = () => {
                 ) : (
                     <>
                         <div className="grid grid-cols-1 gap-4">
-                            {instances.map((instance) => {
+                            {(isSandboxMode ? instances.slice(0, sandboxEntryLimit) : instances).map((instance) => {
                                 const flowDef = instance.flows as unknown as FlowDefinition;
                                 const completed = isCompleted(instance);
 
@@ -262,8 +290,8 @@ export const InstanceList = () => {
                                                 </div>
                                                 <div className="text-slate-300">
                                                     {completed
-                                                        ? new Date(instance.completed_at!).toLocaleDateString()
-                                                        : new Date(instance.started_at).toLocaleDateString()}
+                                                        ? formatters.formatDate(instance.completed_at!)
+                                                        : formatters.formatDate(instance.started_at)}
                                                 </div>
                                             </div>
                                             <div>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
-import { useActivity } from '@so360/shell-context';
+import { useActivity, useShellBridge } from '@so360/shell-context';
+import { toast } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
@@ -10,12 +11,15 @@ export const FlowBuilder = () => {
     const navigate = useNavigate();
     const isNew = flowId === 'new';
     const { recordActivity } = useActivity();
+    const shell = useShellBridge();
+    const canAccessBuilder = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true);
 
     const [loading, setLoading] = useState(!isNew);
     const [saving, setSaving] = useState(false);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [moduleCode, setModuleCode] = useState('');
+    const [scope, setScope] = useState<'all_projects' | 'selective_projects'>('all_projects');
     const [states, setStates] = useState<FlowState[]>([]);
     const [transitions, setTransitions] = useState<FlowTransition[]>([]);
 
@@ -23,6 +27,7 @@ export const FlowBuilder = () => {
         { code: 'module:crm:lead', name: 'CRM - Leads' },
         { code: 'module:crm:deal', name: 'CRM - Deals' },
         { code: 'module:projects:task', name: 'Projects - Tasks' },
+        { code: 'module:projects:stages', name: 'Projects - Stages' },
         { code: 'module:projects:lifecycle', name: 'Projects - Lifecycle' },
         { code: 'module:procurement:purchase_request', name: 'Procurement - Purchase Requests' },
         { code: 'module:procurement:purchase_order', name: 'Procurement - Purchase Orders' },
@@ -50,6 +55,7 @@ export const FlowBuilder = () => {
             setName(flow.name);
             setDescription(flow.description || '');
             setModuleCode(flow.module_code);
+            setScope(flow.metadata?.scope || (flow.metadata?.is_default ? 'all_projects' : 'all_projects'));
             setStates(flow.states || []);
             setTransitions(flow.transitions || []);
         } catch (error) {
@@ -68,6 +74,11 @@ export const FlowBuilder = () => {
                 module_code: moduleCode,
                 states,
                 transitions,
+                metadata: {
+                    scope,
+                    is_default: scope === 'all_projects',
+                    applicable_to_all: scope === 'all_projects',
+                },
             };
 
             if (isNew) {
@@ -90,9 +101,11 @@ export const FlowBuilder = () => {
                 }).catch(() => {});
             }
 
+            toast.success(isNew ? 'Flow created' : 'Flow updated');
             navigate('/flow');
         } catch (error) {
             console.error('Failed to save flow:', error);
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setSaving(false);
         }
@@ -135,6 +148,17 @@ export const FlowBuilder = () => {
     const removeTransition = (index: number) => {
         setTransitions(transitions.filter((_, i) => i !== index));
     };
+
+    if (!canAccessBuilder) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-slate-400 font-medium">Workflow Builder</p>
+                    <p className="text-sm text-slate-500 mt-1">This feature is not available on your current plan.</p>
+                </div>
+            </div>
+        );
+    }
 
     if (loading) {
         return (
@@ -204,6 +228,40 @@ export const FlowBuilder = () => {
                                 ))}
                             </select>
                         </div>
+                        {moduleCode === 'module:projects:stages' && (
+                            <div className="p-4 rounded-lg bg-blue-950/40 border border-blue-800/50 space-y-2">
+                                <label className="text-sm font-semibold text-blue-300 block">
+                                    Project Scope & Applicability
+                                </label>
+                                <p className="text-xs text-slate-400 leading-relaxed">
+                                    Define how these stages are applied across your organization. "All Projects" sets this flow as the default stage pipeline, while "Selective Projects" lets project managers opt-in or select custom stages during project setup.
+                                </p>
+                                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                                    <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="scope"
+                                            value="all_projects"
+                                            checked={scope === 'all_projects'}
+                                            onChange={() => setScope('all_projects')}
+                                            className="text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700"
+                                        />
+                                        <span className="font-medium">All Projects in this Organization (Default)</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="scope"
+                                            value="selective_projects"
+                                            checked={scope === 'selective_projects'}
+                                            onChange={() => setScope('selective_projects')}
+                                            className="text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700"
+                                        />
+                                        <span>Selective Projects (Project-Level Applicability)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -282,6 +340,21 @@ export const FlowBuilder = () => {
                                         />
                                         Terminal State
                                     </label>
+                                    {moduleCode === 'module:projects:stages' && (
+                                        <label className="flex items-center gap-2 text-sm text-amber-400 font-medium">
+                                            <input
+                                                type="checkbox"
+                                                checked={state.is_mandatory || false}
+                                                onChange={(e) => {
+                                                    const updated = [...states];
+                                                    updated[index].is_mandatory = e.target.checked;
+                                                    setStates(updated);
+                                                }}
+                                                className="rounded text-amber-500 focus:ring-amber-400"
+                                            />
+                                            Mandatory for All Projects
+                                        </label>
+                                    )}
                                     <button
                                         onClick={() => removeState(index)}
                                         className="ml-auto text-red-400 hover:text-red-300"

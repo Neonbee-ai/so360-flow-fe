@@ -9,6 +9,7 @@ export const useBusinessSettings = () => ({ settings: { base_currency: 'USD', do
 export const useNotify = () => ({ emitNotification: async () => {} });
 export const useActivity = () => ({ recordActivity: async () => {} });
 export const useShellBridge = () => ({
+  effectiveFlagsLoaded: true,
   isFeatureEnabled: () => true,
   isFeatureHidden: () => false,
   currentOrg: { id: 'org-1', name: 'Test Org' },
@@ -24,4 +25,14 @@ export const ShellContext = React.createContext<any>({
   currentOrg: { id: 'org-1', name: 'Test Org' },
   currentTenant: { id: 'tenant-1', name: 'Test Tenant' },
   accessToken: 'mock-token',
+});
+
+export const useQuota = () => ({
+  quotas: [],
+  isLoading: false,
+  error: null,
+  isExceeded: () => false,
+  getQuota: () => null,
+  getPercentage: () => 0,
+  refresh: async () => {},
 });

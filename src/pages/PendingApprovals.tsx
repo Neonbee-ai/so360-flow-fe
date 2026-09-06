@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle, UserPlus, AlertTriangle, X } from 'lucide-react';
-import { useActivity } from '@so360/shell-context';
+import { useActivity, useShellBridge } from '@so360/shell-context';
+import { toast } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { PendingApproval } from '../types/flow';
+import { useFlowFormatters } from '../utils/formatters';
 
 type ModalType = 'approve' | 'reject' | 'delegate' | null;
 
@@ -15,6 +17,9 @@ interface ModalState {
 export const PendingApprovals: React.FC = () => {
     const navigate = useNavigate();
     const { recordActivity } = useActivity();
+    const shell = useShellBridge();
+    const formatters = useFlowFormatters();
+    const canApprovalAction = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:approval:action') ?? true);
     const [approvals, setApprovals] = useState<PendingApproval[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -38,7 +43,12 @@ export const PendingApprovals: React.FC = () => {
 
     useEffect(() => {
         fetchPendingApprovals();
-        pollRef.current = setInterval(fetchPendingApprovals, 30000);
+        // Skip polling while the tab is backgrounded — a hidden approvals view
+        // doesn't need fresh data, and we refetch immediately on the next tick.
+        pollRef.current = setInterval(() => {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            fetchPendingApprovals();
+        }, 30000);
         return () => { if (pollRef.current) clearInterval(pollRef.current); };
     }, [fetchPendingApprovals]);
 
@@ -68,9 +78,10 @@ export const PendingApprovals: React.FC = () => {
                 resourceId: modal.approval.id,
             }).catch(() => {});
             closeModal();
+            toast.success('Approved');
             await fetchPendingApprovals();
-        } catch (err: any) {
-            alert(`Failed to approve: ${err.message}`);
+        } catch {
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setActionInProgress(null);
         }
@@ -94,9 +105,10 @@ export const PendingApprovals: React.FC = () => {
                 resourceId: modal.approval.id,
             }).catch(() => {});
             closeModal();
+            toast.success('Rejected');
             await fetchPendingApprovals();
-        } catch (err: any) {
-            alert(`Failed to reject: ${err.message}`);
+        } catch {
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setActionInProgress(null);
         }
@@ -114,9 +126,10 @@ export const PendingApprovals: React.FC = () => {
                 delegate_to_user_id: delegateTo.trim(),
             });
             closeModal();
+            toast.success('Delegated');
             await fetchPendingApprovals();
-        } catch (err: any) {
-            alert(`Failed to delegate: ${err.message}`);
+        } catch {
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setActionInProgress(null);
         }
@@ -144,8 +157,8 @@ export const PendingApprovals: React.FC = () => {
         <div className="min-h-screen bg-slate-950 p-8">
             {/* Approve Modal */}
             {modal.type === 'approve' && modal.approval && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
+                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-slate-100">Approve: {getEntityTitle(modal.approval)}</h3>
                             <button onClick={closeModal} className="text-slate-400 hover:text-slate-100"><X className="w-5 h-5" /></button>
@@ -169,8 +182,8 @@ export const PendingApprovals: React.FC = () => {
 
             {/* Reject Modal */}
             {modal.type === 'reject' && modal.approval && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
+                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-slate-100">Reject: {getEntityTitle(modal.approval)}</h3>
                             <button onClick={closeModal} className="text-slate-400 hover:text-slate-100"><X className="w-5 h-5" /></button>
@@ -197,8 +210,8 @@ export const PendingApprovals: React.FC = () => {
 
             {/* Delegate Modal */}
             {modal.type === 'delegate' && modal.approval && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
+                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-slate-100">Delegate: {getEntityTitle(modal.approval)}</h3>
                             <button onClick={closeModal} className="text-slate-400 hover:text-slate-100"><X className="w-5 h-5" /></button>
@@ -266,7 +279,7 @@ export const PendingApprovals: React.FC = () => {
                                             <Clock className="w-4 h-4" />
                                             <span>{approval.time_elapsed_hours}h elapsed{approval.sla_hours ? ` / ${approval.sla_hours}h SLA` : ''}</span>
                                         </div>
-                                        <span>Requested {new Date(approval.requested_at).toLocaleString()}</span>
+                                        <span>Requested {formatters.formatDateTime(approval.requested_at)}</span>
                                         <button onClick={() => navigate(`/flow/approvals/history/${approval.entity_type}/${approval.entity_id}`)}
                                             className="text-blue-400 hover:text-blue-300 text-xs">View History →</button>
                                     </div>
@@ -287,22 +300,24 @@ export const PendingApprovals: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-3">
-                                <button onClick={() => openModal('approve', approval)} disabled={actionInProgress === approval.id}
-                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
-                                    <CheckCircle className="w-4 h-4" /> Approve
-                                </button>
-                                <button onClick={() => openModal('reject', approval)} disabled={actionInProgress === approval.id}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
-                                    <XCircle className="w-4 h-4" /> Reject
-                                </button>
-                                {approval.current_step?.can_delegate && (
-                                    <button onClick={() => openModal('delegate', approval)} disabled={actionInProgress === approval.id}
-                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-lg font-medium">
-                                        <UserPlus className="w-4 h-4" /> Delegate
+                            {canApprovalAction && (
+                                <div className="flex items-center gap-3">
+                                    <button onClick={() => openModal('approve', approval)} disabled={actionInProgress === approval.id}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 text-slate-50 rounded-lg font-medium">
+                                        <CheckCircle className="w-4 h-4" /> Approve
                                     </button>
-                                )}
-                            </div>
+                                    <button onClick={() => openModal('reject', approval)} disabled={actionInProgress === approval.id}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-slate-50 rounded-lg font-medium">
+                                        <XCircle className="w-4 h-4" /> Reject
+                                    </button>
+                                    {approval.current_step?.can_delegate && (
+                                        <button onClick={() => openModal('delegate', approval)} disabled={actionInProgress === approval.id}
+                                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-slate-50 rounded-lg font-medium">
+                                            <UserPlus className="w-4 h-4" /> Delegate
+                                        </button>
+                                    )}
+                                </div>
+                            )}
 
                             {approval.is_overdue && (
                                 <div className="mt-4 flex items-start gap-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">

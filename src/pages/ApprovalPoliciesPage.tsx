@@ -1,18 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, ChevronDown, ChevronUp, ArrowLeft, Save, Edit2, Power, FlaskConical, GripVertical, X } from 'lucide-react';
-import { useActivity } from '@so360/shell-context';
+import { useActivity, useShellBridge } from '@so360/shell-context';
+import { toast } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import { RoleSelector } from '../components/RoleSelector';
 
+type ApproverType = 'ROLE' | 'USER' | 'DYNAMIC_FIELD' | 'DEPARTMENT_HEAD';
+
 interface LocalApprovalStep {
     step_order: number;
-    approver_type: 'ROLE';
-    approver_config: { role_id: string; role_name?: string };
+    approver_type: ApproverType;
+    // Shape depends on approver_type: { role_id } for ROLE, { user_id } for
+    // USER, { field } for DYNAMIC_FIELD, {} for DEPARTMENT_HEAD (resolved
+    // dynamically per submitter — nothing to configure on the step).
+    approver_config: { role_id?: string; role_name?: string; user_id?: string; field?: string };
     sla_hours: number;
     can_delegate: boolean;
     escalation_role?: string;
 }
+
+const APPROVER_TYPE_OPTIONS: { value: ApproverType; label: string }[] = [
+    { value: 'ROLE', label: 'Users with a role' },
+    { value: 'USER', label: 'Specific user' },
+    { value: 'DYNAMIC_FIELD', label: 'Field on the submitted record' },
+    { value: 'DEPARTMENT_HEAD', label: "Submitter's department head" },
+];
 
 interface ConditionClause {
     field: string;
@@ -97,6 +110,9 @@ function buildConditionExpression(conditions: ConditionClause[]): any {
 export const ApprovalPoliciesPage = () => {
     const navigate = useNavigate();
     const { recordActivity } = useActivity();
+    const shell = useShellBridge();
+    const canAccessPolicies = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:approval_policies') ?? true);
+    const canSimulate = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:approval:simulate') ?? true);
     const [policies, setPolicies] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -178,7 +194,7 @@ export const ApprovalPoliciesPage = () => {
                 });
                 for (const step of form.steps) {
                     await flowApi.createApprovalStep(rule.data.id, {
-                        step_order: step.step_order, approver_type: 'ROLE',
+                        step_order: step.step_order, approver_type: step.approver_type,
                         approver_config: step.approver_config,
                         sla_hours: step.sla_hours, can_delegate: step.can_delegate,
                         escalation_role: step.escalation_role,
@@ -192,9 +208,10 @@ export const ApprovalPoliciesPage = () => {
                     resourceId: policy.data.id,
                 }).catch(() => {});
             }
+            toast.success(editingId ? 'Policy updated' : 'Policy created');
             setShowForm(false); setEditingId(null); setForm(defaultPolicy());
             await loadPolicies();
-        } catch (err) { console.error('Failed to save policy:', err); }
+        } catch (err) { console.error('Failed to save policy:', err); /* Error toast comes from the flowApi interceptor. */ }
         finally { setSaving(false); }
     };
 
@@ -204,8 +221,8 @@ export const ApprovalPoliciesPage = () => {
     };
 
     const handleDelete = async (policyId: string) => {
-        try { await flowApi.deactivatePolicy(policyId); setConfirmDelete(null); await loadPolicies(); }
-        catch (err) { console.error('Failed to delete policy:', err); }
+        try { await flowApi.deactivatePolicy(policyId); toast.success('Policy deleted'); setConfirmDelete(null); await loadPolicies(); }
+        catch (err) { console.error('Failed to delete policy:', err); /* Error toast comes from the flowApi interceptor. */ }
     };
 
     const handleSimulate = async (policyId: string) => {
@@ -219,6 +236,17 @@ export const ApprovalPoliciesPage = () => {
         } finally { setSimLoading(false); }
     };
 
+    if (!canAccessPolicies) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-slate-400 font-medium">Approval Policies</p>
+                    <p className="text-sm text-slate-500 mt-1">This feature is not available on your current plan.</p>
+                </div>
+            </div>
+        );
+    }
+
     if (loading) return (
         <div className="flex items-center justify-center h-screen bg-slate-950">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent" />
@@ -231,8 +259,8 @@ export const ApprovalPoliciesPage = () => {
         <div className="min-h-screen bg-slate-950 p-6">
             {/* Confirm Delete Modal */}
             {confirmDelete && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
+                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto">
                         <h3 className="text-lg font-semibold text-slate-100 mb-2">Deactivate Policy?</h3>
                         <p className="text-slate-400 text-sm mb-4">This will deactivate the policy. No new approvals will be triggered by it.</p>
                         <div className="flex gap-3 justify-end">
@@ -245,8 +273,8 @@ export const ApprovalPoliciesPage = () => {
 
             {/* Simulation Modal */}
             {simModal && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-lg w-full">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
+                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-slate-100">Policy Simulation</h3>
                             <button onClick={() => setSimModal(null)} className="text-slate-400 hover:text-slate-100"><X className="w-5 h-5" /></button>
@@ -408,11 +436,12 @@ export const ApprovalPoliciesPage = () => {
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-xs text-slate-500 mb-1 block">Approver Role</label>
-                                                <RoleSelector
-                                                    value={step.approver_config.role_id}
-                                                    onChange={roleId => updateStep(i, { approver_config: { role_id: roleId } })}
-                                                />
+                                                <label className="text-xs text-slate-500 mb-1 block">Approver Type</label>
+                                                <select value={step.approver_type}
+                                                    onChange={e => updateStep(i, { approver_type: e.target.value as ApproverType, approver_config: {} })}
+                                                    className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm">
+                                                    {APPROVER_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                                </select>
                                             </div>
                                             <div>
                                                 <label className="text-xs text-slate-500 mb-1 block">SLA (hours)</label>
@@ -420,6 +449,40 @@ export const ApprovalPoliciesPage = () => {
                                                     onChange={e => updateStep(i, { sla_hours: parseInt(e.target.value) || 48 })}
                                                     className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm" />
                                             </div>
+                                        </div>
+                                        <div className="mt-3">
+                                            {step.approver_type === 'ROLE' && (
+                                                <div>
+                                                    <label className="text-xs text-slate-500 mb-1 block">Role</label>
+                                                    <RoleSelector
+                                                        value={step.approver_config.role_id || ''}
+                                                        onChange={roleId => updateStep(i, { approver_config: { role_id: roleId } })}
+                                                    />
+                                                </div>
+                                            )}
+                                            {step.approver_type === 'USER' && (
+                                                <div>
+                                                    <label className="text-xs text-slate-500 mb-1 block">User ID</label>
+                                                    <input value={step.approver_config.user_id || ''}
+                                                        onChange={e => updateStep(i, { approver_config: { user_id: e.target.value } })}
+                                                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                                        placeholder="Platform user id" />
+                                                </div>
+                                            )}
+                                            {step.approver_type === 'DYNAMIC_FIELD' && (
+                                                <div>
+                                                    <label className="text-xs text-slate-500 mb-1 block">Field (on submitted record)</label>
+                                                    <input value={step.approver_config.field || ''}
+                                                        onChange={e => updateStep(i, { approver_config: { field: e.target.value } })}
+                                                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                                        placeholder="e.g. manager_id" />
+                                                </div>
+                                            )}
+                                            {step.approver_type === 'DEPARTMENT_HEAD' && (
+                                                <p className="text-xs text-slate-500">
+                                                    Resolved automatically from the submitter's department hierarchy — nothing to configure.
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="grid grid-cols-2 gap-3 mt-3">
                                             <div>
@@ -479,10 +542,12 @@ export const ApprovalPoliciesPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => { setSimInput('{}'); setSimModal({ policyId: policy.id, result: null }); }}
-                                        title="Test policy" className="p-1.5 text-slate-400 hover:text-blue-400">
-                                        <FlaskConical className="w-4 h-4" />
-                                    </button>
+                                    {canSimulate && (
+                                        <button onClick={() => { setSimInput('{}'); setSimModal({ policyId: policy.id, result: null }); }}
+                                            title="Test policy" className="p-1.5 text-slate-400 hover:text-blue-400">
+                                            <FlaskConical className="w-4 h-4" />
+                                        </button>
+                                    )}
                                     <button onClick={() => startEdit(policy)} title="Edit policy" className="p-1.5 text-slate-400 hover:text-slate-100">
                                         <Edit2 className="w-4 h-4" />
                                     </button>
