@@ -5,6 +5,7 @@ export interface FlowState {
     color?: string;
     is_initial?: boolean;
     is_terminal?: boolean;
+    is_mandatory?: boolean;
     timeout_seconds?: number;
     escalation_transition?: string;
     on_enter?: { side_effects: string[] };

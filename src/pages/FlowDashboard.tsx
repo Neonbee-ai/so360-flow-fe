@@ -21,6 +21,7 @@ export const FlowDashboard = () => {
         { code: 'module:crm:deal', name: 'CRM - Deals' },
         { code: 'module:projects:task', name: 'Projects - Tasks' },
         { code: 'module:projects:project', name: 'Projects - Projects' },
+        { code: 'module:projects:stages', name: 'Projects - Stages' },
         { code: 'module:procurement:pr', name: 'Procurement - PRs' },
         { code: 'module:procurement:po', name: 'Procurement - POs' },
         { code: 'module:timesheet:batch', name: 'Timesheet - Batches' },
