@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, ChevronRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition } from '../types/flow';
+import { useFlowFormatters } from '../utils/formatters';
 
 interface SimStep {
     from_state: string;
@@ -14,6 +15,7 @@ interface SimStep {
 
 export const FlowSimulatorPage = () => {
     const navigate = useNavigate();
+    const formatters = useFlowFormatters();
     const [flows, setFlows] = useState<FlowDefinition[]>([]);
     const [selectedFlowId, setSelectedFlowId] = useState<string>('');
     const [selectedFlow, setSelectedFlow] = useState<FlowDefinition | null>(null);
@@ -62,7 +64,7 @@ export const FlowSimulatorPage = () => {
     };
 
     const applyTransition = (transition: any) => {
-        const now = new Date().toLocaleTimeString();
+        const now = formatters.formatDate(new Date().toISOString(), { hour: '2-digit', minute: '2-digit' });
         setHistory(prev => [...prev, {
             from_state: currentState,
             to_state: transition.to_state,
@@ -170,11 +172,11 @@ export const FlowSimulatorPage = () => {
                                         style={{
                                             backgroundColor: state.code === currentState
                                                 ? (state.color + '44') || '#3b82f644'
-                                                : 'rgb(30 41 59 / 0.5)',
+                                                : 'rgb(var(--s-800) / 0.5)',
                                             border: state.code === currentState
                                                 ? `2px solid ${state.color || '#3b82f6'}`
-                                                : '2px solid rgb(51 65 85)',
-                                            color: state.code === currentState ? (state.color || '#3b82f6') : 'rgb(148 163 184)',
+                                                : '2px solid rgb(var(--s-700))',
+                                            color: state.code === currentState ? (state.color || '#3b82f6') : 'rgb(var(--s-400))',
                                         }}
                                     >
                                         {state.code === currentState && <div className="w-2 h-2 rounded-full bg-current animate-pulse" />}

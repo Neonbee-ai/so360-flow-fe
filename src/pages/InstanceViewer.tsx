@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Activity, GitBranch, Database, History } from 'lucide-react';
+import { toast } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import { ApprovalHistory } from '../components/ApprovalHistory';
 import type { FlowInstance, FlowHistory, FlowDefinition } from '../types/flow';
 import { FlowStateGraph } from '../components/FlowStateGraph';
+import { useFlowFormatters } from '../utils/formatters';
 
 interface InstanceContext {
     instance: FlowInstance;
@@ -20,6 +22,7 @@ interface InstanceContext {
 export const InstanceViewer = () => {
     const { instanceId } = useParams<{ instanceId: string }>();
     const navigate = useNavigate();
+    const formatters = useFlowFormatters();
 
     const [context, setContext] = useState<InstanceContext | null>(null);
     const [loading, setLoading] = useState(true);
@@ -57,11 +60,12 @@ export const InstanceViewer = () => {
             await flowApi.transitionFlowInstance(instanceId!, {
                 transition_code: transitionCode,
             });
+            toast.success(`Transition "${transitionName}" executed`);
             // Reload instance context to see new state
             await loadInstanceContext();
         } catch (err: any) {
             console.error('Failed to execute transition:', err);
-            alert(err.response?.data?.message || 'Failed to execute transition');
+            // Error toast comes from the flowApi interceptor.
         } finally {
             setTransitioning(false);
         }
@@ -175,14 +179,14 @@ export const InstanceViewer = () => {
                         <div>
                             <div className="text-xs text-slate-500 mb-1">Started At</div>
                             <div className="text-slate-100 text-sm">
-                                {new Date(context.instance.started_at).toLocaleString()}
+                                {formatters.formatDateTime(context.instance.started_at)}
                             </div>
                         </div>
                         {isCompleted && (
                             <div>
                                 <div className="text-xs text-slate-500 mb-1">Completed At</div>
                                 <div className="text-slate-100 text-sm">
-                                    {new Date(context.instance.completed_at!).toLocaleString()}
+                                    {formatters.formatDateTime(context.instance.completed_at!)}
                                 </div>
                             </div>
                         )}
@@ -231,7 +235,7 @@ export const InstanceViewer = () => {
                                     key={transition.code}
                                     onClick={() => handleTransition(transition.code, transition.name)}
                                     disabled={transitioning}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-slate-50 rounded-lg font-medium transition-colors flex items-center gap-2"
                                 >
                                     {transition.name}
                                     {transition.requires_approval && (
@@ -296,7 +300,7 @@ export const InstanceViewer = () => {
                                                 </span>
                                             </div>
                                             <span className="text-xs text-slate-500">
-                                                {new Date(record.transitioned_at).toLocaleString()}
+                                                {formatters.formatDateTime(record.transitioned_at)}
                                             </span>
                                         </div>
                                         {record.comment && (

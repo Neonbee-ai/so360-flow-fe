@@ -14,6 +14,24 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
+vi.mock('@so360/shell-context', () => ({
+  useSandboxLimit: () => ({ isSandboxMode: false, sandboxEntryLimit: 5, limitItems: (items: any[]) => items, isLimited: () => false }),
+  useShell: () => ({ currentOrg: { id: 'org-1' } }),
+  useQuota: () => ({ isExceeded: () => false, getQuota: () => null }),
+}));
+
+vi.mock('../utils/formatters', () => ({
+  useFlowFormatters: () => ({
+    formatDate: (d: string, _opts?: any) => d ?? '',
+    formatDateTime: (d: string) => d ?? '',
+    formatCurrency: (v: number) => `$${v}`,
+    formatNumber: (n: number) => String(n),
+    currency: 'USD',
+    locale: 'en-US',
+    timezone: 'UTC',
+  }),
+}));
+
 import { InstanceList } from '../pages/InstanceList';
 import { flowApi } from '../services/flowApi';
 

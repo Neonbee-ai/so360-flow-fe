@@ -1,8 +1,8 @@
-name: Deploy flow-fe
+name: Deploy Flow Frontend
 
 on:
   push:
-    branches: [main]
+    branches: [develop, qa]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,8 +13,9 @@ jobs:
     uses: Neonbee-ai/neonbee-devops/.github/workflows/neonbee-deploy-vite-mfe.yml@main
     with:
       service_name: flow-fe
-      nginx_root_dev: /var/www/dev.flow.skyoffice360.com/html
+      nginx_root_dev: /var/www/dev-cdn.skyoffice360.com/html/flow
       nginx_root_staging: /var/www/staging.flow.skyoffice360.com/html
-      vite_base_url_dev: https://dev.flow.skyoffice360.com/
+      vite_base_url_dev: https://dev-cdn.skyoffice360.com/flow/
       vite_base_url_staging: https://staging.flow.skyoffice360.com/
+      is_mfe: true
     secrets: inherit

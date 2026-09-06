@@ -18,6 +18,16 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
+let mockShellBridgeValue: any = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
+vi.mock('@so360/shell-context', async () => {
+  const actual = await vi.importActual('@so360/shell-context');
+  return {
+    ...actual,
+    useShellBridge: () => mockShellBridgeValue,
+    useActivity: () => ({ recordActivity: async () => {} }),
+  };
+});
+
 import { ApprovalPoliciesPage } from '../pages/ApprovalPoliciesPage';
 import { flowApi } from '../services/flowApi';
 
@@ -40,7 +50,10 @@ const makePolicy = (overrides: any = {}) => ({
   ...overrides,
 });
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
+});
 
 describe('ApprovalPoliciesPage', () => {
   describe('Given policies are loading', () => {
@@ -127,6 +140,68 @@ describe('ApprovalPoliciesPage', () => {
       expect(screen.getByText('Step 1')).toBeInTheDocument();
     });
 
+    it('When a step is added / Then it defaults to approver type ROLE with a role selector', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('Add Step'));
+      expect(screen.getByText('Approver Type')).toBeInTheDocument();
+      expect(screen.getByText('Role')).toBeInTheDocument();
+    });
+
+    it('When approver type is switched to DEPARTMENT_HEAD / Then shows the auto-resolved explainer and no role/user/field input', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('Add Step'));
+      const typeSelect = screen.getAllByRole('combobox').find(el =>
+        Array.from(el.querySelectorAll('option')).some(o => o.textContent === "Submitter's department head"),
+      ) as HTMLSelectElement;
+      fireEvent.change(typeSelect, { target: { value: 'DEPARTMENT_HEAD' } });
+
+      expect(
+        screen.getByText(/Resolved automatically from the submitter's department hierarchy/i),
+      ).toBeInTheDocument();
+      expect(screen.queryByPlaceholderText('Platform user id')).not.toBeInTheDocument();
+      expect(screen.queryByPlaceholderText('e.g. manager_id')).not.toBeInTheDocument();
+    });
+
+    it('When approver type is switched to USER / Then shows a user id input', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('Add Step'));
+      const typeSelect = screen.getAllByRole('combobox').find(el =>
+        Array.from(el.querySelectorAll('option')).some(o => o.textContent === 'Specific user'),
+      ) as HTMLSelectElement;
+      fireEvent.change(typeSelect, { target: { value: 'USER' } });
+
+      expect(screen.getByPlaceholderText('Platform user id')).toBeInTheDocument();
+    });
+
+    it('When a DEPARTMENT_HEAD step is saved / Then createApprovalStep is called with approver_type DEPARTMENT_HEAD (not hardcoded ROLE)', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      fireEvent.change(screen.getByPlaceholderText(/Manager Approval/), { target: { value: 'Test Policy' } });
+      const selects = screen.getAllByRole('combobox');
+      const moduleSelect = selects.find(s => s.querySelector('option[value="module:crm:deal"]'));
+      fireEvent.change(moduleSelect!, { target: { value: 'module:crm:deal' } });
+      fireEvent.click(screen.getByText('Add Step'));
+
+      const typeSelect = screen.getAllByRole('combobox').find(el =>
+        Array.from(el.querySelectorAll('option')).some(o => o.textContent === "Submitter's department head"),
+      ) as HTMLSelectElement;
+      fireEvent.change(typeSelect, { target: { value: 'DEPARTMENT_HEAD' } });
+
+      fireEvent.click(screen.getByText('Save Policy'));
+      await waitFor(() => expect(api.createApprovalStep).toHaveBeenCalled());
+      expect(api.createApprovalStep).toHaveBeenCalledWith(
+        'rule-1',
+        expect.objectContaining({ approver_type: 'DEPARTMENT_HEAD' }),
+      );
+    });
+
     it('When Add Condition is clicked / Then adds a condition row', async () => {
       renderPage();
       await waitFor(() => screen.getByText('New Policy'));
@@ -168,6 +243,51 @@ describe('ApprovalPoliciesPage', () => {
       await waitFor(() => screen.getByText('Expense Approval'));
       const dot = document.querySelector('.bg-slate-500');
       expect(dot).not.toBeNull();
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is false (flags not yet resolved)', () => {
+    beforeEach(() => {
+      api.getApprovalPolicies.mockResolvedValue({ data: [makePolicy()] });
+      mockShellBridgeValue = { effectiveFlagsLoaded: false, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
+    });
+
+    it('When flags are not loaded / Then canAccessPolicies is false and the access-denied banner is shown', async () => {
+      renderPage();
+      await waitFor(() =>
+        expect(screen.getByText('Approval Policies')).toBeInTheDocument()
+      );
+      // canAccessPolicies === false → renders the "not available" notice, not the policy list
+      expect(screen.getByText(/This feature is not available on your current plan/i)).toBeInTheDocument();
+      expect(screen.queryByText('New Policy')).not.toBeInTheDocument();
+    });
+
+    it('When flags are not loaded / Then the simulate button is absent for any policy row', async () => {
+      renderPage();
+      await waitFor(() =>
+        expect(screen.getByText('Approval Policies')).toBeInTheDocument()
+      );
+      // canSimulate === false → no FlaskConical simulate button should appear
+      expect(document.querySelector('[data-testid="icon-FlaskConical"]')).toBeNull();
+    });
+  });
+
+  describe('Given effectiveFlagsLoaded is true (flags resolved)', () => {
+    beforeEach(() => {
+      api.getApprovalPolicies.mockResolvedValue({ data: [makePolicy()] });
+      mockShellBridgeValue = { effectiveFlagsLoaded: true, permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, isFeatureEnabled: () => true };
+    });
+
+    it('When flags are loaded and feature is enabled / Then the full policies page with New Policy button is shown', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('New Policy')).toBeInTheDocument());
+      expect(screen.queryByText(/not available on your current plan/i)).not.toBeInTheDocument();
+    });
+
+    it('When flags are loaded and feature is enabled / Then the simulate button appears for each policy row', async () => {
+      renderPage();
+      await waitFor(() => expect(screen.getByText('Expense Approval')).toBeInTheDocument());
+      expect(document.querySelector('[title="Test policy"]')).not.toBeNull();
     });
   });
 });

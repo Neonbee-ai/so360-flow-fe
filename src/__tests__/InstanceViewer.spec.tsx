@@ -25,6 +25,18 @@ vi.mock('../components/FlowStateGraph', () => ({
   FlowStateGraph: () => <div data-testid="flow-state-graph">Graph</div>,
 }));
 
+vi.mock('../utils/formatters', () => ({
+  useFlowFormatters: () => ({
+    formatDate: (d: string, _opts?: any) => d ?? '',
+    formatDateTime: (d: string) => d ?? '',
+    formatCurrency: (v: number) => `$${v}`,
+    formatNumber: (n: number) => String(n),
+    currency: 'USD',
+    locale: 'en-US',
+    timezone: 'UTC',
+  }),
+}));
+
 import { InstanceViewer } from '../pages/InstanceViewer';
 import { flowApi } from '../services/flowApi';
 

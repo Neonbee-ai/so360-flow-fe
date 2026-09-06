@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { attachToastErrorHandler } from '@so360/design-system';
 import type {
     FlowDefinition,
     FlowInstance,
@@ -14,6 +15,17 @@ import type {
     CreateApprovalRuleDto,
     CreateApprovalStepDto,
 } from '../types/flow';
+import { createRequestCache } from './requestCache';
+
+// Coalesces + briefly caches org-static reference reads (flow definitions,
+// approval policies, roles). Every Flow page re-requests these on mount and the
+// pending-approvals view re-checks on a 30s poll, so a short TTL collapses the
+// duplication. Keyed by org id; mutations invalidate by prefix.
+const refCache = createRequestCache({ defaultTtlMs: 30_000, maxEntries: 50 });
+const orgKey = () => (typeof localStorage !== 'undefined' && localStorage.getItem('currentOrgId')) || '';
+
+/** Clears the org-static reference cache (call on org/tenant switch). */
+export const clearFlowRefCache = () => refCache.invalidate();
 
 // Flow BE controller is @Controller('v1/flow'). Gateway strips the module prefix (/flow/)
 // so we must include /v1/flow in the path. In dev, proxy passes /v1/flow/* unchanged.
@@ -37,13 +49,33 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 402 && error.response?.data?.error === 'QUOTA_EXCEEDED') {
+            window.dispatchEvent(new CustomEvent('__so360_quota_exceeded', { detail: error.response.data.resolution || error.response.data }));
+        }
+        return Promise.reject(error);
+    },
+);
+
+// Baseline user-visible error surfacing: every failed MUTATION toasts the
+// normalized server message. 401/402 stay with their existing handlers; reads
+// never toast; opt out per-call with { suppressToast: true }.
+attachToastErrorHandler(api);
+
 export const flowApi = {
     // Flow Definitions
-    createFlowDefinition: (data: CreateFlowDefinitionDto) =>
-        api.post<FlowDefinition>('/definitions', data),
+    createFlowDefinition: (data: CreateFlowDefinitionDto) => {
+        refCache.invalidate(`flow-defs|${orgKey()}`);
+        return api.post<FlowDefinition>('/definitions', data);
+    },
 
     getFlowDefinitions: (moduleCode?: string) =>
-        api.get<FlowDefinition[]>('/definitions', { params: { module_code: moduleCode } }),
+        refCache.run(
+            `flow-defs|${orgKey()}|${moduleCode ?? ''}`,
+            () => api.get<FlowDefinition[]>('/definitions', { params: { module_code: moduleCode } }),
+        ),
     getAllInstances: (params?: { entity_type?: string; status?: string; limit?: number; offset?: number }) =>
         api.get<{ data: FlowInstance[]; total: number; limit: number; offset: number }>('/instances', { params }),
 
@@ -51,8 +83,10 @@ export const flowApi = {
     getFlowDefinition: (flowId: string) =>
         api.get<FlowDefinition>(`/definitions/${flowId}`),
 
-    updateFlowDefinition: (flowId: string, data: Partial<CreateFlowDefinitionDto>) =>
-        api.put<FlowDefinition>(`/definitions/${flowId}`, data),
+    updateFlowDefinition: (flowId: string, data: Partial<CreateFlowDefinitionDto>) => {
+        refCache.invalidate(`flow-defs|${orgKey()}`);
+        return api.put<FlowDefinition>(`/definitions/${flowId}`, data);
+    },
 
     // Flow Instances
     startFlowInstance: (data: StartFlowInstanceDto) =>
@@ -90,29 +124,42 @@ export const flowApi = {
         api.get<ApprovalHistory[]>(`/approval/history/${entityType}/${entityId}`),
 
     // Policy Management
-    createApprovalPolicy: (data: CreateApprovalPolicyDto) =>
-        api.post<ApprovalPolicy>('/approval/policies', data),
+    createApprovalPolicy: (data: CreateApprovalPolicyDto) => {
+        refCache.invalidate(`approval-policies|${orgKey()}`);
+        return api.post<ApprovalPolicy>('/approval/policies', data);
+    },
 
     getApprovalPolicies: (entityType?: string) =>
-        api.get<ApprovalPolicy[]>('/approval/policies', { params: { entity_type: entityType } }),
+        refCache.run(
+            `approval-policies|${orgKey()}|${entityType ?? ''}`,
+            () => api.get<ApprovalPolicy[]>('/approval/policies', { params: { entity_type: entityType } }),
+        ),
 
     getApprovalPolicy: (policyId: string) =>
         api.get<ApprovalPolicy>(`/approval/policies/${policyId}`),
 
-    createApprovalRule: (policyId: string, data: CreateApprovalRuleDto) =>
-        api.post(`/approval/policies/${policyId}/rules`, data),
+    createApprovalRule: (policyId: string, data: CreateApprovalRuleDto) => {
+        refCache.invalidate(`approval-policies|${orgKey()}`);
+        return api.post(`/approval/policies/${policyId}/rules`, data);
+    },
 
-    createApprovalStep: (ruleId: string, data: CreateApprovalStepDto) =>
-        api.post(`/approval/rules/${ruleId}/steps`, data),
+    createApprovalStep: (ruleId: string, data: CreateApprovalStepDto) => {
+        refCache.invalidate(`approval-policies|${orgKey()}`);
+        return api.post(`/approval/rules/${ruleId}/steps`, data);
+    },
 
     getRoles: () =>
-        api.get('/approval/roles'),
+        refCache.run(`approval-roles|${orgKey()}`, () => api.get('/approval/roles')),
 
-    updatePolicy: (policyId: string, data: { name?: string; description?: string; priority?: number; is_active?: boolean }) =>
-        api.patch(`/approval/policies/${policyId}`, data),
+    updatePolicy: (policyId: string, data: { name?: string; description?: string; priority?: number; is_active?: boolean }) => {
+        refCache.invalidate(`approval-policies|${orgKey()}`);
+        return api.patch(`/approval/policies/${policyId}`, data);
+    },
 
-    deactivatePolicy: (policyId: string) =>
-        api.delete(`/approval/policies/${policyId}`),
+    deactivatePolicy: (policyId: string) => {
+        refCache.invalidate(`approval-policies|${orgKey()}`);
+        return api.delete(`/approval/policies/${policyId}`);
+    },
 
     simulatePolicy: (policyId: string, entityData: any) =>
         api.post(`/approval/policies/${policyId}/simulate`, { entity_data: entityData }),

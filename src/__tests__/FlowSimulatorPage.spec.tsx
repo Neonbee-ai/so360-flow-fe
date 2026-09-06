@@ -15,6 +15,18 @@ vi.mock('../services/flowApi', () => ({
   },
 }));
 
+vi.mock('../utils/formatters', () => ({
+  useFlowFormatters: () => ({
+    formatDate: (d: string, _opts?: any) => d ?? '',
+    formatDateTime: (d: string) => d ?? '',
+    formatCurrency: (v: number) => `$${v}`,
+    formatNumber: (n: number) => String(n),
+    currency: 'USD',
+    locale: 'en-US',
+    timezone: 'UTC',
+  }),
+}));
+
 import { FlowSimulatorPage } from '../pages/FlowSimulatorPage';
 import { flowApi } from '../services/flowApi';
 
