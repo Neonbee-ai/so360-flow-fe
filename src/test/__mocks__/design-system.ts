@@ -1,7 +1,17 @@
 import React from 'react';
 export const Button = ({ children, ...rest }: any) => React.createElement('button', rest, children);
 export const Input = (props: any) => React.createElement('input', props);
-export const Select = ({ children, ...rest }: any) => React.createElement('select', rest, children);
+export const Select = ({ children, options, placeholder, label, hint, error, size, ...rest }: any) =>
+  React.createElement(
+    'select',
+    rest,
+    placeholder ? React.createElement('option', { value: '', disabled: true }, placeholder) : null,
+    options ? options.map((o: any) => React.createElement('option', { key: o.value, value: o.value, disabled: o.disabled }, o.label)) : children,
+  );
+export const useConfirm = () => {
+  const ref = (globalThis as any).__confirmMock ?? ((..._a: any[]) => Promise.resolve(true));
+  return [ref, null] as const;
+};
 export const Modal = ({ children, isOpen, ...rest }: any) => isOpen ? React.createElement('div', { 'data-testid': 'modal', ...rest }, children) : null;
 export const Card = ({ children, ...rest }: any) => React.createElement('div', rest, children);
 export const Badge = ({ children, ...rest }: any) => React.createElement('span', rest, children);

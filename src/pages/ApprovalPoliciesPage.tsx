@@ -238,34 +238,34 @@ export const ApprovalPoliciesPage = () => {
 
     if (!canAccessPolicies) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+            <div className="min-h-screen bg-bg flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-slate-400 font-medium">Approval Policies</p>
-                    <p className="text-sm text-slate-500 mt-1">This feature is not available on your current plan.</p>
+                    <p className="text-fg-muted font-medium">Approval Policies</p>
+                    <p className="text-sm text-fg-subtle mt-1">This feature is not available on your current plan.</p>
                 </div>
             </div>
         );
     }
 
     if (loading) return (
-        <div className="flex items-center justify-center h-screen bg-slate-950">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent" />
+        <div className="flex items-center justify-center h-screen bg-bg">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent" />
         </div>
     );
 
     const entityFields = ENTITY_FIELDS[form.entity_type] || [];
 
     return (
-        <div className="min-h-screen bg-slate-950 p-6">
+        <div className="min-h-screen bg-bg p-6">
             {/* Confirm Delete Modal */}
             {confirmDelete && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-lg font-semibold text-slate-100 mb-2">Deactivate Policy?</h3>
-                        <p className="text-slate-400 text-sm mb-4">This will deactivate the policy. No new approvals will be triggered by it.</p>
+                <div className="fixed inset-0 bg-overlay/60 flex items-center justify-center z-[600]">
+                    <div className="bg-surface border border-line rounded-xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-lg font-semibold text-fg mb-2">Deactivate Policy?</h3>
+                        <p className="text-fg-muted text-sm mb-4">This will deactivate the policy. No new approvals will be triggered by it.</p>
                         <div className="flex gap-3 justify-end">
-                            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-slate-400 hover:text-slate-100">Cancel</button>
-                            <button onClick={() => handleDelete(confirmDelete)} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Deactivate</button>
+                            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-fg-muted hover:text-fg">Cancel</button>
+                            <button onClick={() => handleDelete(confirmDelete)} className="px-4 py-2 bg-danger text-primary-fg rounded-lg hover:bg-danger-hover">Deactivate</button>
                         </div>
                     </div>
                 </div>
@@ -273,32 +273,32 @@ export const ApprovalPoliciesPage = () => {
 
             {/* Simulation Modal */}
             {simModal && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[600]">
-                    <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-overlay/60 flex items-center justify-center z-[600]">
+                    <div className="bg-surface border border-line rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-slate-100">Policy Simulation</h3>
-                            <button onClick={() => setSimModal(null)} className="text-slate-400 hover:text-slate-100"><X className="w-5 h-5" /></button>
+                            <h3 className="text-lg font-semibold text-fg">Policy Simulation</h3>
+                            <button onClick={() => setSimModal(null)} className="text-fg-muted hover:text-fg"><X className="w-5 h-5" /></button>
                         </div>
                         <div className="mb-4">
-                            <label className="text-sm text-slate-400 mb-1 block">Sample Entity Data (JSON)</label>
+                            <label className="text-sm text-fg-muted mb-1 block">Sample Entity Data (JSON)</label>
                             <textarea
                                 value={simInput}
                                 onChange={e => setSimInput(e.target.value)}
                                 rows={4}
-                                className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-2 rounded-lg font-mono text-sm"
+                                className="w-full bg-bg border border-line text-fg px-3 py-2 rounded-lg font-mono text-sm"
                                 placeholder='{"amount": 5000}'
                             />
                         </div>
                         {simModal.result && (
-                            <div className={`p-3 rounded-lg mb-4 text-sm ${simModal.result.matched ? 'bg-green-900/30 border border-green-500/30 text-green-300' : 'bg-red-900/30 border border-red-500/30 text-red-300'}`}>
+                            <div className={`p-3 rounded-lg mb-4 text-sm ${simModal.result.matched ? 'bg-success-container/30 border border-success/30 text-success' : 'bg-danger-container/30 border border-danger/30 text-danger'}`}>
                                 {simModal.result.error ? `Error: ${simModal.result.error}` :
                                     simModal.result.matched ? `✓ Policy MATCHES — ${simModal.result.steps?.length || 0} step(s) would activate` :
                                     '✗ Policy does not match this entity data'}
                             </div>
                         )}
                         <div className="flex gap-3 justify-end">
-                            <button onClick={() => setSimModal(null)} className="px-4 py-2 text-slate-400 hover:text-slate-100">Close</button>
-                            <button onClick={() => handleSimulate(simModal.policyId)} disabled={simLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                            <button onClick={() => setSimModal(null)} className="px-4 py-2 text-fg-muted hover:text-fg">Close</button>
+                            <button onClick={() => handleSimulate(simModal.policyId)} disabled={simLoading} className="px-4 py-2 bg-primary text-primary-fg rounded-lg hover:bg-primary-hover disabled:opacity-50">
                                 {simLoading ? 'Testing...' : 'Run Test'}
                             </button>
                         </div>
@@ -309,34 +309,34 @@ export const ApprovalPoliciesPage = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/flow')} className="text-slate-400 hover:text-slate-100"><ArrowLeft className="w-5 h-5" /></button>
+                    <button onClick={() => navigate('/flow')} className="text-fg-muted hover:text-fg"><ArrowLeft className="w-5 h-5" /></button>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-100">Approval Policies</h1>
-                        <p className="text-slate-400 text-sm mt-1">Define multi-step approval workflows</p>
+                        <h1 className="text-2xl font-bold text-fg">Approval Policies</h1>
+                        <p className="text-fg-muted text-sm mt-1">Define multi-step approval workflows</p>
                     </div>
                 </div>
                 <button onClick={() => { setShowForm(true); setEditingId(null); setForm(defaultPolicy()); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-fg rounded-lg hover:bg-primary-hover">
                     <Plus className="w-4 h-4" /> New Policy
                 </button>
             </div>
 
             {/* Form */}
             {showForm && (
-                <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6 mb-6">
-                    <h2 className="text-lg font-semibold text-slate-100 mb-4">{editingId ? 'Edit Policy' : 'New Approval Policy'}</h2>
+                <div className="bg-surface/50 border border-line rounded-xl p-6 mb-6">
+                    <h2 className="text-lg font-semibold text-fg mb-4">{editingId ? 'Edit Policy' : 'New Approval Policy'}</h2>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label className="text-sm text-slate-400 mb-1 block">Policy Name *</label>
+                            <label className="text-sm text-fg-muted mb-1 block">Policy Name *</label>
                             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                                className="w-full bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 rounded-lg"
+                                className="w-full bg-surface border border-line text-fg px-3 py-2 rounded-lg"
                                 placeholder="e.g., Manager Approval for Expenses" />
                         </div>
                         {!editingId && (
                             <div>
-                                <label className="text-sm text-slate-400 mb-1 block">Module *</label>
+                                <label className="text-sm text-fg-muted mb-1 block">Module *</label>
                                 <select value={form.module_code} onChange={e => handleModuleChange(e.target.value)}
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 rounded-lg">
+                                    className="w-full bg-surface border border-line text-fg px-3 py-2 rounded-lg">
                                     <option value="">Select Module</option>
                                     {MODULE_OPTIONS.map(m => <option key={m.code} value={m.code}>{m.name}</option>)}
                                 </select>
@@ -346,21 +346,21 @@ export const ApprovalPoliciesPage = () => {
                     <div className="grid grid-cols-3 gap-4 mb-4">
                         {!editingId && (
                             <div>
-                                <label className="text-sm text-slate-400 mb-1 block">Approval Mode</label>
+                                <label className="text-sm text-fg-muted mb-1 block">Approval Mode</label>
                                 <select value={form.approval_mode} onChange={e => setForm(f => ({ ...f, approval_mode: e.target.value as 'SEQUENTIAL' | 'PARALLEL' }))}
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 rounded-lg">
+                                    className="w-full bg-surface border border-line text-fg px-3 py-2 rounded-lg">
                                     <option value="SEQUENTIAL">Sequential</option>
                                     <option value="PARALLEL">Parallel</option>
                                 </select>
                             </div>
                         )}
                         <div>
-                            <label className="text-sm text-slate-400 mb-1 block">Priority</label>
+                            <label className="text-sm text-fg-muted mb-1 block">Priority</label>
                             <input type="number" value={form.priority} onChange={e => setForm(f => ({ ...f, priority: parseInt(e.target.value) || 0 }))}
-                                className="w-full bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 rounded-lg" />
+                                className="w-full bg-surface border border-line text-fg px-3 py-2 rounded-lg" />
                         </div>
                         <div className="flex items-end">
-                            <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+                            <label className="flex items-center gap-2 text-sm text-fg-muted cursor-pointer">
                                 <input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} className="rounded" />
                                 Active
                             </label>
@@ -372,9 +372,9 @@ export const ApprovalPoliciesPage = () => {
                             {/* Conditions Builder */}
                             <div className="mb-4">
                                 <div className="flex items-center justify-between mb-2">
-                                    <label className="text-sm text-slate-400">Trigger Conditions</label>
+                                    <label className="text-sm text-fg-muted">Trigger Conditions</label>
                                     <button onClick={addCondition} disabled={!form.entity_type}
-                                        className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 disabled:opacity-50">
+                                        className="text-xs text-primary hover:text-primary flex items-center gap-1 disabled:opacity-50">
                                         <Plus className="w-3 h-3" /> Add Condition
                                     </button>
                                 </div>
@@ -382,34 +382,34 @@ export const ApprovalPoliciesPage = () => {
                                     <div key={i} className="flex items-center gap-2 mb-2">
                                         {i > 0 && (
                                             <select value={cond.conjunction} onChange={e => updateCondition(i, 'conjunction', e.target.value)}
-                                                className="bg-slate-900 border border-slate-700 text-slate-100 px-2 py-1.5 rounded text-xs w-16">
+                                                className="bg-surface border border-line text-fg px-2 py-1.5 rounded text-xs w-16">
                                                 <option value="AND">AND</option>
                                                 <option value="OR">OR</option>
                                             </select>
                                         )}
                                         <select value={cond.field} onChange={e => updateCondition(i, 'field', e.target.value)}
-                                            className="flex-1 bg-slate-900 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm">
+                                            className="flex-1 bg-surface border border-line text-fg px-3 py-1.5 rounded text-sm">
                                             {entityFields.map(f => <option key={f.field} value={f.field}>{f.label}</option>)}
                                         </select>
                                         <select value={cond.operator} onChange={e => updateCondition(i, 'operator', e.target.value)}
-                                            className="bg-slate-900 border border-slate-700 text-slate-100 px-2 py-1.5 rounded text-sm w-20">
+                                            className="bg-surface border border-line text-fg px-2 py-1.5 rounded text-sm w-20">
                                             {OPERATORS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
                                         </select>
                                         <input value={cond.value} onChange={e => updateCondition(i, 'value', e.target.value)}
                                             type={entityFields.find(f => f.field === cond.field)?.type === 'number' ? 'number' : 'text'}
-                                            className="flex-1 bg-slate-900 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                            className="flex-1 bg-surface border border-line text-fg px-3 py-1.5 rounded text-sm"
                                             placeholder="value" />
-                                        <button onClick={() => removeCondition(i)} className="text-red-400 hover:text-red-300"><Trash2 className="w-4 h-4" /></button>
+                                        <button onClick={() => removeCondition(i)} className="text-danger hover:text-danger"><Trash2 className="w-4 h-4" /></button>
                                     </div>
                                 ))}
-                                {form.conditions.length === 0 && <p className="text-slate-500 text-xs">No conditions — policy applies to all entities</p>}
+                                {form.conditions.length === 0 && <p className="text-fg-subtle text-xs">No conditions — policy applies to all entities</p>}
                             </div>
 
                             {/* Steps Builder */}
                             <div className="mb-4">
                                 <div className="flex items-center justify-between mb-2">
-                                    <label className="text-sm font-medium text-slate-300">Approval Steps *</label>
-                                    <button onClick={addStep} className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"><Plus className="w-3 h-3" /> Add Step</button>
+                                    <label className="text-sm font-medium text-fg">Approval Steps *</label>
+                                    <button onClick={addStep} className="text-xs text-primary hover:text-primary flex items-center gap-1"><Plus className="w-3 h-3" /> Add Step</button>
                                 </div>
 
                                 {/* Step chain visual */}
@@ -417,8 +417,8 @@ export const ApprovalPoliciesPage = () => {
                                     <div className="flex items-center gap-1 mb-3 overflow-x-auto pb-1">
                                         {form.steps.map((step, i) => (
                                             <React.Fragment key={i}>
-                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">{step.step_order}</div>
-                                                {i < form.steps.length - 1 && <div className="flex-1 h-0.5 bg-slate-600 min-w-4" />}
+                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-fg text-xs font-bold">{step.step_order}</div>
+                                                {i < form.steps.length - 1 && <div className="flex-1 h-0.5 bg-line-strong min-w-4" />}
                                             </React.Fragment>
                                         ))}
                                     </div>
@@ -426,34 +426,34 @@ export const ApprovalPoliciesPage = () => {
 
                                 {form.steps.map((step, i) => (
                                     <div key={i} draggable onDragStart={() => handleDragStart(i)} onDragOver={e => handleDragOver(e, i)}
-                                        className="bg-slate-900 border border-slate-700 rounded-lg p-4 mb-3 cursor-move">
+                                        className="bg-surface border border-line rounded-lg p-4 mb-3 cursor-move">
                                         <div className="flex items-center justify-between mb-3">
                                             <div className="flex items-center gap-2">
-                                                <GripVertical className="w-4 h-4 text-slate-500" />
-                                                <span className="text-sm font-medium text-slate-300">Step {step.step_order}</span>
+                                                <GripVertical className="w-4 h-4 text-fg-subtle" />
+                                                <span className="text-sm font-medium text-fg">Step {step.step_order}</span>
                                             </div>
-                                            <button onClick={() => removeStep(i)} className="text-red-400 hover:text-red-300"><Trash2 className="w-4 h-4" /></button>
+                                            <button onClick={() => removeStep(i)} className="text-danger hover:text-danger"><Trash2 className="w-4 h-4" /></button>
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-xs text-slate-500 mb-1 block">Approver Type</label>
+                                                <label className="text-xs text-fg-subtle mb-1 block">Approver Type</label>
                                                 <select value={step.approver_type}
                                                     onChange={e => updateStep(i, { approver_type: e.target.value as ApproverType, approver_config: {} })}
-                                                    className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm">
+                                                    className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm">
                                                     {APPROVER_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="text-xs text-slate-500 mb-1 block">SLA (hours)</label>
+                                                <label className="text-xs text-fg-subtle mb-1 block">SLA (hours)</label>
                                                 <input type="number" value={step.sla_hours}
                                                     onChange={e => updateStep(i, { sla_hours: parseInt(e.target.value) || 48 })}
-                                                    className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm" />
+                                                    className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm" />
                                             </div>
                                         </div>
                                         <div className="mt-3">
                                             {step.approver_type === 'ROLE' && (
                                                 <div>
-                                                    <label className="text-xs text-slate-500 mb-1 block">Role</label>
+                                                    <label className="text-xs text-fg-subtle mb-1 block">Role</label>
                                                     <RoleSelector
                                                         value={step.approver_config.role_id || ''}
                                                         onChange={roleId => updateStep(i, { approver_config: { role_id: roleId } })}
@@ -462,31 +462,31 @@ export const ApprovalPoliciesPage = () => {
                                             )}
                                             {step.approver_type === 'USER' && (
                                                 <div>
-                                                    <label className="text-xs text-slate-500 mb-1 block">User ID</label>
+                                                    <label className="text-xs text-fg-subtle mb-1 block">User ID</label>
                                                     <input value={step.approver_config.user_id || ''}
                                                         onChange={e => updateStep(i, { approver_config: { user_id: e.target.value } })}
-                                                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                                        className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm"
                                                         placeholder="Platform user id" />
                                                 </div>
                                             )}
                                             {step.approver_type === 'DYNAMIC_FIELD' && (
                                                 <div>
-                                                    <label className="text-xs text-slate-500 mb-1 block">Field (on submitted record)</label>
+                                                    <label className="text-xs text-fg-subtle mb-1 block">Field (on submitted record)</label>
                                                     <input value={step.approver_config.field || ''}
                                                         onChange={e => updateStep(i, { approver_config: { field: e.target.value } })}
-                                                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                                        className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm"
                                                         placeholder="e.g. manager_id" />
                                                 </div>
                                             )}
                                             {step.approver_type === 'DEPARTMENT_HEAD' && (
-                                                <p className="text-xs text-slate-500">
+                                                <p className="text-xs text-fg-subtle">
                                                     Resolved automatically from the submitter's department hierarchy — nothing to configure.
                                                 </p>
                                             )}
                                         </div>
                                         <div className="grid grid-cols-2 gap-3 mt-3">
                                             <div>
-                                                <label className="text-xs text-slate-500 mb-1 block">Escalation Role (SLA breach)</label>
+                                                <label className="text-xs text-fg-subtle mb-1 block">Escalation Role (SLA breach)</label>
                                                 <RoleSelector
                                                     value={step.escalation_role || ''}
                                                     onChange={roleId => updateStep(i, { escalation_role: roleId })}
@@ -494,7 +494,7 @@ export const ApprovalPoliciesPage = () => {
                                                 />
                                             </div>
                                             <div className="flex items-end">
-                                                <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+                                                <label className="flex items-center gap-2 text-sm text-fg-muted cursor-pointer">
                                                     <input type="checkbox" checked={step.can_delegate}
                                                         onChange={e => updateStep(i, { can_delegate: e.target.checked })} className="rounded" />
                                                     Allow delegation
@@ -508,9 +508,9 @@ export const ApprovalPoliciesPage = () => {
                     )}
 
                     <div className="flex items-center gap-3 justify-end">
-                        <button onClick={() => { setShowForm(false); setEditingId(null); setForm(defaultPolicy()); }} className="px-4 py-2 text-slate-400 hover:text-slate-100">Cancel</button>
+                        <button onClick={() => { setShowForm(false); setEditingId(null); setForm(defaultPolicy()); }} className="px-4 py-2 text-fg-muted hover:text-fg">Cancel</button>
                         <button onClick={handleSave} disabled={saving || !form.name || (!editingId && (!form.entity_type || form.steps.length === 0))}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-fg rounded-lg hover:bg-primary-hover disabled:opacity-50">
                             <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Policy'}
                         </button>
                     </div>
@@ -520,20 +520,20 @@ export const ApprovalPoliciesPage = () => {
             {/* Policies List */}
             {policies.length === 0 ? (
                 <div className="text-center py-16">
-                    <p className="text-slate-400 text-lg mb-2">No approval policies defined</p>
-                    <p className="text-slate-500 text-sm">Create your first policy to enable approval workflows</p>
+                    <p className="text-fg-muted text-lg mb-2">No approval policies defined</p>
+                    <p className="text-fg-subtle text-sm">Create your first policy to enable approval workflows</p>
                 </div>
             ) : (
                 <div className="space-y-3">
                     {policies.map((policy: any) => (
-                        <div key={policy.id} className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
+                        <div key={policy.id} className="bg-surface/50 border border-line rounded-xl overflow-hidden">
                             <div className="flex items-center justify-between p-4">
                                 <div className="flex items-center gap-3 cursor-pointer flex-1"
                                     onClick={() => setExpandedPolicy(expandedPolicy === policy.id ? null : policy.id)}>
-                                    <div className={`w-2 h-2 rounded-full ${policy.is_active ? 'bg-green-400' : 'bg-slate-500'}`} />
+                                    <div className={`w-2 h-2 rounded-full ${policy.is_active ? 'bg-success' : 'bg-fg-subtle'}`} />
                                     <div>
-                                        <p className="text-slate-100 font-medium">{policy.name}</p>
-                                        <p className="text-slate-400 text-xs mt-0.5">
+                                        <p className="text-fg font-medium">{policy.name}</p>
+                                        <p className="text-fg-muted text-xs mt-0.5">
                                             {MODULE_OPTIONS.find(m => m.entity_type === policy.entity_type)?.name || policy.entity_type}
                                             {' · '}{policy.approval_mode || 'SEQUENTIAL'}
                                             {policy.steps?.length ? ` · ${policy.steps.length} step${policy.steps.length !== 1 ? 's' : ''}` : ''}
@@ -544,27 +544,27 @@ export const ApprovalPoliciesPage = () => {
                                 <div className="flex items-center gap-2">
                                     {canSimulate && (
                                         <button onClick={() => { setSimInput('{}'); setSimModal({ policyId: policy.id, result: null }); }}
-                                            title="Test policy" className="p-1.5 text-slate-400 hover:text-blue-400">
+                                            title="Test policy" className="p-1.5 text-fg-muted hover:text-primary">
                                             <FlaskConical className="w-4 h-4" />
                                         </button>
                                     )}
-                                    <button onClick={() => startEdit(policy)} title="Edit policy" className="p-1.5 text-slate-400 hover:text-slate-100">
+                                    <button onClick={() => startEdit(policy)} title="Edit policy" className="p-1.5 text-fg-muted hover:text-fg">
                                         <Edit2 className="w-4 h-4" />
                                     </button>
                                     <button onClick={() => handleToggle(policy)} title={policy.is_active ? 'Deactivate' : 'Activate'}
-                                        className={`p-1.5 ${policy.is_active ? 'text-green-400 hover:text-green-300' : 'text-slate-500 hover:text-slate-300'}`}>
+                                        className={`p-1.5 ${policy.is_active ? 'text-success hover:text-success' : 'text-fg-subtle hover:text-fg'}`}>
                                         <Power className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => setConfirmDelete(policy.id)} title="Delete policy" className="p-1.5 text-red-400 hover:text-red-300">
+                                    <button onClick={() => setConfirmDelete(policy.id)} title="Delete policy" className="p-1.5 text-danger hover:text-danger">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
-                                    {expandedPolicy === policy.id ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                                    {expandedPolicy === policy.id ? <ChevronUp className="w-4 h-4 text-fg-muted" /> : <ChevronDown className="w-4 h-4 text-fg-muted" />}
                                 </div>
                             </div>
                             {expandedPolicy === policy.id && (
-                                <div className="border-t border-slate-800 p-4">
-                                    <p className="text-xs text-slate-500 mb-2">Rules &amp; Steps (expand below):</p>
-                                    <p className="text-slate-400 text-sm">Use the API or policy builder to view detailed rules and steps.</p>
+                                <div className="border-t border-line p-4">
+                                    <p className="text-xs text-fg-subtle mb-2">Rules &amp; Steps (expand below):</p>
+                                    <p className="text-fg-muted text-sm">Use the API or policy builder to view detailed rules and steps.</p>
                                 </div>
                             )}
                         </div>

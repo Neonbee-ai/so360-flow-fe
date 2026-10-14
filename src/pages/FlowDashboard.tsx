@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Select } from '@so360/design-system';
 import { Plus, Workflow } from 'lucide-react';
 import { useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
@@ -52,55 +53,55 @@ export const FlowDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 p-6">
+        <div className="min-h-screen bg-bg p-6">
             <div>
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-100 flex items-center gap-3">
-                            <Workflow className="w-8 h-8 text-blue-500" />
+                        <h1 className="text-3xl font-bold text-fg flex items-center gap-3">
+                            <Workflow className="w-8 h-8 text-primary" />
                             Flow Definitions
                         </h1>
-                        <p className="text-slate-400 mt-2">
+                        <p className="text-fg-muted mt-2">
                             Manage workflow definitions across all modules
                         </p>
                     </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => navigate('/flow/simulator')}
-                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
                         >
                             Simulator
                         </button>
                         <button
                             onClick={() => navigate('/flow/approvals/dashboard')}
-                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
                         >
                             Approval Dashboard
                         </button>
                         <button
                             onClick={() => navigate('/flow/approvals/pending')}
-                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
                         >
                             Pending Approvals
                         </button>
                         {canAccessPolicies && (
                             <button
                                 onClick={() => navigate('/flow/approvals/policies')}
-                                className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                                className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
                             >
                                 Approval Policies
                             </button>
                         )}
                         <button
                             onClick={() => navigate('/flow/instances')}
-                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 flex items-center gap-2"
+                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
                         >
                             View Instances
                         </button>
                         {canCreateFlow && (
                             <button
                                 onClick={() => navigate('/flow/builder/new')}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                                className="px-4 py-2 bg-primary text-primary-fg rounded-lg hover:bg-primary-hover flex items-center gap-2"
                             >
                                 <Plus className="w-5 h-5" />
                                 New Flow
@@ -111,33 +112,27 @@ export const FlowDashboard = () => {
 
                 {/* Module Filter */}
                 <div className="mb-6">
-                    <label className="text-sm text-slate-400 mb-2 block">Filter by Module</label>
-                    <select
+                    <label className="text-sm text-fg-muted mb-2 block">Filter by Module</label>
+                    <Select
+                        name="module-filter"
                         value={selectedModule}
                         onChange={(e) => setSelectedModule(e.target.value)}
-                        className="bg-slate-900/50 border border-slate-800 text-slate-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">All Modules</option>
-                        {modules.map((mod) => (
-                            <option key={mod.code} value={mod.code}>
-                                {mod.name}
-                            </option>
-                        ))}
-                    </select>
+                        options={[{ value: '', label: 'All Modules' }, ...modules.map((mod) => ({ value: mod.code, label: mod.name }))]}
+                    />
                 </div>
 
                 {/* Flows Grid */}
                 {loading ? (
                     <div className="flex items-center justify-center py-12">
-                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
                     </div>
                 ) : flows.length === 0 ? (
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-12 text-center">
-                        <Workflow className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                        <p className="text-slate-400 text-lg">
+                    <div className="bg-surface/50 border border-line rounded-lg p-12 text-center">
+                        <Workflow className="w-16 h-16 text-fg-muted mx-auto mb-4" />
+                        <p className="text-fg-muted text-lg">
                             {selectedModule ? 'No flows found for this module' : 'No flows created yet'}
                         </p>
-                        <p className="text-slate-500 text-sm mt-2">
+                        <p className="text-fg-subtle text-sm mt-2">
                             Create your first workflow to get started
                         </p>
                     </div>
@@ -147,31 +142,31 @@ export const FlowDashboard = () => {
                             <div
                                 key={flow.id}
                                 onClick={() => navigate(`/flow/builder/${flow.id}`)}
-                                className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 cursor-pointer hover:border-blue-500 transition-colors"
+                                className="bg-surface/50 border border-line rounded-lg p-6 cursor-pointer hover:border-primary transition-colors"
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div>
-                                        <h3 className="text-lg font-semibold text-slate-100">
+                                        <h3 className="text-lg font-semibold text-fg">
                                             {flow.name}
                                         </h3>
-                                        <p className="text-sm text-slate-500 mt-1">
+                                        <p className="text-sm text-fg-subtle mt-1">
                                             {flow.module_code}
                                         </p>
                                     </div>
                                     <span
                                         className={`px-2 py-1 rounded text-xs ${
                                             flow.is_active
-                                                ? 'bg-green-500/20 text-green-400'
-                                                : 'bg-slate-700 text-slate-400'
+                                                ? 'bg-success/20 text-success'
+                                                : 'bg-line text-fg-muted'
                                         }`}
                                     >
                                         {flow.is_active ? 'Active' : 'Inactive'}
                                     </span>
                                 </div>
                                 {flow.description && (
-                                    <p className="text-sm text-slate-400 mb-4">{flow.description}</p>
+                                    <p className="text-sm text-fg-muted mb-4">{flow.description}</p>
                                 )}
-                                <div className="flex items-center gap-4 text-xs text-slate-500">
+                                <div className="flex items-center gap-4 text-xs text-fg-subtle">
                                     <span>{flow.states?.length || 0} states</span>
                                     <span>{flow.transitions?.length || 0} transitions</span>
                                 </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Activity, GitBranch, Database, History } from 'lucide-react';
-import { toast } from '@so360/design-system';
+import { toast, useConfirm } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import { ApprovalHistory } from '../components/ApprovalHistory';
 import type { FlowInstance, FlowHistory, FlowDefinition } from '../types/flow';
@@ -24,6 +24,7 @@ export const InstanceViewer = () => {
     const navigate = useNavigate();
     const formatters = useFlowFormatters();
 
+    const [confirm, confirmDialog] = useConfirm();
     const [context, setContext] = useState<InstanceContext | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -52,8 +53,12 @@ export const InstanceViewer = () => {
     const handleTransition = async (transitionCode: string, transitionName: string) => {
         if (!context) return;
 
-        const confirmMessage = `Execute transition "${transitionName}"?`;
-        if (!window.confirm(confirmMessage)) return;
+        const ok = await confirm({
+            title: 'Execute transition',
+            message: `Execute transition "${transitionName}"?`,
+            confirmLabel: 'Execute',
+        });
+        if (!ok) return;
 
         try {
             setTransitioning(true);
@@ -81,23 +86,23 @@ export const InstanceViewer = () => {
     };
 
     const getStateColor = () => {
-        if (!context) return 'text-slate-400';
+        if (!context) return 'text-fg-muted';
         const flowDef = context.instance.flows as unknown as FlowDefinition;
         const currentState = flowDef?.states?.find(
             (s) => s.code === context.instance.current_state
         );
 
-        if (currentState?.is_terminal) return 'text-green-400';
-        if (currentState?.is_initial) return 'text-blue-400';
-        return 'text-cyan-400';
+        if (currentState?.is_terminal) return 'text-success';
+        if (currentState?.is_initial) return 'text-primary';
+        return 'text-info';
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 p-6">
+            <div className="min-h-screen bg-bg p-6">
                 <div>
                     <div className="flex items-center justify-center py-12">
-                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
                     </div>
                 </div>
             </div>
@@ -106,17 +111,17 @@ export const InstanceViewer = () => {
 
     if (error || !context) {
         return (
-            <div className="min-h-screen bg-slate-950 p-6">
+            <div className="min-h-screen bg-bg p-6">
                 <div>
                     <button
                         onClick={() => navigate('/flow/instances')}
-                        className="mb-6 text-slate-400 hover:text-slate-100 flex items-center gap-2"
+                        className="mb-6 text-fg-muted hover:text-fg flex items-center gap-2"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Back to Instances
                     </button>
-                    <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-6">
-                        <p className="text-red-400">{error || 'Instance not found'}</p>
+                    <div className="bg-danger-container/20 border border-danger/30 rounded-lg p-6">
+                        <p className="text-danger">{error || 'Instance not found'}</p>
                     </div>
                 </div>
             </div>
@@ -127,65 +132,66 @@ export const InstanceViewer = () => {
     const isCompleted = !!context.instance.completed_at;
 
     return (
-        <div className="min-h-screen bg-slate-950 p-6">
+        <div className="min-h-screen bg-bg p-6">
+            {confirmDialog}
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <button
                         onClick={() => navigate('/flow/instances')}
-                        className="text-slate-400 hover:text-slate-100 flex items-center gap-2"
+                        className="text-fg-muted hover:text-fg flex items-center gap-2"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Back to Instances
                     </button>
                     {isCompleted && (
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-500/30">
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-success-container/30 text-success border border-success/30">
                             Completed
                         </span>
                     )}
                 </div>
 
                 {/* Instance Info */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                <div className="bg-surface/50 border border-line rounded-xl p-6">
                     <div className="flex items-start justify-between mb-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-3">
-                                <Activity className="w-7 h-7 text-blue-500" />
+                            <h1 className="text-2xl font-bold text-fg flex items-center gap-3">
+                                <Activity className="w-7 h-7 text-primary" />
                                 Flow Instance
                             </h1>
-                            <p className="text-slate-400 text-sm mt-1">ID: {context.instance.id}</p>
+                            <p className="text-fg-muted text-sm mt-1">ID: {context.instance.id}</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mt-6">
                         <div>
-                            <div className="text-xs text-slate-500 mb-1">Flow Name</div>
-                            <div className="text-slate-100 font-medium">{flowDef?.name || 'N/A'}</div>
+                            <div className="text-xs text-fg-subtle mb-1">Flow Name</div>
+                            <div className="text-fg font-medium">{flowDef?.name || 'N/A'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-slate-500 mb-1">Module</div>
-                            <div className="text-slate-100">{flowDef?.module_code || 'N/A'}</div>
+                            <div className="text-xs text-fg-subtle mb-1">Module</div>
+                            <div className="text-fg">{flowDef?.module_code || 'N/A'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-slate-500 mb-1">Entity Type</div>
-                            <div className="text-slate-100">{context.instance.entity_type}</div>
+                            <div className="text-xs text-fg-subtle mb-1">Entity Type</div>
+                            <div className="text-fg">{context.instance.entity_type}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-slate-500 mb-1">Entity ID</div>
-                            <div className="text-slate-100 font-mono text-xs">
+                            <div className="text-xs text-fg-subtle mb-1">Entity ID</div>
+                            <div className="text-fg font-mono text-xs">
                                 {context.instance.entity_id}
                             </div>
                         </div>
                         <div>
-                            <div className="text-xs text-slate-500 mb-1">Started At</div>
-                            <div className="text-slate-100 text-sm">
+                            <div className="text-xs text-fg-subtle mb-1">Started At</div>
+                            <div className="text-fg text-sm">
                                 {formatters.formatDateTime(context.instance.started_at)}
                             </div>
                         </div>
                         {isCompleted && (
                             <div>
-                                <div className="text-xs text-slate-500 mb-1">Completed At</div>
-                                <div className="text-slate-100 text-sm">
+                                <div className="text-xs text-fg-subtle mb-1">Completed At</div>
+                                <div className="text-fg text-sm">
                                     {formatters.formatDateTime(context.instance.completed_at!)}
                                 </div>
                             </div>
@@ -195,9 +201,9 @@ export const InstanceViewer = () => {
 
                 {/* State Machine Visualization */}
                 {flowDef?.states && flowDef.states.length > 0 && (
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-                        <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2 mb-4">
-                            <GitBranch className="w-5 h-5 text-blue-500" />
+                    <div className="bg-surface/50 border border-line rounded-xl p-6">
+                        <h2 className="text-lg font-semibold text-fg flex items-center gap-2 mb-4">
+                            <GitBranch className="w-5 h-5 text-primary" />
                             State Machine
                         </h2>
                         <FlowStateGraph
@@ -210,23 +216,23 @@ export const InstanceViewer = () => {
                 )}
 
                 {/* Current State */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-                    <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2 mb-4">
-                        <GitBranch className="w-5 h-5 text-blue-500" />
+                <div className="bg-surface/50 border border-line rounded-xl p-6">
+                    <h2 className="text-lg font-semibold text-fg flex items-center gap-2 mb-4">
+                        <GitBranch className="w-5 h-5 text-primary" />
                         Current State
                     </h2>
                     <div className={`text-3xl font-bold ${getStateColor()}`}>
                         {getCurrentStateName()}
                     </div>
-                    <div className="text-xs text-slate-500 mt-2">
+                    <div className="text-xs text-fg-subtle mt-2">
                         Code: {context.instance.current_state}
                     </div>
                 </div>
 
                 {/* Available Transitions */}
                 {!isCompleted && context.available_transitions.length > 0 && (
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-                        <h2 className="text-lg font-semibold text-slate-100 mb-4">
+                    <div className="bg-surface/50 border border-line rounded-xl p-6">
+                        <h2 className="text-lg font-semibold text-fg mb-4">
                             Available Transitions
                         </h2>
                         <div className="flex flex-wrap gap-3">
@@ -235,11 +241,11 @@ export const InstanceViewer = () => {
                                     key={transition.code}
                                     onClick={() => handleTransition(transition.code, transition.name)}
                                     disabled={transitioning}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-slate-50 rounded-lg font-medium transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 bg-info hover:bg-info disabled:bg-line disabled:cursor-not-allowed text-fg rounded-lg font-medium transition-colors flex items-center gap-2"
                                 >
                                     {transition.name}
                                     {transition.requires_approval && (
-                                        <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded">
+                                        <span className="text-xs bg-warning/20 text-warning px-2 py-0.5 rounded">
                                             Requires Approval
                                         </span>
                                     )}
@@ -250,8 +256,8 @@ export const InstanceViewer = () => {
                 )}
 
                 {isCompleted && (
-                    <div className="bg-green-900/20 border border-green-500/30 rounded-xl p-6 text-center">
-                        <p className="text-green-400">
+                    <div className="bg-success-container/20 border border-success/30 rounded-xl p-6 text-center">
+                        <p className="text-success">
                             This flow instance has been completed. No more transitions are available.
                         </p>
                     </div>
@@ -259,12 +265,12 @@ export const InstanceViewer = () => {
 
                 {/* Instance Context/Variables */}
                 {context.instance.context && Object.keys(context.instance.context).length > 0 && (
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-                        <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2 mb-4">
-                            <Database className="w-5 h-5 text-blue-500" />
+                    <div className="bg-surface/50 border border-line rounded-xl p-6">
+                        <h2 className="text-lg font-semibold text-fg flex items-center gap-2 mb-4">
+                            <Database className="w-5 h-5 text-primary" />
                             Instance Data
                         </h2>
-                        <pre className="text-xs text-slate-300 bg-slate-950 rounded-lg p-4 overflow-auto max-h-96">
+                        <pre className="text-xs text-fg bg-bg rounded-lg p-4 overflow-auto max-h-96">
                             {JSON.stringify(context.instance.context, null, 2)}
                         </pre>
                     </div>
@@ -272,9 +278,9 @@ export const InstanceViewer = () => {
 
                 {/* Transition History */}
                 {context.history && context.history.length > 0 && (
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-                        <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2 mb-4">
-                            <History className="w-5 h-5 text-blue-500" />
+                    <div className="bg-surface/50 border border-line rounded-xl p-6">
+                        <h2 className="text-lg font-semibold text-fg flex items-center gap-2 mb-4">
+                            <History className="w-5 h-5 text-primary" />
                             Transition History
                         </h2>
                         <div className="space-y-3">
@@ -289,22 +295,22 @@ export const InstanceViewer = () => {
                                 return (
                                     <div
                                         key={record.id}
-                                        className="bg-slate-950/50 border border-slate-800 rounded-lg p-4"
+                                        className="bg-bg/50 border border-line rounded-lg p-4"
                                     >
                                         <div className="flex items-center justify-between mb-2">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-400">{fromStateName}</span>
-                                                <span className="text-slate-600">→</span>
-                                                <span className="text-cyan-400 font-medium">
+                                                <span className="text-fg-muted">{fromStateName}</span>
+                                                <span className="text-fg-subtle">→</span>
+                                                <span className="text-info font-medium">
                                                     {toStateName}
                                                 </span>
                                             </div>
-                                            <span className="text-xs text-slate-500">
+                                            <span className="text-xs text-fg-subtle">
                                                 {formatters.formatDateTime(record.transitioned_at)}
                                             </span>
                                         </div>
                                         {record.comment && (
-                                            <div className="text-sm text-slate-400 mt-2 italic">
+                                            <div className="text-sm text-fg-muted mt-2 italic">
                                                 "{record.comment}"
                                             </div>
                                         )}
@@ -316,7 +322,7 @@ export const InstanceViewer = () => {
                 )}
 
                 {/* Approval History (if this is an approval-enabled flow) */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                <div className="bg-surface/50 border border-line rounded-xl p-6">
                     <ApprovalHistory
                         entityType={context.instance.entity_type}
                         entityId={context.instance.entity_id}

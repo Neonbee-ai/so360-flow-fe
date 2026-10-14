@@ -131,21 +131,27 @@ describe('InstanceViewer', () => {
     it('When transition button is clicked and confirmed / Then calls transitionFlowInstance', async () => {
       api.getFlowInstanceContext.mockResolvedValue({ data: makeContext() });
       api.transitionFlowInstance.mockResolvedValue({ data: {} });
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const confirmMock = vi.fn().mockResolvedValue(true);
+      (globalThis as any).__confirmMock = confirmMock;
       renderPage();
       await waitFor(() => screen.getByText('Submit'));
       fireEvent.click(screen.getByText('Submit'));
       await waitFor(() => expect(api.transitionFlowInstance).toHaveBeenCalledWith('i1', { transition_code: 'submit' }));
+      expect(confirmMock).toHaveBeenCalledWith(expect.objectContaining({ message: 'Execute transition "Submit"?' }));
+      delete (globalThis as any).__confirmMock;
       vi.restoreAllMocks();
     });
 
     it('When transition is declined / Then does not call API', async () => {
       api.getFlowInstanceContext.mockResolvedValue({ data: makeContext() });
-      vi.spyOn(window, 'confirm').mockReturnValue(false);
+      const confirmMock = vi.fn().mockResolvedValue(false);
+      (globalThis as any).__confirmMock = confirmMock;
       renderPage();
       await waitFor(() => screen.getByText('Submit'));
       fireEvent.click(screen.getByText('Submit'));
+      await waitFor(() => expect(confirmMock).toHaveBeenCalled());
       expect(api.transitionFlowInstance).not.toHaveBeenCalled();
+      delete (globalThis as any).__confirmMock;
       vi.restoreAllMocks();
     });
   });

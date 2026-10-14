@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { flowApi } from '../services/flowApi';
+import { Select } from '@so360/design-system';
 
 interface RoleOption {
     role_id: string;
@@ -26,18 +27,18 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ value, onChange, dis
     }, []);
 
     return (
-        <select
+        <Select
+            name="role"
             value={value}
             onChange={e => onChange(e.target.value)}
             disabled={disabled || loading}
-            className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-3 py-1.5 rounded text-sm disabled:opacity-50"
-        >
-            <option value="">{loading ? 'Loading roles...' : placeholder}</option>
-            {roles.map(r => (
-                <option key={r.role_id} value={r.role_id}>
-                    {r.role_name} ({r.user_count} approver{r.user_count !== 1 ? 's' : ''})
-                </option>
-            ))}
-        </select>
+            options={[
+                { value: '', label: loading ? 'Loading roles...' : placeholder },
+                ...roles.map(r => ({
+                    value: r.role_id,
+                    label: `${r.role_name} (${r.user_count} approver${r.user_count !== 1 ? 's' : ''})`,
+                })),
+            ]}
+        />
     );
 };

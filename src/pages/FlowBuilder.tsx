@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
-import { toast } from '@so360/design-system';
+import { toast, Select } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
@@ -151,10 +151,10 @@ export const FlowBuilder = () => {
 
     if (!canAccessBuilder) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+            <div className="min-h-screen bg-bg flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-slate-400 font-medium">Workflow Builder</p>
-                    <p className="text-sm text-slate-500 mt-1">This feature is not available on your current plan.</p>
+                    <p className="text-fg-muted font-medium">Workflow Builder</p>
+                    <p className="text-sm text-fg-subtle mt-1">This feature is not available on your current plan.</p>
                 </div>
             </div>
         );
@@ -162,19 +162,19 @@ export const FlowBuilder = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-screen bg-slate-950">
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
+            <div className="flex items-center justify-center h-screen bg-bg">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 p-6">
+        <div className="min-h-screen bg-bg p-6">
             <div>
                 <div className="flex items-center justify-between mb-8">
                     <button
                         onClick={() => navigate('/flow')}
-                        className="flex items-center gap-2 text-slate-400 hover:text-slate-100"
+                        className="flex items-center gap-2 text-fg-muted hover:text-fg"
                     >
                         <ArrowLeft className="w-5 h-5" />
                         Back to Flows
@@ -182,7 +182,7 @@ export const FlowBuilder = () => {
                     <button
                         onClick={handleSave}
                         disabled={saving || !name || !moduleCode || states.length === 0}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-4 py-2 bg-primary text-primary-fg rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         <Save className="w-5 h-5" />
                         {saving ? 'Saving...' : 'Save Flow'}
@@ -190,72 +190,66 @@ export const FlowBuilder = () => {
                 </div>
 
                 {/* Basic Info */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6">
-                    <h2 className="text-xl font-semibold text-slate-100 mb-4">Flow Information</h2>
+                <div className="bg-surface/50 border border-line rounded-lg p-6 mb-6">
+                    <h2 className="text-xl font-semibold text-fg mb-4">Flow Information</h2>
                     <div className="space-y-4">
                         <div>
-                            <label className="text-sm text-slate-400 mb-2 block">Flow Name *</label>
+                            <label className="text-sm text-fg-muted mb-2 block">Flow Name *</label>
                             <input
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-surface border border-line text-fg px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-focus"
                                 placeholder="e.g., Lead Approval Flow"
                             />
                         </div>
                         <div>
-                            <label className="text-sm text-slate-400 mb-2 block">Description</label>
+                            <label className="text-sm text-fg-muted mb-2 block">Description</label>
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-surface border border-line text-fg px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-focus"
                                 rows={3}
                                 placeholder="Describe this workflow..."
                             />
                         </div>
                         <div>
-                            <label className="text-sm text-slate-400 mb-2 block">Module *</label>
-                            <select
+                            <label className="text-sm text-fg-muted mb-2 block">Module *</label>
+                            <Select
+                                name="module-code"
                                 value={moduleCode}
                                 onChange={(e) => setModuleCode(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Select Module</option>
-                                {modules.map((mod) => (
-                                    <option key={mod.code} value={mod.code}>
-                                        {mod.name}
-                                    </option>
-                                ))}
-                            </select>
+                                options={[{ value: '', label: 'Select Module' }, ...modules.map((mod) => ({ value: mod.code, label: mod.name }))]}
+                            />
                         </div>
                         {moduleCode === 'module:projects:stages' && (
-                            <div className="p-4 rounded-lg bg-blue-950/40 border border-blue-800/50 space-y-2">
-                                <label className="text-sm font-semibold text-blue-300 block">
+                            <div className="p-4 rounded-lg bg-primary-container/40 border border-primary/50 space-y-2">
+                                <label className="text-sm font-semibold text-primary block">
                                     Project Scope & Applicability
                                 </label>
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                <p className="text-xs text-fg-muted leading-relaxed">
                                     Define how these stages are applied across your organization. "All Projects" sets this flow as the default stage pipeline, while "Selective Projects" lets project managers opt-in or select custom stages during project setup.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                                    <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                    <label className="flex items-center gap-2 text-sm text-fg cursor-pointer">
                                         <input
                                             type="radio"
                                             name="scope"
                                             value="all_projects"
                                             checked={scope === 'all_projects'}
                                             onChange={() => setScope('all_projects')}
-                                            className="text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700"
+                                            className="text-primary focus:ring-focus bg-surface border-line"
                                         />
                                         <span className="font-medium">All Projects in this Organization (Default)</span>
                                     </label>
-                                    <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                    <label className="flex items-center gap-2 text-sm text-fg cursor-pointer">
                                         <input
                                             type="radio"
                                             name="scope"
                                             value="selective_projects"
                                             checked={scope === 'selective_projects'}
                                             onChange={() => setScope('selective_projects')}
-                                            className="text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700"
+                                            className="text-primary focus:ring-focus bg-surface border-line"
                                         />
                                         <span>Selective Projects (Project-Level Applicability)</span>
                                     </label>
@@ -266,12 +260,12 @@ export const FlowBuilder = () => {
                 </div>
 
                 {/* States */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6">
+                <div className="bg-surface/50 border border-line rounded-lg p-6 mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-slate-100">States</h2>
+                        <h2 className="text-xl font-semibold text-fg">States</h2>
                         <button
                             onClick={addState}
-                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700 flex items-center gap-2 text-sm"
+                            className="px-3 py-1 bg-surface-raised text-fg rounded hover:bg-line flex items-center gap-2 text-sm"
                         >
                             <Plus className="w-4 h-4" />
                             Add State
@@ -281,11 +275,11 @@ export const FlowBuilder = () => {
                         {states.map((state, index) => (
                             <div
                                 key={index}
-                                className="bg-slate-900 border border-slate-800 rounded-lg p-4"
+                                className="bg-surface border border-line rounded-lg p-4"
                             >
                                 <div className="grid grid-cols-2 gap-3 mb-3">
                                     <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">Code *</label>
+                                        <label className="text-xs text-fg-subtle mb-1 block">Code *</label>
                                         <input
                                             type="text"
                                             value={state.code}
@@ -294,12 +288,12 @@ export const FlowBuilder = () => {
                                                 updated[index].code = e.target.value;
                                                 setStates(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                            className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm"
                                             placeholder="e.g., draft"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">Name *</label>
+                                        <label className="text-xs text-fg-subtle mb-1 block">Name *</label>
                                         <input
                                             type="text"
                                             value={state.name}
@@ -308,13 +302,13 @@ export const FlowBuilder = () => {
                                                 updated[index].name = e.target.value;
                                                 setStates(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                            className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm"
                                             placeholder="e.g., Draft"
                                         />
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 mb-3">
-                                    <label className="flex items-center gap-2 text-sm text-slate-400">
+                                    <label className="flex items-center gap-2 text-sm text-fg-muted">
                                         <input
                                             type="checkbox"
                                             checked={state.is_initial || false}
@@ -327,7 +321,7 @@ export const FlowBuilder = () => {
                                         />
                                         Initial State
                                     </label>
-                                    <label className="flex items-center gap-2 text-sm text-slate-400">
+                                    <label className="flex items-center gap-2 text-sm text-fg-muted">
                                         <input
                                             type="checkbox"
                                             checked={state.is_terminal || false}
@@ -341,7 +335,7 @@ export const FlowBuilder = () => {
                                         Terminal State
                                     </label>
                                     {moduleCode === 'module:projects:stages' && (
-                                        <label className="flex items-center gap-2 text-sm text-amber-400 font-medium">
+                                        <label className="flex items-center gap-2 text-sm text-warning font-medium">
                                             <input
                                                 type="checkbox"
                                                 checked={state.is_mandatory || false}
@@ -350,14 +344,14 @@ export const FlowBuilder = () => {
                                                     updated[index].is_mandatory = e.target.checked;
                                                     setStates(updated);
                                                 }}
-                                                className="rounded text-amber-500 focus:ring-amber-400"
+                                                className="rounded text-warning focus:ring-warning"
                                             />
                                             Mandatory for All Projects
                                         </label>
                                     )}
                                     <button
                                         onClick={() => removeState(index)}
-                                        className="ml-auto text-red-400 hover:text-red-300"
+                                        className="ml-auto text-danger hover:text-danger"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -368,12 +362,12 @@ export const FlowBuilder = () => {
                 </div>
 
                 {/* Transitions */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                <div className="bg-surface/50 border border-line rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-slate-100">Transitions</h2>
+                        <h2 className="text-xl font-semibold text-fg">Transitions</h2>
                         <button
                             onClick={addTransition}
-                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700 flex items-center gap-2 text-sm"
+                            className="px-3 py-1 bg-surface-raised text-fg rounded hover:bg-line flex items-center gap-2 text-sm"
                         >
                             <Plus className="w-4 h-4" />
                             Add Transition
@@ -383,11 +377,11 @@ export const FlowBuilder = () => {
                         {transitions.map((transition, index) => (
                             <div
                                 key={index}
-                                className="bg-slate-900 border border-slate-800 rounded-lg p-4"
+                                className="bg-surface border border-line rounded-lg p-4"
                             >
                                 <div className="grid grid-cols-2 gap-3 mb-3">
                                     <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">Code *</label>
+                                        <label className="text-xs text-fg-subtle mb-1 block">Code *</label>
                                         <input
                                             type="text"
                                             value={transition.code}
@@ -396,12 +390,12 @@ export const FlowBuilder = () => {
                                                 updated[index].code = e.target.value;
                                                 setTransitions(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                            className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm"
                                             placeholder="e.g., submit"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">Name *</label>
+                                        <label className="text-xs text-fg-subtle mb-1 block">Name *</label>
                                         <input
                                             type="text"
                                             value={transition.name}
@@ -410,14 +404,14 @@ export const FlowBuilder = () => {
                                                 updated[index].name = e.target.value;
                                                 setTransitions(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                            className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm"
                                             placeholder="e.g., Submit for Review"
                                         />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">From State *</label>
+                                        <label className="text-xs text-fg-subtle mb-1 block">From State *</label>
                                         <select
                                             value={transition.from_state}
                                             onChange={(e) => {
@@ -425,7 +419,7 @@ export const FlowBuilder = () => {
                                                 updated[index].from_state = e.target.value;
                                                 setTransitions(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                            className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm"
                                         >
                                             <option value="">Select State</option>
                                             {states.map((s) => (
@@ -436,7 +430,7 @@ export const FlowBuilder = () => {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">To State *</label>
+                                        <label className="text-xs text-fg-subtle mb-1 block">To State *</label>
                                         <select
                                             value={transition.to_state}
                                             onChange={(e) => {
@@ -444,7 +438,7 @@ export const FlowBuilder = () => {
                                                 updated[index].to_state = e.target.value;
                                                 setTransitions(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
+                                            className="w-full bg-bg border border-line text-fg px-3 py-1.5 rounded text-sm"
                                         >
                                             <option value="">Select State</option>
                                             {states.map((s) => (
@@ -456,7 +450,7 @@ export const FlowBuilder = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between mt-3">
-                                    <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+                                    <label className="flex items-center gap-2 text-sm text-fg-muted cursor-pointer">
                                         <input
                                             type="checkbox"
                                             checked={transition.requires_approval || false}
@@ -465,13 +459,13 @@ export const FlowBuilder = () => {
                                                 updated[index].requires_approval = e.target.checked;
                                                 setTransitions(updated);
                                             }}
-                                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-950"
+                                            className="w-4 h-4 rounded border-line bg-surface text-primary focus:ring-focus focus:ring-offset-slate-950"
                                         />
                                         Requires Approval
                                     </label>
                                     <button
                                         onClick={() => removeTransition(index)}
-                                        className="text-red-400 hover:text-red-300"
+                                        className="text-danger hover:text-danger"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>

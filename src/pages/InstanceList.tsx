@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Eye, CheckCircle, Clock, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
-import { QuotaBar, QuotaGate } from '@so360/design-system';
+import { QuotaBar, QuotaGate, Select } from '@so360/design-system';
 import { useQuota, useShell, useSandboxLimit } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowInstance, FlowDefinition } from '../types/flow';
@@ -10,6 +10,22 @@ import { useFlowFormatters } from '../utils/formatters';
 const PAGE_SIZE = 20;
 
 type StatusFilter = 'all' | 'active' | 'completed' | 'cancelled' | 'suspended';
+
+const ENTITY_TYPE_OPTIONS = [
+    { value: '', label: 'All Types' },
+                                    { value: 'lead', label: 'CRM - Lead' },
+                                    { value: 'deal', label: 'CRM - Deal' },
+                                    { value: 'task', label: 'Projects - Task' },
+                                    { value: 'project', label: 'Projects - Project' },
+                                    { value: 'expense', label: 'Accounting - Expense' },
+                                    { value: 'invoice', label: 'Accounting - Invoice' },
+                                    { value: 'purchase_requisition', label: 'Procurement - PR' },
+                                    { value: 'purchase_order', label: 'Procurement - PO' },
+                                    { value: 'timesheet_batch', label: 'Timesheet - Batch' },
+                                    { value: 'order', label: 'Daily Store - Order' },
+                                    { value: 'support_ticket', label: 'Support - Ticket' },
+                                    { value: 'fulfillment_order', label: 'Fulfillment - Order' },
+];
 
 export const InstanceList = () => {
     const navigate = useNavigate();
@@ -66,25 +82,25 @@ export const InstanceList = () => {
     };
 
     const getStateColor = (instance: FlowInstance) => {
-        if (instance.completed_at) return 'text-green-400';
-        if (instance.current_state === 'PENDING_APPROVAL') return 'text-yellow-400';
-        return 'text-cyan-400';
+        if (instance.completed_at) return 'text-success';
+        if (instance.current_state === 'PENDING_APPROVAL') return 'text-warning';
+        return 'text-info';
     };
 
     const isCompleted = (instance: FlowInstance) => !!instance.completed_at;
     const totalPages = Math.ceil(total / PAGE_SIZE);
 
     return (
-        <div className="min-h-screen bg-slate-950 p-6">
+        <div className="min-h-screen bg-bg p-6">
             <div>
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-100 flex items-center gap-3">
-                            <Activity className="w-8 h-8 text-blue-500" />
+                        <h1 className="text-3xl font-bold text-fg flex items-center gap-3">
+                            <Activity className="w-8 h-8 text-primary" />
                             Flow Instances
                         </h1>
-                        <p className="text-slate-400 mt-2">
+                        <p className="text-fg-muted mt-2">
                             {total > 0
                                 ? `${total} workflow instance${total !== 1 ? 's' : ''} across your organization`
                                 : 'View and manage active workflow instances'}
@@ -94,14 +110,14 @@ export const InstanceList = () => {
                         <button
                             onClick={loadInstances}
                             disabled={loading}
-                            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
+                            className="p-2 text-fg-muted hover:text-fg hover:bg-surface-raised rounded-lg transition-colors disabled:opacity-50"
                             title="Refresh"
                         >
                             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                         </button>
                         <button
                             onClick={() => navigate('/flow')}
-                            className="px-4 py-2 bg-slate-800 text-slate-100 rounded-lg hover:bg-slate-700 transition-colors"
+                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line transition-colors"
                         >
                             Back to Dashboard
                         </button>
@@ -118,22 +134,22 @@ export const InstanceList = () => {
                 )}
 
                 {isSandboxMode && isLimited(total) && (
-                    <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border border-amber-500/25 rounded-lg text-amber-400 text-sm">
+                    <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-warning/10 border border-warning/25 rounded-lg text-warning text-sm">
                         <span className="font-semibold">Sandbox:</span>
                         <span>Showing {sandboxEntryLimit} of {total} records. Switch to Production to view all.</span>
                     </div>
                 )}
 
                 {/* Filters */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 mb-6">
+                <div className="bg-surface/50 border border-line rounded-lg p-4 mb-6">
                     <div className="flex items-center gap-2 mb-3">
-                        <Filter className="w-4 h-4 text-slate-400" />
-                        <span className="text-sm text-slate-400 font-medium">Filters</span>
+                        <Filter className="w-4 h-4 text-fg-muted" />
+                        <span className="text-sm text-fg-muted font-medium">Filters</span>
                     </div>
                     <div className="flex flex-wrap gap-4">
                         {/* Status filter */}
                         <div>
-                            <label className="text-xs text-slate-500 block mb-1.5">Status</label>
+                            <label className="text-xs text-fg-subtle block mb-1.5">Status</label>
                             <div className="flex gap-1">
                                 {(['all', 'active', 'completed', 'cancelled', 'suspended'] as StatusFilter[]).map((s) => (
                                     <button
@@ -141,8 +157,8 @@ export const InstanceList = () => {
                                         onClick={() => setStatusFilter(s)}
                                         className={`px-3 py-1.5 rounded text-xs font-medium capitalize transition-colors ${
                                             statusFilter === s
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+                                                ? 'bg-primary text-primary-fg'
+                                                : 'bg-surface-raised text-fg-muted hover:bg-line hover:text-fg'
                                         }`}
                                     >
                                         {s}
@@ -152,36 +168,23 @@ export const InstanceList = () => {
                         </div>
                         {/* Entity type filter */}
                         <div>
-                            <label className="text-xs text-slate-500 block mb-1.5">Entity Type</label>
-                            <select
+                            <label className="text-xs text-fg-subtle block mb-1.5">Entity Type</label>
+                            <Select
+                                name="entity-type-filter"
                                 value={entityTypeFilter}
                                 onChange={(e) => setEntityTypeFilter(e.target.value)}
-                                className="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-slate-100 text-xs focus:outline-none focus:border-blue-500"
-                            >
-                                <option value="">All Types</option>
-                                <option value="lead">CRM - Lead</option>
-                                <option value="deal">CRM - Deal</option>
-                                <option value="task">Projects - Task</option>
-                                <option value="project">Projects - Project</option>
-                                <option value="expense">Accounting - Expense</option>
-                                <option value="invoice">Accounting - Invoice</option>
-                                <option value="purchase_requisition">Procurement - PR</option>
-                                <option value="purchase_order">Procurement - PO</option>
-                                <option value="timesheet_batch">Timesheet - Batch</option>
-                                <option value="order">Daily Store - Order</option>
-                                <option value="support_ticket">Support - Ticket</option>
-                                <option value="fulfillment_order">Fulfillment - Order</option>
-                            </select>
+                                options={ENTITY_TYPE_OPTIONS}
+                            />
                         </div>
                     </div>
                 </div>
 
                 {error && (
-                    <div className="mb-6 bg-red-900/20 border border-red-500/30 rounded-lg p-4 flex items-center justify-between">
-                        <p className="text-red-400">{error}</p>
+                    <div className="mb-6 bg-danger-container/20 border border-danger/30 rounded-lg p-4 flex items-center justify-between">
+                        <p className="text-danger">{error}</p>
                         <button
                             onClick={loadInstances}
-                            className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm"
+                            className="px-3 py-1.5 bg-danger/20 hover:bg-danger/30 text-danger rounded-lg text-sm"
                         >
                             Retry
                         </button>
@@ -192,19 +195,19 @@ export const InstanceList = () => {
                 {loading ? (
                     <div className="space-y-3">
                         {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 animate-pulse">
+                            <div key={i} className="bg-surface/50 border border-line rounded-lg p-6 animate-pulse">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="space-y-2 flex-1">
-                                        <div className="h-5 bg-slate-800 rounded w-48"></div>
-                                        <div className="h-3 bg-slate-800 rounded w-24"></div>
+                                        <div className="h-5 bg-surface-raised rounded w-48"></div>
+                                        <div className="h-3 bg-surface-raised rounded w-24"></div>
                                     </div>
-                                    <div className="h-8 w-16 bg-slate-800 rounded"></div>
+                                    <div className="h-8 w-16 bg-surface-raised rounded"></div>
                                 </div>
                                 <div className="grid grid-cols-4 gap-4">
                                     {[1, 2, 3, 4].map((j) => (
                                         <div key={j} className="space-y-1">
-                                            <div className="h-3 bg-slate-800 rounded w-16"></div>
-                                            <div className="h-4 bg-slate-800 rounded w-24"></div>
+                                            <div className="h-3 bg-surface-raised rounded w-16"></div>
+                                            <div className="h-4 bg-surface-raised rounded w-24"></div>
                                         </div>
                                     ))}
                                 </div>
@@ -212,10 +215,10 @@ export const InstanceList = () => {
                         ))}
                     </div>
                 ) : instances.length === 0 ? (
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-12 text-center">
-                        <Activity className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                        <p className="text-slate-400 text-lg mb-2">No flow instances found</p>
-                        <p className="text-slate-500 text-sm">
+                    <div className="bg-surface/50 border border-line rounded-lg p-12 text-center">
+                        <Activity className="w-16 h-16 text-fg-muted mx-auto mb-4" />
+                        <p className="text-fg-muted text-lg mb-2">No flow instances found</p>
+                        <p className="text-fg-subtle text-sm">
                             {statusFilter !== 'all' || entityTypeFilter
                                 ? 'Try adjusting or clearing the filters above.'
                                 : 'Flow instances are created when a workflow is triggered for an entity.'}
@@ -231,38 +234,38 @@ export const InstanceList = () => {
                                 return (
                                     <div
                                         key={instance.id}
-                                        className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 hover:border-blue-500/50 transition-colors cursor-pointer"
+                                        className="bg-surface/50 border border-line rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer"
                                         onClick={() => navigate(`/flow/instance/${instance.id}`)}
                                     >
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-3 mb-2">
-                                                    <h3 className="text-base font-semibold text-slate-100 truncate">
+                                                    <h3 className="text-base font-semibold text-fg truncate">
                                                         {flowDef?.name || 'Unknown Flow'}
                                                     </h3>
                                                     {completed ? (
-                                                        <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-500/30 flex items-center gap-1">
+                                                        <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-success-container/30 text-success border border-success/30 flex items-center gap-1">
                                                             <CheckCircle className="w-3 h-3" />
                                                             Completed
                                                         </span>
                                                     ) : instance.current_state === 'PENDING_APPROVAL' ? (
-                                                        <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 flex items-center gap-1">
+                                                        <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-warning/30 text-warning border border-warning/30 flex items-center gap-1">
                                                             <Clock className="w-3 h-3" />
                                                             Pending Approval
                                                         </span>
                                                     ) : (
-                                                        <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30 flex items-center gap-1">
+                                                        <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-primary-container/30 text-primary border border-primary/30 flex items-center gap-1">
                                                             <Clock className="w-3 h-3" />
                                                             Active
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="text-xs text-slate-500">
+                                                <div className="text-xs text-fg-subtle">
                                                     {flowDef?.module_code || 'N/A'}
                                                 </div>
                                             </div>
                                             <button
-                                                className="shrink-0 ml-4 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2 transition-colors"
+                                                className="shrink-0 ml-4 px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-fg rounded-lg text-sm flex items-center gap-2 transition-colors"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     navigate(`/flow/instance/${instance.id}`);
@@ -275,28 +278,28 @@ export const InstanceList = () => {
 
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                             <div>
-                                                <div className="text-xs text-slate-500 mb-1">Current State</div>
+                                                <div className="text-xs text-fg-subtle mb-1">Current State</div>
                                                 <div className={`font-medium ${getStateColor(instance)}`}>
                                                     {getStateName(instance)}
                                                 </div>
                                             </div>
                                             <div>
-                                                <div className="text-xs text-slate-500 mb-1">Entity Type</div>
-                                                <div className="text-slate-300 capitalize">{instance.entity_type}</div>
+                                                <div className="text-xs text-fg-subtle mb-1">Entity Type</div>
+                                                <div className="text-fg capitalize">{instance.entity_type}</div>
                                             </div>
                                             <div>
-                                                <div className="text-xs text-slate-500 mb-1">
+                                                <div className="text-xs text-fg-subtle mb-1">
                                                     {completed ? 'Completed' : 'Started'}
                                                 </div>
-                                                <div className="text-slate-300">
+                                                <div className="text-fg">
                                                     {completed
                                                         ? formatters.formatDate(instance.completed_at!)
                                                         : formatters.formatDate(instance.started_at)}
                                                 </div>
                                             </div>
                                             <div>
-                                                <div className="text-xs text-slate-500 mb-1">Instance ID</div>
-                                                <div className="text-slate-400 font-mono text-xs truncate">
+                                                <div className="text-xs text-fg-subtle mb-1">Instance ID</div>
+                                                <div className="text-fg-muted font-mono text-xs truncate">
                                                     {instance.id}
                                                 </div>
                                             </div>
@@ -308,7 +311,7 @@ export const InstanceList = () => {
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="flex items-center justify-between mt-6 text-sm text-slate-400">
+                            <div className="flex items-center justify-between mt-6 text-sm text-fg-muted">
                                 <span>
                                     Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
                                 </span>
@@ -316,7 +319,7 @@ export const InstanceList = () => {
                                     <button
                                         onClick={() => setPage((p) => p - 1)}
                                         disabled={page === 0}
-                                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        className="p-1.5 rounded-lg bg-surface-raised hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                     </button>
@@ -326,7 +329,7 @@ export const InstanceList = () => {
                                     <button
                                         onClick={() => setPage((p) => p + 1)}
                                         disabled={page >= totalPages - 1}
-                                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        className="p-1.5 rounded-lg bg-surface-raised hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                     >
                                         <ChevronRight className="w-4 h-4" />
                                     </button>

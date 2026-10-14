@@ -8,20 +8,20 @@ export const ApprovalHistoryPage: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-slate-950 p-6">
+        <div className="min-h-screen bg-bg p-6">
             <div className="flex items-center gap-3 mb-6">
-                <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-slate-100">
+                <button onClick={() => navigate(-1)} className="text-fg-muted hover:text-fg">
                     <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-100">Approval History</h1>
-                    <p className="text-slate-400 text-sm">{entityType} · {entityId?.slice(0, 8)}</p>
+                    <h1 className="text-2xl font-bold text-fg">Approval History</h1>
+                    <p className="text-fg-muted text-sm">{entityType} · {entityId?.slice(0, 8)}</p>
                 </div>
             </div>
             {entityType && entityId ? (
                 <ApprovalHistory entityType={entityType} entityId={entityId} />
             ) : (
-                <p className="text-slate-400">Invalid entity parameters</p>
+                <p className="text-fg-muted">Invalid entity parameters</p>
             )}
         </div>
     );

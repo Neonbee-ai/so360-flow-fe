@@ -241,7 +241,7 @@ describe('ApprovalPoliciesPage', () => {
       api.getApprovalPolicies.mockResolvedValue({ data: [makePolicy({ is_active: false })] });
       renderPage();
       await waitFor(() => screen.getByText('Expense Approval'));
-      const dot = document.querySelector('.bg-slate-500');
+      const dot = document.querySelector('.bg-fg-subtle');
       expect(dot).not.toBeNull();
     });
   });

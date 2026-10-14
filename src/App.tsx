@@ -20,13 +20,13 @@ const UpgradeLocked = () => {
     return (
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-center px-6">
             <div>
-                <h2 className="text-lg font-semibold text-slate-100">This feature is part of a higher plan</h2>
-                <p className="text-sm text-slate-400 mt-1">Upgrade your plan to unlock it.</p>
+                <h2 className="text-lg font-semibold text-fg">This feature is part of a higher plan</h2>
+                <p className="text-sm text-fg-muted mt-1">Upgrade your plan to unlock it.</p>
             </div>
             <button
                 type="button"
                 onClick={() => navigate('/org/billing')}
-                className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
+                className="px-4 py-2 rounded bg-primary hover:bg-primary text-primary-fg text-sm font-medium transition-colors"
             >
                 Upgrade plan
             </button>
@@ -37,8 +37,8 @@ const UpgradeLocked = () => {
 // Route-level panel shown when a feature is `disabled` (admin turned it off — no upgrade path).
 const FeatureUnavailable = () => (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-2 text-center px-6">
-        <h2 className="text-lg font-semibold text-slate-100">Feature unavailable</h2>
-        <p className="text-sm text-slate-400">This feature has been turned off for your organization.</p>
+        <h2 className="text-lg font-semibold text-fg">Feature unavailable</h2>
+        <p className="text-sm text-fg-muted">This feature has been turned off for your organization.</p>
     </div>
 );
 
@@ -79,8 +79,8 @@ const PermissionGuard = ({ permission, children }: { permission: string | string
     if (allowed) return <>{children}</>;
     return (
         <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">You don&apos;t have access to this page</h2>
-            <p className="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
+            <h2 className="text-lg font-semibold text-fg-muted dark:text-fg">You don&apos;t have access to this page</h2>
+            <p className="mt-2 max-w-md text-sm text-fg-subtle dark:text-fg-muted">
                 Your role doesn&apos;t include permission for this page. Ask an administrator if you need it.
             </p>
         </div>
