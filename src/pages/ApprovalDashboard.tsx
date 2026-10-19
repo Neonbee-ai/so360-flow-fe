@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, AlertTriangle, CheckCircle, BarChart2 } from 'lucide-react';
+import { Button, IconButton } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { ApprovalStats } from '../types/flow';
 
@@ -28,7 +29,7 @@ export const ApprovalDashboard: React.FC = () => {
     return (
         <div className="min-h-screen bg-bg p-6">
             <div className="flex items-center gap-3 mb-8">
-                <button onClick={() => navigate('/flow')} className="text-fg-muted hover:text-fg"><ArrowLeft className="w-5 h-5" /></button>
+                <IconButton label="Back" icon={<ArrowLeft className="w-5 h-5" />} onClick={() => navigate('/flow')} />
                 <div>
                     <h1 className="text-2xl font-bold text-fg">Approval Dashboard</h1>
                     <p className="text-fg-muted text-sm">Approval workflow overview</p>
@@ -85,7 +86,7 @@ export const ApprovalDashboard: React.FC = () => {
             <div className="bg-surface/50 border border-line rounded-xl p-5">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-fg font-medium">Recent Pending</h2>
-                    <button onClick={() => navigate('/flow/approvals/pending')} className="text-primary hover:text-primary text-sm">View All →</button>
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/flow/approvals/pending')}>View All →</Button>
                 </div>
                 {recentApprovals.length === 0 ? (
                     <p className="text-fg-subtle text-sm">No pending approvals</p>

@@ -98,13 +98,7 @@ describe('InstanceList (extra)', () => {
       api.getAllInstances.mockReturnValue(makePageOf(INSTANCES, 25));
       renderPage();
       await waitFor(() => screen.getByText('Page 1 of 2'));
-      const buttons = screen.getAllByRole('button');
-      // ChevronRight button is at the end
-      const nextBtn = buttons.find(b => b.getAttribute('title') === null && !b.textContent);
-      // Find by disabled state — prev should be disabled on page 1
-      const [prevBtn, nextButton] = screen.getAllByRole('button').filter(
-        b => b.querySelector('svg')
-      ).slice(-2);
+      const nextButton = screen.getByRole('button', { name: 'Next page' });
       fireEvent.click(nextButton);
       await waitFor(() =>
         expect(api.getAllInstances).toHaveBeenCalledWith(
@@ -169,7 +163,7 @@ describe('InstanceList (extra)', () => {
       );
       renderPage();
       await waitFor(() => screen.getByText('Lead Flow'));
-      // click the card container (not the View button)
+      // click the card container 
       const card = screen.getByText('Lead Flow').closest('div[class*=rounded]') as HTMLElement;
       if (card) fireEvent.click(card);
       await waitFor(() =>

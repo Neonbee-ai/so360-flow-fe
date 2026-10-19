@@ -1,7 +1,7 @@
 /**
  * approval-policies-modals.bdd.test.tsx
  * BDD unit tests asserting ApprovalPoliciesPage modal panels are capped at
- * max-h-[90vh] so no modal can exceed 90% of the viewport height.
+ * dialogs (design-system Modal, which owns the viewport cap).
  *
  * Covers the two inline dialogs:
  *   - Confirm-delete (Deactivate Policy?) modal
@@ -75,12 +75,7 @@ const POLICY = {
   steps: [],
 };
 
-const cappedPanels = () =>
-  Array.from(document.querySelectorAll('div')).filter(el =>
-    el.className.includes('max-h-[90vh]')
-  );
-
-describe('Given ApprovalPoliciesPage modals / Then each panel is capped at max-h-[90vh]', () => {
+describe('Given ApprovalPoliciesPage modals / Then each opens as a design-system dialog', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     mockFlowApi.getApprovalPolicies.mockResolvedValue({ data: [POLICY] });
@@ -92,17 +87,17 @@ describe('Given ApprovalPoliciesPage modals / Then each panel is capped at max-h
     await screen.findByText('High-Value Expense Policy');
   };
 
-  it('When the Confirm-delete modal is opened / Then a max-h-[90vh] panel exists', async () => {
+  it('When the Confirm-delete modal is opened / Then a dialog is shown', async () => {
     await renderPage();
-    fireEvent.click(screen.getByTitle('Delete policy'));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete policy' }));
     await screen.findByText('Deactivate Policy?');
-    expect(cappedPanels().length).toBeGreaterThan(0);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('When the Simulation modal is opened / Then a max-h-[90vh] panel exists', async () => {
+  it('When the Simulation modal is opened / Then a dialog is shown', async () => {
     await renderPage();
-    fireEvent.click(screen.getByTitle('Test policy'));
+    fireEvent.click(screen.getByRole('button', { name: 'Test policy' }));
     await screen.findByText('Policy Simulation');
-    expect(cappedPanels().length).toBeGreaterThan(0);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

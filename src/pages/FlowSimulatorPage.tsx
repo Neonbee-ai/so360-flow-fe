@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Select } from '@so360/design-system';
+import { Select, Button, IconButton, Grid, GridItem } from '@so360/design-system';
 import { ArrowLeft, Play, ChevronRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition } from '../types/flow';
@@ -98,9 +98,7 @@ export const FlowSimulatorPage = () => {
         <div className="min-h-screen bg-bg p-6">
             {/* Header */}
             <div className="flex items-center gap-3 mb-8">
-                <button onClick={() => navigate('/flow')} className="text-fg-muted hover:text-fg">
-                    <ArrowLeft className="w-5 h-5" />
-                </button>
+                <IconButton label="Back" icon={<ArrowLeft className="w-5 h-5" />} onClick={() => navigate('/flow')} />
                 <div>
                     <h1 className="text-2xl font-bold text-fg">Flow Simulator</h1>
                     <p className="text-fg-muted text-sm mt-1">Walk through a flow definition step by step</p>
@@ -109,8 +107,8 @@ export const FlowSimulatorPage = () => {
 
             {/* Flow Selector */}
             <div className="bg-surface/50 border border-line rounded-xl p-5 mb-6">
-                <label className="text-sm text-fg-muted mb-2 block">Select Flow Definition</label>
                 <Select
+                    label="Select Flow Definition"
                     name="flow-definition"
                     value={selectedFlowId}
                     onChange={e => handleSelectFlow(e.target.value)}
@@ -119,27 +117,24 @@ export const FlowSimulatorPage = () => {
             </div>
 
             {selectedFlow && (
-                <div className="grid grid-cols-3 gap-6">
+                <Grid columns="auto" gap="lg">
                     {/* State Machine Visual */}
-                    <div className="col-span-2 space-y-4">
+                    <GridItem span={8} className="space-y-4">
                         {/* Current State */}
                         <div className="bg-surface/50 border border-line rounded-xl p-5">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-fg">Current State</h2>
-                                <button
-                                    onClick={resetSimulation}
-                                    className="text-xs text-fg-muted hover:text-fg flex items-center gap-1"
-                                >
+                                <Button variant="ghost" size="sm" onClick={resetSimulation}>
                                     Reset
-                                </button>
+                                </Button>
                             </div>
                             {stateObj ? (
                                 <div
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
                                     style={{
                                         backgroundColor: (stateObj as any).color + '33',
-                                        border: `2px solid ${(stateObj as any).color || '#3b82f6'}`,
-                                        color: (stateObj as any).color || '#3b82f6',
+                                        border: `2px solid ${(stateObj as any).color || 'rgb(var(--nb-primary))'}`,
+                                        color: (stateObj as any).color || 'rgb(var(--nb-primary))',
                                     }}
                                 >
                                     {stateObj.is_terminal ? (
@@ -168,12 +163,12 @@ export const FlowSimulatorPage = () => {
                                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm"
                                         style={{
                                             backgroundColor: state.code === currentState
-                                                ? (state.color + '44') || '#3b82f644'
+                                                ? (state.color ? state.color + '44' : 'rgb(var(--nb-primary) / 0.27)')
                                                 : 'rgb(var(--nb-surface) / 0.5)',
                                             border: state.code === currentState
-                                                ? `2px solid ${state.color || '#3b82f6'}`
+                                                ? `2px solid ${state.color || 'rgb(var(--nb-primary))'}`
                                                 : '2px solid rgb(var(--nb-border))',
-                                            color: state.code === currentState ? (state.color || '#3b82f6') : 'rgb(var(--nb-fg-muted))',
+                                            color: state.code === currentState ? (state.color || 'rgb(var(--nb-primary))') : 'rgb(var(--nb-fg-muted))',
                                         }}
                                     >
                                         {state.code === currentState && <div className="w-2 h-2 rounded-full bg-current animate-pulse" />}
@@ -201,10 +196,11 @@ export const FlowSimulatorPage = () => {
                                     {availableTransitions.map((t: any) => {
                                         const toState = (selectedFlow.states || []).find((s: any) => s.code === t.to_state);
                                         return (
-                                            <button
+                                            <Button
                                                 key={t.code}
+                                                variant="secondary"
                                                 onClick={() => applyTransition(t)}
-                                                className="w-full flex items-center justify-between bg-surface border border-line hover:border-primary hover:bg-surface-raised rounded-lg px-4 py-3 transition-colors text-left"
+                                                className="w-full !h-auto justify-between py-nb-3 text-left"
                                             >
                                                 <div>
                                                     <p className="text-fg text-sm font-medium">{t.name}</p>
@@ -214,16 +210,16 @@ export const FlowSimulatorPage = () => {
                                                     → {toState?.name || t.to_state}
                                                     <ChevronRight className="w-4 h-4" />
                                                 </div>
-                                            </button>
+                                            </Button>
                                         );
                                     })}
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </GridItem>
 
                     {/* History Panel */}
-                    <div className="bg-surface/50 border border-line rounded-xl p-5 h-fit">
+                    <GridItem span={4} className="bg-surface/50 border border-line rounded-xl p-5 h-fit">
                         <h2 className="text-lg font-semibold text-fg mb-4">Transition History</h2>
                         {history.length === 0 ? (
                             <p className="text-fg-subtle text-sm">No transitions yet. Click a transition to simulate.</p>
@@ -245,8 +241,8 @@ export const FlowSimulatorPage = () => {
                                 </div>
                             </div>
                         )}
-                    </div>
-                </div>
+                    </GridItem>
+                </Grid>
             )}
 
             {!selectedFlow && !loading && (

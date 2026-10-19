@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Activity, GitBranch, Database, History } from 'lucide-react';
-import { toast, useConfirm } from '@so360/design-system';
+import { toast, useConfirm, Button } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import { ApprovalHistory } from '../components/ApprovalHistory';
 import type { FlowInstance, FlowHistory, FlowDefinition } from '../types/flow';
@@ -113,13 +113,10 @@ export const InstanceViewer = () => {
         return (
             <div className="min-h-screen bg-bg p-6">
                 <div>
-                    <button
-                        onClick={() => navigate('/flow/instances')}
-                        className="mb-6 text-fg-muted hover:text-fg flex items-center gap-2"
-                    >
+                    <Button variant="ghost" className="mb-6" onClick={() => navigate('/flow/instances')}>
                         <ArrowLeft className="w-4 h-4" />
                         Back to Instances
-                    </button>
+                    </Button>
                     <div className="bg-danger-container/20 border border-danger/30 rounded-lg p-6">
                         <p className="text-danger">{error || 'Instance not found'}</p>
                     </div>
@@ -137,13 +134,10 @@ export const InstanceViewer = () => {
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                    <button
-                        onClick={() => navigate('/flow/instances')}
-                        className="text-fg-muted hover:text-fg flex items-center gap-2"
-                    >
+                    <Button variant="ghost" onClick={() => navigate('/flow/instances')}>
                         <ArrowLeft className="w-4 h-4" />
                         Back to Instances
-                    </button>
+                    </Button>
                     {isCompleted && (
                         <span className="px-3 py-1 rounded-full text-xs font-medium bg-success-container/30 text-success border border-success/30">
                             Completed
@@ -237,11 +231,11 @@ export const InstanceViewer = () => {
                         </h2>
                         <div className="flex flex-wrap gap-3">
                             {context.available_transitions.map((transition) => (
-                                <button
+                                <Button
                                     key={transition.code}
+                                    variant="tonal"
                                     onClick={() => handleTransition(transition.code, transition.name)}
                                     disabled={transitioning}
-                                    className="px-4 py-2 bg-info hover:bg-info disabled:bg-line disabled:cursor-not-allowed text-fg rounded-lg font-medium transition-colors flex items-center gap-2"
                                 >
                                     {transition.name}
                                     {transition.requires_approval && (
@@ -249,7 +243,7 @@ export const InstanceViewer = () => {
                                             Requires Approval
                                         </span>
                                     )}
-                                </button>
+                                </Button>
                             ))}
                         </div>
                     </div>

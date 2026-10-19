@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Select } from '@so360/design-system';
+import { Select, Button, Grid, GridItem } from '@so360/design-system';
 import { Plus, Workflow } from 'lucide-react';
 import { useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
@@ -66,46 +66,18 @@ export const FlowDashboard = () => {
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <button
-                            onClick={() => navigate('/flow/simulator')}
-                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
-                        >
-                            Simulator
-                        </button>
-                        <button
-                            onClick={() => navigate('/flow/approvals/dashboard')}
-                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
-                        >
-                            Approval Dashboard
-                        </button>
-                        <button
-                            onClick={() => navigate('/flow/approvals/pending')}
-                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
-                        >
-                            Pending Approvals
-                        </button>
+                        <Button variant="secondary" onClick={() => navigate('/flow/simulator')}>Simulator</Button>
+                        <Button variant="secondary" onClick={() => navigate('/flow/approvals/dashboard')}>Approval Dashboard</Button>
+                        <Button variant="secondary" onClick={() => navigate('/flow/approvals/pending')}>Pending Approvals</Button>
                         {canAccessPolicies && (
-                            <button
-                                onClick={() => navigate('/flow/approvals/policies')}
-                                className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
-                            >
-                                Approval Policies
-                            </button>
+                            <Button variant="secondary" onClick={() => navigate('/flow/approvals/policies')}>Approval Policies</Button>
                         )}
-                        <button
-                            onClick={() => navigate('/flow/instances')}
-                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line flex items-center gap-2"
-                        >
-                            View Instances
-                        </button>
+                        <Button variant="secondary" onClick={() => navigate('/flow/instances')}>View Instances</Button>
                         {canCreateFlow && (
-                            <button
-                                onClick={() => navigate('/flow/builder/new')}
-                                className="px-4 py-2 bg-primary text-primary-fg rounded-lg hover:bg-primary-hover flex items-center gap-2"
-                            >
+                            <Button onClick={() => navigate('/flow/builder/new')}>
                                 <Plus className="w-5 h-5" />
                                 New Flow
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
@@ -137,10 +109,10 @@ export const FlowDashboard = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <Grid columns="auto" gap="lg">
                         {flows.map((flow) => (
+                            <GridItem key={flow.id} span={4}>
                             <div
-                                key={flow.id}
                                 onClick={() => navigate(`/flow/builder/${flow.id}`)}
                                 className="bg-surface/50 border border-line rounded-lg p-6 cursor-pointer hover:border-primary transition-colors"
                             >
@@ -171,8 +143,9 @@ export const FlowDashboard = () => {
                                     <span>{flow.transitions?.length || 0} transitions</span>
                                 </div>
                             </div>
+                            </GridItem>
                         ))}
-                    </div>
+                    </Grid>
                 )}
             </div>
         </div>

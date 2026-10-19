@@ -136,12 +136,12 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
                     {/* Timeline */}
                     <div className="relative space-y-4 pl-6">
                         {/* Timeline line */}
-                        <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-surface-raised"></div>
+                        <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-surface-raised"></div>
 
                         {instance.actions.map((action: ApprovalAction, actionIdx) => (
                             <div key={action.id} className="relative">
                                 {/* Timeline dot */}
-                                <div className="absolute -left-[26px] mt-1 bg-bg p-1 rounded-full">
+                                <div className="absolute -left-7 mt-1 bg-bg p-1 rounded-full">
                                     {getActionIcon(action.action_type)}
                                 </div>
 

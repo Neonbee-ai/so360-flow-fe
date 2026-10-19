@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useShellBridge } from '@so360/shell-context';
-import { FeatureRoute } from '@so360/design-system';
+import { FeatureRoute, Button } from '@so360/design-system';
 import { MfeShellInitializer } from './utils/initializeMfe';
 import { FlowDashboard } from './pages/FlowDashboard';
 import { FlowBuilder } from './pages/FlowBuilder';
@@ -18,25 +18,21 @@ import './index.css';
 const UpgradeLocked = () => {
     const navigate = useNavigate();
     return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-center px-6">
+        <div className="flex flex-col items-center justify-center py-nb-12 gap-4 text-center px-6">
             <div>
                 <h2 className="text-lg font-semibold text-fg">This feature is part of a higher plan</h2>
                 <p className="text-sm text-fg-muted mt-1">Upgrade your plan to unlock it.</p>
             </div>
-            <button
-                type="button"
-                onClick={() => navigate('/org/billing')}
-                className="px-4 py-2 rounded bg-primary hover:bg-primary text-primary-fg text-sm font-medium transition-colors"
-            >
+            <Button type="button" onClick={() => navigate('/org/billing')}>
                 Upgrade plan
-            </button>
+            </Button>
         </div>
     );
 };
 
 // Route-level panel shown when a feature is `disabled` (admin turned it off — no upgrade path).
 const FeatureUnavailable = () => (
-    <div className="flex flex-col items-center justify-center min-h-[400px] gap-2 text-center px-6">
+    <div className="flex flex-col items-center justify-center py-nb-12 gap-2 text-center px-6">
         <h2 className="text-lg font-semibold text-fg">Feature unavailable</h2>
         <p className="text-sm text-fg-muted">This feature has been turned off for your organization.</p>
     </div>

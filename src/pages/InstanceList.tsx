@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Eye, CheckCircle, Clock, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
-import { QuotaBar, QuotaGate, Select } from '@so360/design-system';
+import { Activity, CheckCircle, Clock, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { QuotaBar, QuotaGate, Select, Button, IconButton, Grid, GridItem } from '@so360/design-system';
 import { useQuota, useShell, useSandboxLimit } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowInstance, FlowDefinition } from '../types/flow';
@@ -107,20 +107,15 @@ export const InstanceList = () => {
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button
+                        <IconButton
+                            label="Refresh"
+                            icon={<RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />}
                             onClick={loadInstances}
                             disabled={loading}
-                            className="p-2 text-fg-muted hover:text-fg hover:bg-surface-raised rounded-lg transition-colors disabled:opacity-50"
-                            title="Refresh"
-                        >
-                            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                        </button>
-                        <button
-                            onClick={() => navigate('/flow')}
-                            className="px-4 py-2 bg-surface-raised text-fg rounded-lg hover:bg-line transition-colors"
-                        >
+                        />
+                        <Button variant="secondary" onClick={() => navigate('/flow')}>
                             Back to Dashboard
-                        </button>
+                        </Button>
                     </div>
                 </div>
 
@@ -149,27 +144,26 @@ export const InstanceList = () => {
                     <div className="flex flex-wrap gap-4">
                         {/* Status filter */}
                         <div>
-                            <label className="text-xs text-fg-subtle block mb-1.5">Status</label>
+                            <span className="text-xs text-fg-subtle block mb-1.5">Status</span>
                             <div className="flex gap-1">
                                 {(['all', 'active', 'completed', 'cancelled', 'suspended'] as StatusFilter[]).map((s) => (
-                                    <button
+                                    <Button
                                         key={s}
+                                        size="sm"
+                                        variant={statusFilter === s ? 'primary' : 'secondary'}
+                                        aria-pressed={statusFilter === s}
                                         onClick={() => setStatusFilter(s)}
-                                        className={`px-3 py-1.5 rounded text-xs font-medium capitalize transition-colors ${
-                                            statusFilter === s
-                                                ? 'bg-primary text-primary-fg'
-                                                : 'bg-surface-raised text-fg-muted hover:bg-line hover:text-fg'
-                                        }`}
+                                        className="capitalize"
                                     >
                                         {s}
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                         </div>
                         {/* Entity type filter */}
                         <div>
-                            <label className="text-xs text-fg-subtle block mb-1.5">Entity Type</label>
                             <Select
+                                label="Entity Type"
                                 name="entity-type-filter"
                                 value={entityTypeFilter}
                                 onChange={(e) => setEntityTypeFilter(e.target.value)}
@@ -182,12 +176,9 @@ export const InstanceList = () => {
                 {error && (
                     <div className="mb-6 bg-danger-container/20 border border-danger/30 rounded-lg p-4 flex items-center justify-between">
                         <p className="text-danger">{error}</p>
-                        <button
-                            onClick={loadInstances}
-                            className="px-3 py-1.5 bg-danger/20 hover:bg-danger/30 text-danger rounded-lg text-sm"
-                        >
+                        <Button variant="secondary" size="sm" onClick={loadInstances}>
                             Retry
-                        </button>
+                        </Button>
                     </div>
                 )}
 
@@ -203,14 +194,14 @@ export const InstanceList = () => {
                                     </div>
                                     <div className="h-8 w-16 bg-surface-raised rounded"></div>
                                 </div>
-                                <div className="grid grid-cols-4 gap-4">
+                                <Grid columns={4} gap="md">
                                     {[1, 2, 3, 4].map((j) => (
                                         <div key={j} className="space-y-1">
                                             <div className="h-3 bg-surface-raised rounded w-16"></div>
                                             <div className="h-4 bg-surface-raised rounded w-24"></div>
                                         </div>
                                     ))}
-                                </div>
+                                </Grid>
                             </div>
                         ))}
                     </div>
@@ -226,7 +217,7 @@ export const InstanceList = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 gap-4">
+                        <Grid columns={1} gap="md">
                             {(isSandboxMode ? instances.slice(0, sandboxEntryLimit) : instances).map((instance) => {
                                 const flowDef = instance.flows as unknown as FlowDefinition;
                                 const completed = isCompleted(instance);
@@ -264,30 +255,20 @@ export const InstanceList = () => {
                                                     {flowDef?.module_code || 'N/A'}
                                                 </div>
                                             </div>
-                                            <button
-                                                className="shrink-0 ml-4 px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-fg rounded-lg text-sm flex items-center gap-2 transition-colors"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    navigate(`/flow/instance/${instance.id}`);
-                                                }}
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                                View
-                                            </button>
                                         </div>
 
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                            <div>
+                                        <Grid columns="auto" gap="md" className="text-sm">
+                                            <GridItem span={3}>
                                                 <div className="text-xs text-fg-subtle mb-1">Current State</div>
                                                 <div className={`font-medium ${getStateColor(instance)}`}>
                                                     {getStateName(instance)}
                                                 </div>
-                                            </div>
-                                            <div>
+                                            </GridItem>
+                                            <GridItem span={3}>
                                                 <div className="text-xs text-fg-subtle mb-1">Entity Type</div>
                                                 <div className="text-fg capitalize">{instance.entity_type}</div>
-                                            </div>
-                                            <div>
+                                            </GridItem>
+                                            <GridItem span={3}>
                                                 <div className="text-xs text-fg-subtle mb-1">
                                                     {completed ? 'Completed' : 'Started'}
                                                 </div>
@@ -296,18 +277,18 @@ export const InstanceList = () => {
                                                         ? formatters.formatDate(instance.completed_at!)
                                                         : formatters.formatDate(instance.started_at)}
                                                 </div>
-                                            </div>
-                                            <div>
+                                            </GridItem>
+                                            <GridItem span={3}>
                                                 <div className="text-xs text-fg-subtle mb-1">Instance ID</div>
                                                 <div className="text-fg-muted font-mono text-xs truncate">
                                                     {instance.id}
                                                 </div>
-                                            </div>
-                                        </div>
+                                            </GridItem>
+                                        </Grid>
                                     </div>
                                 );
                             })}
-                        </div>
+                        </Grid>
 
                         {/* Pagination */}
                         {totalPages > 1 && (
@@ -316,23 +297,21 @@ export const InstanceList = () => {
                                     Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
                                 </span>
                                 <div className="flex items-center gap-2">
-                                    <button
+                                    <IconButton
+                                        label="Previous page"
+                                        icon={<ChevronLeft className="w-4 h-4" />}
                                         onClick={() => setPage((p) => p - 1)}
                                         disabled={page === 0}
-                                        className="p-1.5 rounded-lg bg-surface-raised hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        <ChevronLeft className="w-4 h-4" />
-                                    </button>
+                                    />
                                     <span className="px-3">
                                         Page {page + 1} of {totalPages}
                                     </span>
-                                    <button
+                                    <IconButton
+                                        label="Next page"
+                                        icon={<ChevronRight className="w-4 h-4" />}
                                         onClick={() => setPage((p) => p + 1)}
                                         disabled={page >= totalPages - 1}
-                                        className="p-1.5 rounded-lg bg-surface-raised hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        <ChevronRight className="w-4 h-4" />
-                                    </button>
+                                    />
                                 </div>
                             </div>
                         )}

@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, XCircle, UserPlus, AlertTriangle, X } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, UserPlus, AlertTriangle } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
-import { toast } from '@so360/design-system';
+import { toast, Modal, Button, Textarea, TextField, Grid, GridItem } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { PendingApproval } from '../types/flow';
 import { useFlowFormatters } from '../utils/formatters';
@@ -156,88 +156,88 @@ export const PendingApprovals: React.FC = () => {
     return (
         <div className="min-h-screen bg-bg p-8">
             {/* Approve Modal */}
-            {modal.type === 'approve' && modal.approval && (
-                <div className="fixed inset-0 bg-overlay/60 flex items-center justify-center z-[600]">
-                    <div className="bg-surface border border-line rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-fg">Approve: {getEntityTitle(modal.approval)}</h3>
-                            <button onClick={closeModal} className="text-fg-muted hover:text-fg"><X className="w-5 h-5" /></button>
-                        </div>
-                        <div className="mb-4">
-                            <label className="text-sm text-fg-muted mb-1 block">Comment (optional)</label>
-                            <textarea value={comment} onChange={e => setComment(e.target.value)} rows={3}
-                                className="w-full bg-bg border border-line text-fg px-3 py-2 rounded-lg text-sm"
-                                placeholder="Add an optional comment..." />
-                        </div>
-                        <div className="flex gap-3 justify-end">
-                            <button onClick={closeModal} className="px-4 py-2 text-fg-muted hover:text-fg">Cancel</button>
-                            <button onClick={handleApprove} disabled={actionInProgress === modal.approval.id}
-                                className="flex items-center gap-2 px-4 py-2 bg-success text-primary-fg rounded-lg hover:bg-success disabled:opacity-50">
-                                <CheckCircle className="w-4 h-4" /> Approve
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal
+                open={modal.type === 'approve' && !!modal.approval}
+                onClose={closeModal}
+                title={modal.approval ? `Approve: ${getEntityTitle(modal.approval)}` : ''}
+                footer={modal.approval && (
+                    <>
+                        <Button variant="ghost" onClick={closeModal}>Cancel</Button>
+                        <Button onClick={handleApprove} disabled={actionInProgress === modal.approval.id}>
+                            <CheckCircle className="w-4 h-4" /> Approve
+                        </Button>
+                    </>
+                )}
+            >
+                <Textarea
+                    name="approve-comment"
+                    label="Comment (optional)"
+                    value={comment}
+                    onChange={e => setComment(e.target.value)}
+                    rows={3}
+                    placeholder="Add an optional comment..."
+                />
+            </Modal>
 
             {/* Reject Modal */}
-            {modal.type === 'reject' && modal.approval && (
-                <div className="fixed inset-0 bg-overlay/60 flex items-center justify-center z-[600]">
-                    <div className="bg-surface border border-line rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-fg">Reject: {getEntityTitle(modal.approval)}</h3>
-                            <button onClick={closeModal} className="text-fg-muted hover:text-fg"><X className="w-5 h-5" /></button>
-                        </div>
-                        <div className="mb-4">
-                            <label className="text-sm text-fg-muted mb-1 block">Rejection Reason * (min 10 characters)</label>
-                            <textarea value={comment} onChange={e => setComment(e.target.value)} rows={3}
-                                className="w-full bg-bg border border-line text-fg px-3 py-2 rounded-lg text-sm"
-                                placeholder="Explain why this is being rejected..." />
-                            {comment.length > 0 && comment.length < 10 && (
-                                <p className="text-danger text-xs mt-1">{10 - comment.length} more characters required</p>
-                            )}
-                        </div>
-                        <div className="flex gap-3 justify-end">
-                            <button onClick={closeModal} className="px-4 py-2 text-fg-muted hover:text-fg">Cancel</button>
-                            <button onClick={handleReject} disabled={comment.trim().length < 10 || actionInProgress === modal.approval.id}
-                                className="flex items-center gap-2 px-4 py-2 bg-danger text-primary-fg rounded-lg hover:bg-danger-hover disabled:opacity-50">
-                                <XCircle className="w-4 h-4" /> Reject
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal
+                open={modal.type === 'reject' && !!modal.approval}
+                onClose={closeModal}
+                title={modal.approval ? `Reject: ${getEntityTitle(modal.approval)}` : ''}
+                footer={modal.approval && (
+                    <>
+                        <Button variant="ghost" onClick={closeModal}>Cancel</Button>
+                        <Button variant="danger" onClick={handleReject} disabled={comment.trim().length < 10 || actionInProgress === modal.approval.id}>
+                            <XCircle className="w-4 h-4" /> Reject
+                        </Button>
+                    </>
+                )}
+            >
+                <Textarea
+                    name="reject-comment"
+                    label="Rejection Reason * (min 10 characters)"
+                    value={comment}
+                    onChange={e => setComment(e.target.value)}
+                    rows={3}
+                    placeholder="Explain why this is being rejected..."
+                />
+                {comment.length > 0 && comment.length < 10 && (
+                    <p className="text-danger text-xs mt-1">{10 - comment.length} more characters required</p>
+                )}
+            </Modal>
 
             {/* Delegate Modal */}
-            {modal.type === 'delegate' && modal.approval && (
-                <div className="fixed inset-0 bg-overlay/60 flex items-center justify-center z-[600]">
-                    <div className="bg-surface border border-line rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-fg">Delegate: {getEntityTitle(modal.approval)}</h3>
-                            <button onClick={closeModal} className="text-fg-muted hover:text-fg"><X className="w-5 h-5" /></button>
-                        </div>
-                        <div className="mb-3">
-                            <label className="text-sm text-fg-muted mb-1 block">Delegate To (User ID) *</label>
-                            <input value={delegateTo} onChange={e => setDelegateTo(e.target.value)}
-                                className="w-full bg-bg border border-line text-fg px-3 py-2 rounded-lg text-sm"
-                                placeholder="Enter user UUID..." />
-                        </div>
-                        <div className="mb-4">
-                            <label className="text-sm text-fg-muted mb-1 block">Reason *</label>
-                            <textarea value={comment} onChange={e => setComment(e.target.value)} rows={2}
-                                className="w-full bg-bg border border-line text-fg px-3 py-2 rounded-lg text-sm"
-                                placeholder="Why are you delegating?" />
-                        </div>
-                        <div className="flex gap-3 justify-end">
-                            <button onClick={closeModal} className="px-4 py-2 text-fg-muted hover:text-fg">Cancel</button>
-                            <button onClick={handleDelegate} disabled={!delegateTo.trim() || !comment.trim() || actionInProgress === modal.approval.id}
-                                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-fg rounded-lg hover:bg-primary-hover disabled:opacity-50">
-                                <UserPlus className="w-4 h-4" /> Delegate
-                            </button>
-                        </div>
-                    </div>
+            <Modal
+                open={modal.type === 'delegate' && !!modal.approval}
+                onClose={closeModal}
+                title={modal.approval ? `Delegate: ${getEntityTitle(modal.approval)}` : ''}
+                footer={modal.approval && (
+                    <>
+                        <Button variant="ghost" onClick={closeModal}>Cancel</Button>
+                        <Button onClick={handleDelegate} disabled={!delegateTo.trim() || !comment.trim() || actionInProgress === modal.approval.id}>
+                            <UserPlus className="w-4 h-4" /> Delegate
+                        </Button>
+                    </>
+                )}
+            >
+                <div className="space-y-3">
+                    <TextField
+                        name="delegate-to"
+                        label="Delegate To (User ID) *"
+                        value={delegateTo}
+                        onChange={e => setDelegateTo(e.target.value)}
+                        placeholder="Enter user UUID..."
+                    />
+                    <Textarea
+                        name="delegate-reason"
+                        label="Reason *"
+                        value={comment}
+                        onChange={e => setComment(e.target.value)}
+                        rows={2}
+                        placeholder="Why are you delegating?"
+                    />
                 </div>
-            )}
+            </Modal>
 
             {/* Header */}
             <div className="mb-8">
@@ -247,7 +247,7 @@ export const PendingApprovals: React.FC = () => {
                     {error && (
                         <>
                             <p className="text-danger text-sm">{error}</p>
-                            <button onClick={fetchPendingApprovals} className="text-xs text-primary hover:text-primary underline">Retry</button>
+                            <Button variant="ghost" size="sm" onClick={fetchPendingApprovals}>Retry</Button>
                         </>
                     )}
                 </div>
@@ -280,8 +280,7 @@ export const PendingApprovals: React.FC = () => {
                                             <span>{approval.time_elapsed_hours}h elapsed{approval.sla_hours ? ` / ${approval.sla_hours}h SLA` : ''}</span>
                                         </div>
                                         <span>Requested {formatters.formatDateTime(approval.requested_at)}</span>
-                                        <button onClick={() => navigate(`/flow/approvals/history/${approval.entity_type}/${approval.entity_id}`)}
-                                            className="text-primary hover:text-primary text-xs">View History →</button>
+                                        <Button variant="ghost" size="sm" onClick={() => navigate(`/flow/approvals/history/${approval.entity_type}/${approval.entity_id}`)}>View History →</Button>
                                     </div>
                                 </div>
                             </div>
@@ -289,32 +288,29 @@ export const PendingApprovals: React.FC = () => {
                             {approval.entity_data && Object.keys(approval.entity_data).length > 0 && (
                                 <div className="mb-4 p-4 bg-surface-raised/50 rounded-lg">
                                     <div className="text-xs text-fg-subtle mb-2">Entity Details:</div>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                                    <Grid columns="auto" gap="sm" className="text-sm">
                                         {Object.entries(approval.entity_data).slice(0, 6).map(([key, value]) => (
-                                            <div key={key}>
+                                            <GridItem key={key} span={4}>
                                                 <span className="text-fg-subtle">{key}: </span>
                                                 <span className="text-fg">{String(value)}</span>
-                                            </div>
+                                            </GridItem>
                                         ))}
-                                    </div>
+                                    </Grid>
                                 </div>
                             )}
 
                             {canApprovalAction && (
                                 <div className="flex items-center gap-3">
-                                    <button onClick={() => openModal('approve', approval)} disabled={actionInProgress === approval.id}
-                                        className="flex items-center gap-2 px-4 py-2 bg-success hover:bg-success disabled:bg-line text-fg rounded-lg font-medium">
+                                    <Button onClick={() => openModal('approve', approval)} disabled={actionInProgress === approval.id}>
                                         <CheckCircle className="w-4 h-4" /> Approve
-                                    </button>
-                                    <button onClick={() => openModal('reject', approval)} disabled={actionInProgress === approval.id}
-                                        className="flex items-center gap-2 px-4 py-2 bg-danger hover:bg-danger-hover disabled:bg-line text-fg rounded-lg font-medium">
+                                    </Button>
+                                    <Button variant="danger" onClick={() => openModal('reject', approval)} disabled={actionInProgress === approval.id}>
                                         <XCircle className="w-4 h-4" /> Reject
-                                    </button>
+                                    </Button>
                                     {approval.current_step?.can_delegate && (
-                                        <button onClick={() => openModal('delegate', approval)} disabled={actionInProgress === approval.id}
-                                            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover disabled:bg-line text-fg rounded-lg font-medium">
+                                        <Button variant="secondary" onClick={() => openModal('delegate', approval)} disabled={actionInProgress === approval.id}>
                                             <UserPlus className="w-4 h-4" /> Delegate
-                                        </button>
+                                        </Button>
                                     )}
                                 </div>
                             )}

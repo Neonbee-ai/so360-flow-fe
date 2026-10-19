@@ -287,7 +287,7 @@ describe('ApprovalPoliciesPage', () => {
     it('When flags are loaded and feature is enabled / Then the simulate button appears for each policy row', async () => {
       renderPage();
       await waitFor(() => expect(screen.getByText('Expense Approval')).toBeInTheDocument());
-      expect(document.querySelector('[title="Test policy"]')).not.toBeNull();
+      expect(document.querySelector('[aria-label="Test policy"]')).not.toBeNull();
     });
   });
 });
