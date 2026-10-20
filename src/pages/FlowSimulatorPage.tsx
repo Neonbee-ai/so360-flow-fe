@@ -214,7 +214,7 @@ export const FlowSimulatorPage = () => {
                                                 key={t.code}
                                                 variant="secondary"
                                                 onClick={() => applyTransition(t)}
-                                                className="w-full !h-auto justify-between py-nb-3 text-left"
+                                                className="w-full !h-auto !justify-between py-nb-3 !text-left"
                                             >
                                                 <div>
                                                     <p className="text-fg text-sm font-medium">{t.name}</p>
