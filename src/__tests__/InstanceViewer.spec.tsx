@@ -200,7 +200,7 @@ describe('InstanceViewer', () => {
         data: makeContext({ instance: { context: { amount: 5000 } } }),
       });
       renderPage();
-      await waitFor(() => expect(screen.getByText('Instance Data')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('Instance data')).toBeInTheDocument());
     });
   });
 

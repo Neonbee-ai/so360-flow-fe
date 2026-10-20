@@ -98,7 +98,7 @@ export const FlowSimulatorPage = () => {
             title="Flow Simulator"
             meta="Walk through a flow definition step by step"
             sidePanel={selectedFlow ? (
-                                        <Card title="Transition History">
+                                        <Card title="Transition history">
                         {history.length === 0 ? (
                             <p className="text-fg-subtle text-sm">No transitions yet. Click a transition to simulate.</p>
                         ) : (
@@ -137,7 +137,7 @@ export const FlowSimulatorPage = () => {
                     <>
                         {/* Current State */}
                         <Card
-                            title="Current State"
+                            title="Current state"
                             actions={
                                 <Button variant="ghost" size="sm" onClick={resetSimulation}>
                                     Reset
@@ -170,7 +170,7 @@ export const FlowSimulatorPage = () => {
                         </Card>
 
                         {/* All States Overview */}
-                        <Card title="State Machine">
+                        <Card title="State machine">
                             <Cluster gap="tight">
                                 {(selectedFlow.states || []).map((state: any) => (
                                     <div
@@ -194,7 +194,7 @@ export const FlowSimulatorPage = () => {
                         </Card>
 
                         {/* Available Transitions */}
-                        <Card title="Available Transitions">
+                        <Card title="Available transitions">
                             {stateObj?.is_terminal ? (
                                 <div className="flex items-center gap-2 text-success text-sm">
                                     <CheckCircle className="w-4 h-4" />

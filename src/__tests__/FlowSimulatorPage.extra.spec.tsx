@@ -77,9 +77,9 @@ describe('FlowSimulatorPage (extra)', () => {
       await waitFor(() => screen.getByText('Choose a flow to simulate...'));
       const sel = screen.getByRole('combobox') as HTMLSelectElement;
       fireEvent.change(sel, { target: { value: 'f1' } });
-      await waitFor(() => screen.getByText('Current State'));
+      await waitFor(() => screen.getByText('Current state'));
       fireEvent.change(sel, { target: { value: '' } });
-      await waitFor(() => expect(screen.queryByText('Current State')).not.toBeInTheDocument());
+      await waitFor(() => expect(screen.queryByText('Current state')).not.toBeInTheDocument());
     });
 
     it('When flow is deselected / Then shows Select a flow prompt again', async () => {
@@ -87,7 +87,7 @@ describe('FlowSimulatorPage (extra)', () => {
       await waitFor(() => screen.getByText('Choose a flow to simulate...'));
       const sel = screen.getByRole('combobox') as HTMLSelectElement;
       fireEvent.change(sel, { target: { value: 'f1' } });
-      await waitFor(() => screen.getByText('Current State'));
+      await waitFor(() => screen.getByText('Current state'));
       fireEvent.change(sel, { target: { value: '' } });
       await waitFor(() =>
         expect(screen.getByText('Select a flow to begin simulation')).toBeInTheDocument()
@@ -159,7 +159,7 @@ describe('FlowSimulatorPage (extra)', () => {
       await waitFor(() => screen.getByText('Choose a flow to simulate...'));
       fireEvent.change(screen.getByRole('combobox') as HTMLSelectElement, { target: { value: 'bad' } });
       await waitFor(() =>
-        expect(screen.queryByText('Current State')).not.toBeInTheDocument()
+        expect(screen.queryByText('Current state')).not.toBeInTheDocument()
       );
     });
   });

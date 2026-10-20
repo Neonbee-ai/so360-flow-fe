@@ -127,17 +127,17 @@ export const InstanceViewer = () => {
 
     const rail = (
         <Stack gap="default">
-            <Card title="Instance Details">
+            <Card title="Instance details">
                 <DescriptionList items={details} />
             </Card>
 
-            <Card title="Current State">
+            <Card title="Current state">
                 <div className={`text-2xl font-bold ${getStateColor()}`}>{getCurrentStateName()}</div>
                 <div className="text-xs text-fg-subtle mt-2">Code: {context.instance.current_state}</div>
             </Card>
 
             {!isCompleted && context.available_transitions.length > 0 && (
-                <Card title="Available Transitions">
+                <Card title="Available transitions">
                     <Cluster gap="default">
                         {context.available_transitions.map((transition) => (
                             <Button
@@ -178,7 +178,7 @@ export const InstanceViewer = () => {
             >
                 <Stack gap="default">
                     {flowDef?.states && flowDef.states.length > 0 && (
-                        <Card title="State Machine">
+                        <Card title="State machine">
                             <FlowStateGraph
                                 states={flowDef.states}
                                 transitions={flowDef.transitions || []}
@@ -189,7 +189,7 @@ export const InstanceViewer = () => {
                     )}
 
                     {context.instance.context && Object.keys(context.instance.context).length > 0 && (
-                        <Card title="Instance Data">
+                        <Card title="Instance data">
                             <pre className="text-xs text-fg bg-bg rounded-lg p-4 overflow-auto max-h-96">
                                 {JSON.stringify(context.instance.context, null, 2)}
                             </pre>
@@ -197,7 +197,7 @@ export const InstanceViewer = () => {
                     )}
 
                     {context.history && context.history.length > 0 && (
-                        <Card title="Transition History">
+                        <Card title="Transition history">
                             <Stack gap="tight">
                                 {context.history.map((record) => {
                                     const fromStateName = flowDef?.states?.find(

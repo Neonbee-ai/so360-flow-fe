@@ -164,7 +164,7 @@ export const PendingApprovals: React.FC = () => {
                 </Stack>
             ),
         },
-        { key: 'status', header: 'Status', render: (approval) => <span className="uppercase text-xs text-fg-muted">{approval.status}</span> },
+        { key: 'status', header: 'Status', render: (approval) => <span className="text-xs text-fg-muted">{approval.status}</span> },
         {
             key: 'elapsed',
             header: 'Elapsed',
