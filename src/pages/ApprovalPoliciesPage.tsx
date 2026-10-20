@@ -285,7 +285,7 @@ export const ApprovalPoliciesPage = () => {
             align: 'right',
             render: (policy) => (
                 <span onClick={(e) => e.stopPropagation()}>
-                    <Cluster gap="tight" wrap={false}>
+                    <Cluster gap="tight" className="flex-nowrap">
                         {canSimulate && (
                             <IconButton label="Test policy" icon={<FlaskConical className="w-4 h-4" />}
                                 onClick={() => { setSimInput('{}'); setSimModal({ policyId: policy.id, result: null }); }} />

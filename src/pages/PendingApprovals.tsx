@@ -182,7 +182,7 @@ export const PendingApprovals: React.FC = () => {
             header: 'Actions',
             align: 'right',
             render: (approval) => (
-                <Cluster gap="tight" wrap={false}>
+                <Cluster gap="tight" className="flex-nowrap">
                     {canApprovalAction && (
                         <>
                             <Button size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openModal('approve', approval); }} disabled={actionInProgress === approval.id}>
