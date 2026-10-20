@@ -281,7 +281,7 @@ export const PendingApprovals: React.FC = () => {
                 </div>
             </Modal>
 
-            <ListPageTemplate
+            <ListPageTemplate trail={[]}
                 title="Pending Approvals"
                 description={`${approvals.length} approval${approvals.length !== 1 ? 's' : ''} awaiting your action`}
                 loading={loading}

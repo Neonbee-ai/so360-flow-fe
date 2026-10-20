@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useShellBridge } from '@so360/shell-context';
-import { FeatureRoute, Button } from '@so360/design-system';
+import { CombScope, FeatureRoute, Button } from '@so360/design-system';
 import { MfeShellInitializer } from './utils/initializeMfe';
 import { FlowDashboard } from './pages/FlowDashboard';
 import { FlowBuilder } from './pages/FlowBuilder';
@@ -84,7 +84,9 @@ const PermissionGuard = ({ permission, children }: { permission: string | string
 };
 
 function App() {
+    const navigate = useNavigate();
     return (
+        <CombScope module="flow" root={{ label: 'Flow', to: '/flow' }} navigate={(to) => navigate(to)}>
         <MfeShellInitializer>
             <Routes>
                 {/* Landing route stays ungated — the Shell's module filter has already
@@ -103,6 +105,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </MfeShellInitializer>
+        </CombScope>
     );
 }
 
