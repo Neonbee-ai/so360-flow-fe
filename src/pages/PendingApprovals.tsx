@@ -185,17 +185,9 @@ export const PendingApprovals: React.FC = () => {
                 <Cluster gap="tight" className="flex-nowrap">
                     {canApprovalAction && (
                         <>
-                            <Button size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openModal('approve', approval); }} disabled={actionInProgress === approval.id}>
+                            <Button size="sm" variant="secondary" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openModal('approve', approval); }} disabled={actionInProgress === approval.id}>
                                 <CheckCircle className="w-4 h-4" /> Approve
                             </Button>
-                            <Button size="sm" variant="danger" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openModal('reject', approval); }} disabled={actionInProgress === approval.id}>
-                                <XCircle className="w-4 h-4" /> Reject
-                            </Button>
-                            {approval.current_step?.can_delegate && (
-                                <Button size="sm" variant="secondary" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openModal('delegate', approval); }} disabled={actionInProgress === approval.id}>
-                                    <UserPlus className="w-4 h-4" /> Delegate
-                                </Button>
-                            )}
                         </>
                     )}
                 </Cluster>
@@ -302,6 +294,10 @@ export const PendingApprovals: React.FC = () => {
                         </Cluster>
                     )}
                     <DataTable
+                        rowActions={(approval: any) => canApprovalAction ? [
+                            ...(approval.current_step?.can_delegate ? [{ label: 'Delegate', icon: <UserPlus className="w-4 h-4" />, disabled: actionInProgress === approval.id, onSelect: () => openModal('delegate', approval) }] : []),
+                            { label: 'Reject', icon: <XCircle className="w-4 h-4" />, danger: true, disabled: actionInProgress === approval.id, onSelect: () => openModal('reject', approval) },
+                        ] : []}
                         columns={columns}
                         rows={approvals}
                         rowKey={(approval) => approval.id}
