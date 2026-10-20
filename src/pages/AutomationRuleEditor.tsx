@@ -92,9 +92,9 @@ export const AutomationRuleEditor = () => {
 
     // ---- list editors ------------------------------------------------------
     const renderEventList = (key: 'event_types' | 'cancel_on_event_types', label: string) => (
-        <Stack gap="sm">
+        <Stack gap="tight">
             {form[key].map((value, i) => (
-                <Cluster key={`${key}-${i}`} gap="sm">
+                <Cluster key={`${key}-${i}`} gap="tight">
                     <Select
                         name={`${key}-${i}`}
                         label={i === 0 ? label : undefined}
@@ -243,7 +243,7 @@ export const AutomationRuleEditor = () => {
                     id: 'conditions',
                     title: 'Only if (optional)',
                     content: form.rawConditions ? (
-                        <Stack gap="sm">
+                        <Stack gap="tight">
                             <p className="text-sm text-fg-muted">
                                 This rule uses nested conditions that the builder keeps as they are.
                             </p>
@@ -261,7 +261,7 @@ export const AutomationRuleEditor = () => {
                                     onChange={(e) => patch({ match: e.target.value as 'all' | 'any' })} />
                             )}
                             {form.conditions.map((c, i) => (
-                                <Cluster key={`cond-${i}`} gap="sm">
+                                <Cluster key={`cond-${i}`} gap="tight">
                                     <TextField name={`cond-field-${i}`} label="Field" placeholder="data.status" value={c.field}
                                         hint={i === 0 ? 'Paths: data.*, subject.type, actor.user_id' : undefined}
                                         onChange={(e) => setCondition(i, { field: e.target.value })} />
@@ -295,8 +295,8 @@ export const AutomationRuleEditor = () => {
                             {form.actions.map((row, i) => {
                                 const entry = catalog.actions.find((a) => a.key === row.type);
                                 return (
-                                    <Stack key={`action-${i}`} gap="sm">
-                                        <Cluster gap="sm">
+                                    <Stack key={`action-${i}`} gap="tight">
+                                        <Cluster gap="tight">
                                             <Select name={`action-type-${i}`} label={`Action ${i + 1}`} value={row.type}
                                                 options={actionOptions} onChange={(e) => changeActionType(i, e.target.value)} />
                                             <IconButton label="Remove action" icon={<Trash2 className="w-4 h-4" />}
