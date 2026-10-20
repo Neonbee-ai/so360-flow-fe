@@ -9,6 +9,7 @@ import type { FlowDefinition } from '../types/flow';
 export const FlowDashboard = () => {
     const navigate = useNavigate();
     const shell = useShellBridge();
+    const canAccessAutomation = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:automation_rules') ?? false);
     const canCreateFlow = (shell?.permissionsLoaded === true) && (shell?.hasPermission?.('workflows.create') ?? false) && (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:definitions:create') ?? true);
     const canStartInstance = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:instances:start') ?? true);
     const canAccessBuilder = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true);
@@ -78,6 +79,7 @@ export const FlowDashboard = () => {
         { label: 'Approval Dashboard', onSelect: () => navigate('/flow/approvals/dashboard') },
         { label: 'Pending Approvals', onSelect: () => navigate('/flow/approvals/pending') },
         ...(canAccessPolicies ? [{ label: 'Approval Policies', onSelect: () => navigate('/flow/approvals/policies') }] : []),
+        ...(canAccessAutomation ? [{ label: 'Automations', onSelect: () => navigate('/flow/automation') }] : []),
         { label: 'View Instances', onSelect: () => navigate('/flow/instances') },
     ];
 

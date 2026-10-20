@@ -12,6 +12,9 @@ import { ApprovalPoliciesPage } from './pages/ApprovalPoliciesPage';
 import { FlowSimulatorPage } from './pages/FlowSimulatorPage';
 import { ApprovalHistoryPage } from './pages/ApprovalHistoryPage';
 import { ApprovalDashboard } from './pages/ApprovalDashboard';
+import { AutomationRulesPage } from './pages/AutomationRulesPage';
+import { AutomationRunsPage } from './pages/AutomationRunsPage';
+import { AutomationRuleEditor } from './pages/AutomationRuleEditor';
 import './index.css';
 
 // Route-level upgrade prompt shown when a feature is `locked` (a higher plan unlocks it).
@@ -100,6 +103,9 @@ function App() {
                 <Route path="instances" element={<PermissionGuard permission="instances.view"><FlagGuard flagKey="submodule:flow:advanced"><InstanceList /></FlagGuard></PermissionGuard>} />
                 <Route path="simulator" element={<PermissionGuard permission="workflows.read"><FlowSimulatorPage /></PermissionGuard>} />
                 <Route path="approvals/history/:entityType/:entityId" element={<PermissionGuard permission="instances.view"><ApprovalHistoryPage /></PermissionGuard>} />
+                <Route path="automation" element={<PermissionGuard permission="workflows.read"><FlagGuard flagKey="submodule:flow:automation_rules"><AutomationRulesPage /></FlagGuard></PermissionGuard>} />
+                <Route path="automation/runs" element={<PermissionGuard permission="instances.view"><FlagGuard flagKey="submodule:flow:automation_rules"><AutomationRunsPage /></FlagGuard></PermissionGuard>} />
+                <Route path="automation/:ruleId" element={<PermissionGuard permission="workflows.read"><FlagGuard flagKey="submodule:flow:automation_rules"><AutomationRuleEditor /></FlagGuard></PermissionGuard>} />
                 {/* Approval dashboard is the approver's personal work queue — left ungated. */}
                 <Route path="approvals/dashboard" element={<ApprovalDashboard />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
