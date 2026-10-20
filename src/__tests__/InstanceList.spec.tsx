@@ -85,7 +85,7 @@ describe('InstanceList', () => {
     it('When a status filter is clicked / Then instances are re-fetched', async () => {
       renderPage();
       await waitFor(() => expect(mockFlowApi.getAllInstances).toHaveBeenCalledTimes(1));
-      fireEvent.click(screen.getByText('completed'));
+      fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'completed' } });
       await waitFor(() => expect(mockFlowApi.getAllInstances).toHaveBeenCalledWith(expect.objectContaining({ status: 'completed' })));
     });
 

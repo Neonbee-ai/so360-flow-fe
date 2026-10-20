@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, ChevronDown, ChevronUp, ArrowLeft, Save, Edit2, Power, FlaskConical, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Save, Edit2, Power, FlaskConical, GripVertical, ShieldCheck } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
-import { toast, Modal, Button, IconButton, TextField, Textarea, Select, Checkbox, Grid, GridItem } from '@so360/design-system';
+import { toast, Modal, Button, Badge, Card, Cluster, DataTable, EmptyState, IconButton, ListPageTemplate, Stack, TextField, Textarea, Select, Checkbox, Grid, GridItem, type DataTableColumn } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import { RoleSelector } from '../components/RoleSelector';
 
@@ -236,27 +236,72 @@ export const ApprovalPoliciesPage = () => {
         } finally { setSimLoading(false); }
     };
 
+    const trail = [{ label: 'Flows', onClick: () => navigate('/flow') }];
+
     if (!canAccessPolicies) {
         return (
-            <div className="min-h-screen bg-bg flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-fg-muted font-medium">Approval Policies</p>
-                    <p className="text-sm text-fg-subtle mt-1">This feature is not available on your current plan.</p>
-                </div>
-            </div>
+            <ListPageTemplate title="Approval Policies" trail={trail}>
+                <EmptyState
+                    icon={ShieldCheck}
+                    title="Not available"
+                    description="This feature is not available on your current plan."
+                />
+            </ListPageTemplate>
         );
     }
 
-    if (loading) return (
-        <div className="flex items-center justify-center h-screen bg-bg">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent" />
-        </div>
-    );
+    if (loading) return <ListPageTemplate title="Approval Policies" trail={trail} loading />;
 
     const entityFields = ENTITY_FIELDS[form.entity_type] || [];
 
+    const policyColumns: DataTableColumn<any>[] = [
+        {
+            key: 'name',
+            header: 'Policy',
+            render: (policy) => (
+                <Stack gap="tight">
+                    <Cluster gap="tight">
+                        <span className="font-medium text-fg">{policy.name}</span>
+                        <Badge tone={policy.is_active ? 'success' : 'neutral'} size="sm">{policy.is_active ? 'Active' : 'Inactive'}</Badge>
+                    </Cluster>
+                    <span className="text-fg-muted text-xs">
+                        {MODULE_OPTIONS.find(m => m.entity_type === policy.entity_type)?.name || policy.entity_type}
+                        {' · '}{policy.approval_mode || 'SEQUENTIAL'}
+                        {policy.steps?.length ? ` · ${policy.steps.length} step${policy.steps.length !== 1 ? 's' : ''}` : ''}
+                        {' · Priority: '}{policy.priority}
+                    </span>
+                    {expandedPolicy === policy.id && (
+                        <div className="border-t border-line pt-2">
+                            <p className="text-xs text-fg-subtle mb-2">Rules &amp; Steps (expand below):</p>
+                            <p className="text-fg-muted text-sm">Use the API or policy builder to view detailed rules and steps.</p>
+                        </div>
+                    )}
+                </Stack>
+            ),
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            align: 'right',
+            render: (policy) => (
+                <span onClick={(e) => e.stopPropagation()}>
+                    <Cluster gap="tight" wrap={false}>
+                        {canSimulate && (
+                            <IconButton label="Test policy" icon={<FlaskConical className="w-4 h-4" />}
+                                onClick={() => { setSimInput('{}'); setSimModal({ policyId: policy.id, result: null }); }} />
+                        )}
+                        <IconButton label="Edit policy" icon={<Edit2 className="w-4 h-4" />} onClick={() => startEdit(policy)} />
+                        <IconButton label={policy.is_active ? 'Deactivate' : 'Activate'} icon={<Power className="w-4 h-4" />}
+                            selected={policy.is_active} onClick={() => handleToggle(policy)} />
+                        <IconButton label="Delete policy" icon={<Trash2 className="w-4 h-4" />} onClick={() => setConfirmDelete(policy.id)} />
+                    </Cluster>
+                </span>
+            ),
+        },
+    ];
+
     return (
-        <div className="min-h-screen bg-bg p-6">
+        <>
             {/* Confirm Delete Modal */}
             <Modal
                 open={!!confirmDelete}
@@ -312,24 +357,20 @@ export const ApprovalPoliciesPage = () => {
                 )}
             </Modal>
 
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                    <IconButton label="Back" icon={<ArrowLeft className="w-5 h-5" />} onClick={() => navigate('/flow')} />
-                    <div>
-                        <h1 className="text-2xl font-bold text-fg">Approval Policies</h1>
-                        <p className="text-fg-muted text-sm mt-1">Define multi-step approval workflows</p>
-                    </div>
-                </div>
-                <Button onClick={() => { setShowForm(true); setEditingId(null); setForm(defaultPolicy()); }}>
-                    <Plus className="w-4 h-4" /> New Policy
-                </Button>
-            </div>
-
+            <ListPageTemplate
+                title="Approval Policies"
+                description="Define multi-step approval workflows"
+                trail={trail}
+                primaryAction={
+                    <Button onClick={() => { setShowForm(true); setEditingId(null); setForm(defaultPolicy()); }}>
+                        <Plus className="w-4 h-4" /> New Policy
+                    </Button>
+                }
+            >
+                <Stack gap="default">
             {/* Form */}
             {showForm && (
-                <div className="bg-surface/50 border border-line rounded-xl p-6 mb-6">
-                    <h2 className="text-lg font-semibold text-fg mb-4">{editingId ? 'Edit Policy' : 'New Approval Policy'}</h2>
+                <Card title={editingId ? 'Edit Policy' : 'New Approval Policy'}>
                     <Grid columns="auto" gap="md" className="mb-4">
                         <GridItem span={6}>
                             <TextField
@@ -563,55 +604,25 @@ export const ApprovalPoliciesPage = () => {
                             <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Policy'}
                         </Button>
                     </div>
-                </div>
+                </Card>
             )}
 
             {/* Policies List */}
-            {policies.length === 0 ? (
-                <div className="text-center py-16">
-                    <p className="text-fg-muted text-lg mb-2">No approval policies defined</p>
-                    <p className="text-fg-subtle text-sm">Create your first policy to enable approval workflows</p>
-                </div>
-            ) : (
-                <div className="space-y-3">
-                    {policies.map((policy: any) => (
-                        <div key={policy.id} className="bg-surface/50 border border-line rounded-xl overflow-hidden">
-                            <div className="flex items-center justify-between p-4">
-                                <div className="flex items-center gap-3 cursor-pointer flex-1"
-                                    onClick={() => setExpandedPolicy(expandedPolicy === policy.id ? null : policy.id)}>
-                                    <div className={`w-2 h-2 rounded-full ${policy.is_active ? 'bg-success' : 'bg-fg-subtle'}`} />
-                                    <div>
-                                        <p className="text-fg font-medium">{policy.name}</p>
-                                        <p className="text-fg-muted text-xs mt-0.5">
-                                            {MODULE_OPTIONS.find(m => m.entity_type === policy.entity_type)?.name || policy.entity_type}
-                                            {' · '}{policy.approval_mode || 'SEQUENTIAL'}
-                                            {policy.steps?.length ? ` · ${policy.steps.length} step${policy.steps.length !== 1 ? 's' : ''}` : ''}
-                                            {' · Priority: '}{policy.priority}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    {canSimulate && (
-                                        <IconButton label="Test policy" icon={<FlaskConical className="w-4 h-4" />}
-                                            onClick={() => { setSimInput('{}'); setSimModal({ policyId: policy.id, result: null }); }} />
-                                    )}
-                                    <IconButton label="Edit policy" icon={<Edit2 className="w-4 h-4" />} onClick={() => startEdit(policy)} />
-                                    <IconButton label={policy.is_active ? 'Deactivate' : 'Activate'} icon={<Power className="w-4 h-4" />}
-                                        selected={policy.is_active} onClick={() => handleToggle(policy)} />
-                                    <IconButton label="Delete policy" icon={<Trash2 className="w-4 h-4" />} onClick={() => setConfirmDelete(policy.id)} />
-                                    {expandedPolicy === policy.id ? <ChevronUp className="w-4 h-4 text-fg-muted" /> : <ChevronDown className="w-4 h-4 text-fg-muted" />}
-                                </div>
-                            </div>
-                            {expandedPolicy === policy.id && (
-                                <div className="border-t border-line p-4">
-                                    <p className="text-xs text-fg-subtle mb-2">Rules &amp; Steps (expand below):</p>
-                                    <p className="text-fg-muted text-sm">Use the API or policy builder to view detailed rules and steps.</p>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+            <DataTable
+                columns={policyColumns}
+                rows={policies}
+                rowKey={(policy: any) => policy.id}
+                onRowClick={(policy: any) => setExpandedPolicy(expandedPolicy === policy.id ? null : policy.id)}
+                emptyState={
+                    <EmptyState
+                        icon={ShieldCheck}
+                        title="No approval policies defined"
+                        description="Create your first policy to enable approval workflows"
+                    />
+                }
+            />
+                </Stack>
+            </ListPageTemplate>
+        </>
     );
 };

@@ -59,8 +59,7 @@ describe('FlowSimulatorPage (extra)', () => {
       api.getFlowDefinitions.mockResolvedValue({ data: [] });
       renderPage();
       await waitFor(() => screen.getByText('Flow Simulator'));
-      const buttons = screen.getAllByRole('button');
-      fireEvent.click(buttons[0]); // first button is back button
+      fireEvent.click(screen.getByRole('button', { name: 'Back to Flows' }));
       expect(mockNavigate).toHaveBeenCalledWith('/flow');
     });
   });

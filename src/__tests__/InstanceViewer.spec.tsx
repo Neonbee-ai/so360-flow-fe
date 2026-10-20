@@ -214,7 +214,7 @@ describe('InstanceViewer', () => {
     it('When API fails / Then shows Back to Instances link', async () => {
       api.getFlowInstanceContext.mockRejectedValue(new Error('Fail'));
       renderPage();
-      await waitFor(() => expect(screen.getByText('Back to Instances')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Back to Instances' })).toBeInTheDocument());
     });
   });
 

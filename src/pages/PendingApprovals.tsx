@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, XCircle, UserPlus, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle, UserPlus, AlertTriangle } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
-import { toast, Modal, Button, Textarea, TextField, Grid, GridItem } from '@so360/design-system';
+import { toast, Modal, Button, Badge, Cluster, DataTable, EmptyState, ListPageTemplate, Stack, Textarea, TextField, type DataTableColumn } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { PendingApproval } from '../types/flow';
 import { useFlowFormatters } from '../utils/formatters';
@@ -144,17 +144,67 @@ export const PendingApprovals: React.FC = () => {
         return `Step ${current}`;
     };
 
-    if (loading) return (
-        <div className="min-h-screen bg-bg p-8">
-            <div className="animate-pulse space-y-4">
-                <div className="h-10 bg-surface-raised rounded w-64" />
-                {[1, 2, 3].map(i => <div key={i} className="h-32 bg-surface rounded" />)}
-            </div>
-        </div>
-    );
+    const columns: DataTableColumn<PendingApproval>[] = [
+        {
+            key: 'entity',
+            header: 'Request',
+            render: (approval) => (
+                <Stack gap="tight">
+                    <Cluster gap="tight">
+                        <span className="font-medium text-fg">{getEntityTitle(approval)}</span>
+                        <Badge tone="info" size="sm">{getStepContext(approval)}</Badge>
+                        {approval.is_overdue && <Badge tone="danger" size="sm">OVERDUE</Badge>}
+                    </Cluster>
+                    {approval.is_overdue && (
+                        <span className="flex items-center gap-1 text-xs text-danger">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                            Exceeded its SLA of {approval.sla_hours}h. Immediate action required.
+                        </span>
+                    )}
+                </Stack>
+            ),
+        },
+        { key: 'status', header: 'Status', render: (approval) => <span className="uppercase text-xs text-fg-muted">{approval.status}</span> },
+        {
+            key: 'elapsed',
+            header: 'Elapsed',
+            hideBelow: 'medium',
+            render: (approval) => <span>{approval.time_elapsed_hours}h elapsed{approval.sla_hours ? ` / ${approval.sla_hours}h SLA` : ''}</span>,
+        },
+        {
+            key: 'requested',
+            header: 'Requested',
+            hideBelow: 'medium',
+            render: (approval) => <span className="text-fg-muted">{formatters.formatDateTime(approval.requested_at)}</span>,
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            align: 'right',
+            render: (approval) => (
+                <Cluster gap="tight" wrap={false}>
+                    {canApprovalAction && (
+                        <>
+                            <Button size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openModal('approve', approval); }} disabled={actionInProgress === approval.id}>
+                                <CheckCircle className="w-4 h-4" /> Approve
+                            </Button>
+                            <Button size="sm" variant="danger" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openModal('reject', approval); }} disabled={actionInProgress === approval.id}>
+                                <XCircle className="w-4 h-4" /> Reject
+                            </Button>
+                            {approval.current_step?.can_delegate && (
+                                <Button size="sm" variant="secondary" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openModal('delegate', approval); }} disabled={actionInProgress === approval.id}>
+                                    <UserPlus className="w-4 h-4" /> Delegate
+                                </Button>
+                            )}
+                        </>
+                    )}
+                </Cluster>
+            ),
+        },
+    ];
 
     return (
-        <div className="min-h-screen bg-bg p-8">
+        <>
             {/* Approve Modal */}
             <Modal
                 open={modal.type === 'approve' && !!modal.approval}
@@ -239,94 +289,33 @@ export const PendingApprovals: React.FC = () => {
                 </div>
             </Modal>
 
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-fg mb-2">Pending Approvals</h1>
-                <div className="flex items-center gap-4">
-                    <p className="text-fg-muted">{approvals.length} approval{approvals.length !== 1 ? 's' : ''} awaiting your action</p>
+            <ListPageTemplate
+                title="Pending Approvals"
+                description={`${approvals.length} approval${approvals.length !== 1 ? 's' : ''} awaiting your action`}
+                loading={loading}
+            >
+                <Stack gap="default">
                     {error && (
-                        <>
+                        <Cluster gap="tight">
                             <p className="text-danger text-sm">{error}</p>
                             <Button variant="ghost" size="sm" onClick={fetchPendingApprovals}>Retry</Button>
-                        </>
+                        </Cluster>
                     )}
-                </div>
-            </div>
-
-            {approvals.length === 0 ? (
-                <div className="text-center py-16 bg-surface/30 rounded-lg border border-line">
-                    <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-fg mb-2">All Caught Up!</h3>
-                    <p className="text-fg-subtle">No pending approvals at this time</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {approvals.map(approval => (
-                        <div key={approval.id}
-                            className={`bg-surface/50 rounded-lg border ${approval.is_overdue ? 'border-danger/50' : 'border-line'} p-6`}>
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                        <h3 className="text-lg font-semibold text-fg">{getEntityTitle(approval)}</h3>
-                                        <span className="px-2 py-0.5 bg-primary-container/40 text-primary text-xs rounded">{getStepContext(approval)}</span>
-                                        {approval.is_overdue && (
-                                            <span className="px-2 py-0.5 bg-danger-container/30 text-danger text-xs font-medium rounded">OVERDUE</span>
-                                        )}
-                                        <span className="px-2 py-0.5 bg-surface-raised text-fg-muted text-xs rounded uppercase">{approval.status}</span>
-                                    </div>
-                                    <div className="flex items-center gap-4 text-sm text-fg-muted">
-                                        <div className="flex items-center gap-1.5">
-                                            <Clock className="w-4 h-4" />
-                                            <span>{approval.time_elapsed_hours}h elapsed{approval.sla_hours ? ` / ${approval.sla_hours}h SLA` : ''}</span>
-                                        </div>
-                                        <span>Requested {formatters.formatDateTime(approval.requested_at)}</span>
-                                        <Button variant="ghost" size="sm" onClick={() => navigate(`/flow/approvals/history/${approval.entity_type}/${approval.entity_id}`)}>View History →</Button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {approval.entity_data && Object.keys(approval.entity_data).length > 0 && (
-                                <div className="mb-4 p-4 bg-surface-raised/50 rounded-lg">
-                                    <div className="text-xs text-fg-subtle mb-2">Entity Details:</div>
-                                    <Grid columns="auto" gap="sm" className="text-sm">
-                                        {Object.entries(approval.entity_data).slice(0, 6).map(([key, value]) => (
-                                            <GridItem key={key} span={4}>
-                                                <span className="text-fg-subtle">{key}: </span>
-                                                <span className="text-fg">{String(value)}</span>
-                                            </GridItem>
-                                        ))}
-                                    </Grid>
-                                </div>
-                            )}
-
-                            {canApprovalAction && (
-                                <div className="flex items-center gap-3">
-                                    <Button onClick={() => openModal('approve', approval)} disabled={actionInProgress === approval.id}>
-                                        <CheckCircle className="w-4 h-4" /> Approve
-                                    </Button>
-                                    <Button variant="danger" onClick={() => openModal('reject', approval)} disabled={actionInProgress === approval.id}>
-                                        <XCircle className="w-4 h-4" /> Reject
-                                    </Button>
-                                    {approval.current_step?.can_delegate && (
-                                        <Button variant="secondary" onClick={() => openModal('delegate', approval)} disabled={actionInProgress === approval.id}>
-                                            <UserPlus className="w-4 h-4" /> Delegate
-                                        </Button>
-                                    )}
-                                </div>
-                            )}
-
-                            {approval.is_overdue && (
-                                <div className="mt-4 flex items-start gap-2 p-3 bg-danger-container/20 border border-danger/30 rounded-lg">
-                                    <AlertTriangle className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
-                                    <div className="text-sm text-danger">
-                                        Exceeded its SLA of {approval.sla_hours}h. Immediate action required.
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+                    <DataTable
+                        columns={columns}
+                        rows={approvals}
+                        rowKey={(approval) => approval.id}
+                        onRowClick={(approval) => navigate(`/flow/approvals/history/${approval.entity_type}/${approval.entity_id}`)}
+                        emptyState={
+                            <EmptyState
+                                icon={CheckCircle}
+                                title="All Caught Up!"
+                                description="No pending approvals at this time"
+                            />
+                        }
+                    />
+                </Stack>
+            </ListPageTemplate>
+        </>
     );
 };

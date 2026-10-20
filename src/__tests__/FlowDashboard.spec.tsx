@@ -80,7 +80,7 @@ describe('FlowDashboard', () => {
     it('When the module filter is changed / Then flows are re-fetched', async () => {
       renderPage();
       await waitFor(() => expect(mockFlowApi.getFlowDefinitions).toHaveBeenCalledTimes(1));
-      fireEvent.change(screen.getByDisplayValue('All Modules'), { target: { value: 'module:crm:lead' } });
+      fireEvent.change(screen.getByLabelText('Module'), { target: { value: 'module:crm:lead' } });
       await waitFor(() => expect(mockFlowApi.getFlowDefinitions).toHaveBeenCalledWith('module:crm:lead'));
     });
 

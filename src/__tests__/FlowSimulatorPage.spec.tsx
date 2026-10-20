@@ -57,7 +57,7 @@ describe('FlowSimulatorPage', () => {
     it('When page first renders / Then shows spinner', () => {
       mockFlowApi.getFlowDefinitions.mockReturnValue(new Promise(() => {}));
       renderPage();
-      expect(document.querySelector('.animate-spin')).not.toBeNull();
+      expect(screen.getByTestId('spinner')).toBeInTheDocument();
     });
   });
 

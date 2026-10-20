@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Select, Button, Grid, GridItem } from '@so360/design-system';
+import { Badge, Button, DataTable, EmptyState, ListPageTemplate, type DataTableColumn, type MenuItem } from '@so360/design-system';
 import { Plus, Workflow } from 'lucide-react';
 import { useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
@@ -52,102 +52,79 @@ export const FlowDashboard = () => {
         }
     };
 
+    const columns: DataTableColumn<FlowDefinition>[] = [
+        {
+            key: 'name',
+            header: 'Flow',
+            render: (flow) => (
+                <div className="min-w-0">
+                    <div className="font-medium text-fg truncate">{flow.name}</div>
+                    {flow.description && <div className="text-xs text-fg-muted truncate">{flow.description}</div>}
+                </div>
+            ),
+        },
+        { key: 'module_code', header: 'Module', hideBelow: 'medium', render: (flow) => <span className="text-fg-subtle">{flow.module_code}</span> },
+        { key: 'states', header: 'States', align: 'right', render: (flow) => `${flow.states?.length || 0} states` },
+        { key: 'transitions', header: 'Transitions', align: 'right', render: (flow) => `${flow.transitions?.length || 0} transitions` },
+        {
+            key: 'status',
+            header: 'Status',
+            render: (flow) => <Badge tone={flow.is_active ? 'success' : 'neutral'} size="sm">{flow.is_active ? 'Active' : 'Inactive'}</Badge>,
+        },
+    ];
+
+    const overflowActions: MenuItem[] = [
+        { label: 'Simulator', onSelect: () => navigate('/flow/simulator') },
+        { label: 'Approval Dashboard', onSelect: () => navigate('/flow/approvals/dashboard') },
+        { label: 'Pending Approvals', onSelect: () => navigate('/flow/approvals/pending') },
+        ...(canAccessPolicies ? [{ label: 'Approval Policies', onSelect: () => navigate('/flow/approvals/policies') }] : []),
+        { label: 'View Instances', onSelect: () => navigate('/flow/instances') },
+    ];
+
     return (
-        <div className="min-h-screen bg-bg p-6">
-            <div>
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-fg flex items-center gap-3">
-                            <Workflow className="w-8 h-8 text-primary" />
-                            Flow Definitions
-                        </h1>
-                        <p className="text-fg-muted mt-2">
-                            Manage workflow definitions across all modules
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="secondary" onClick={() => navigate('/flow/simulator')}>Simulator</Button>
-                        <Button variant="secondary" onClick={() => navigate('/flow/approvals/dashboard')}>Approval Dashboard</Button>
-                        <Button variant="secondary" onClick={() => navigate('/flow/approvals/pending')}>Pending Approvals</Button>
-                        {canAccessPolicies && (
-                            <Button variant="secondary" onClick={() => navigate('/flow/approvals/policies')}>Approval Policies</Button>
-                        )}
-                        <Button variant="secondary" onClick={() => navigate('/flow/instances')}>View Instances</Button>
-                        {canCreateFlow && (
-                            <Button onClick={() => navigate('/flow/builder/new')}>
-                                <Plus className="w-5 h-5" />
-                                New Flow
-                            </Button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Module Filter */}
-                <div className="mb-6">
-                    <label className="text-sm text-fg-muted mb-2 block">Filter by Module</label>
-                    <Select
-                        name="module-filter"
-                        value={selectedModule}
-                        onChange={(e) => setSelectedModule(e.target.value)}
-                        options={[{ value: '', label: 'All Modules' }, ...modules.map((mod) => ({ value: mod.code, label: mod.name }))]}
+        <ListPageTemplate
+            title="Flow Definitions"
+            description="Manage workflow definitions across all modules"
+            count={loading ? undefined : flows.length}
+            primaryAction={
+                canCreateFlow ? (
+                    <Button onClick={() => navigate('/flow/builder/new')}>
+                        <Plus className="w-4 h-4" />
+                        New Flow
+                    </Button>
+                ) : undefined
+            }
+            overflowActions={overflowActions}
+            filterConfig={{
+                fields: [
+                    {
+                        key: 'module',
+                        label: 'Module',
+                        type: 'select',
+                        quick: true,
+                        options: modules.map((mod) => ({ value: mod.code, label: mod.name })),
+                    },
+                ],
+                values: { module: selectedModule },
+                onChange: (values) => setSelectedModule((values.module as string) || ''),
+                onClear: () => setSelectedModule(''),
+            }}
+            loading={loading}
+        >
+            <DataTable
+                columns={columns}
+                rows={flows}
+                rowKey={(flow) => flow.id}
+                loading={loading}
+                onRowClick={(flow) => navigate(`/flow/builder/${flow.id}`)}
+                emptyState={
+                    <EmptyState
+                        icon={Workflow}
+                        title={selectedModule ? 'No flows found for this module' : 'No flows created yet'}
+                        description="Create your first workflow to get started"
                     />
-                </div>
-
-                {/* Flows Grid */}
-                {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
-                    </div>
-                ) : flows.length === 0 ? (
-                    <div className="bg-surface/50 border border-line rounded-lg p-12 text-center">
-                        <Workflow className="w-16 h-16 text-fg-muted mx-auto mb-4" />
-                        <p className="text-fg-muted text-lg">
-                            {selectedModule ? 'No flows found for this module' : 'No flows created yet'}
-                        </p>
-                        <p className="text-fg-subtle text-sm mt-2">
-                            Create your first workflow to get started
-                        </p>
-                    </div>
-                ) : (
-                    <Grid columns="auto" gap="lg">
-                        {flows.map((flow) => (
-                            <GridItem key={flow.id} span={4}>
-                            <div
-                                onClick={() => navigate(`/flow/builder/${flow.id}`)}
-                                className="bg-surface/50 border border-line rounded-lg p-6 cursor-pointer hover:border-primary transition-colors"
-                            >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-fg">
-                                            {flow.name}
-                                        </h3>
-                                        <p className="text-sm text-fg-subtle mt-1">
-                                            {flow.module_code}
-                                        </p>
-                                    </div>
-                                    <span
-                                        className={`px-2 py-1 rounded text-xs ${
-                                            flow.is_active
-                                                ? 'bg-success/20 text-success'
-                                                : 'bg-line text-fg-muted'
-                                        }`}
-                                    >
-                                        {flow.is_active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </div>
-                                {flow.description && (
-                                    <p className="text-sm text-fg-muted mb-4">{flow.description}</p>
-                                )}
-                                <div className="flex items-center gap-4 text-xs text-fg-subtle">
-                                    <span>{flow.states?.length || 0} states</span>
-                                    <span>{flow.transitions?.length || 0} transitions</span>
-                                </div>
-                            </div>
-                            </GridItem>
-                        ))}
-                    </Grid>
-                )}
-            </div>
-        </div>
+                }
+            />
+        </ListPageTemplate>
     );
 };

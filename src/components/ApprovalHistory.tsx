@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, UserPlus, AlertCircle, Clock } from 'lucide-react';
+import { Badge, Card, EmptyState, Stack } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { ApprovalHistory as ApprovalHistoryType, ApprovalAction } from '../types/flow';
 import { useFlowFormatters } from '../utils/formatters';
@@ -61,18 +62,13 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
         }
     };
 
-    const getStatusBadgeColor = (status: string) => {
+    const getStatusTone = (status: string): 'success' | 'danger' | 'info' | 'warning' | 'neutral' => {
         switch (status) {
-            case 'APPROVED':
-                return 'bg-success-container/30 text-success border-success/30';
-            case 'REJECTED':
-                return 'bg-danger-container/30 text-danger border-danger/30';
-            case 'PENDING':
-                return 'bg-primary-container/30 text-primary border-primary/30';
-            case 'ESCALATED':
-                return 'bg-warning/30 text-warning border-warning/30';
-            default:
-                return 'bg-surface-raised text-fg-muted border-line';
+            case 'APPROVED': return 'success';
+            case 'REJECTED': return 'danger';
+            case 'PENDING': return 'info';
+            case 'ESCALATED': return 'warning';
+            default: return 'neutral';
         }
     };
 
@@ -90,30 +86,24 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
 
     if (error) {
         return (
-            <div className="bg-danger-container/20 border border-danger/30 rounded-lg p-4">
+            <Card>
                 <p className="text-danger text-sm">{error}</p>
-            </div>
+            </Card>
         );
     }
 
     if (history.length === 0) {
         return (
-            <div className="text-center py-8 bg-surface/30 rounded-lg border border-line">
-                <Clock className="w-12 h-12 text-fg-subtle mx-auto mb-3" />
-                <p className="text-fg-subtle text-sm">No approval history for this entity</p>
-            </div>
+            <EmptyState icon={Clock} title="No approval history for this entity" />
         );
     }
 
     return (
-        <div className="space-y-6">
+        <Stack gap="region">
             <h3 className="text-lg font-semibold text-fg">Approval History</h3>
 
             {history.map((instance, instanceIdx) => (
-                <div
-                    key={instance.instance_id}
-                    className="bg-surface/50 rounded-lg border border-line p-6"
-                >
+                <Card key={instance.instance_id}>
                     {/* Instance Header */}
                     <div className="flex items-center justify-between mb-4 pb-4 border-b border-line">
                         <div>
@@ -124,13 +114,7 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
                                 Started: {formatters.formatDateTime(instance.requested_at)}
                             </div>
                         </div>
-                        <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusBadgeColor(
-                                instance.status
-                            )}`}
-                        >
-                            {instance.status}
-                        </span>
+                        <Badge tone={getStatusTone(instance.status)} size="sm">{instance.status}</Badge>
                     </div>
 
                     {/* Timeline */}
@@ -187,8 +171,8 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
                             Completed: {formatters.formatDateTime(instance.completed_at)}
                         </div>
                     )}
-                </div>
+                </Card>
             ))}
-        </div>
+        </Stack>
     );
 };

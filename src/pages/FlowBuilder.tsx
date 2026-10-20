@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus, Trash2 } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
-import { toast, Select, Button, IconButton, TextField, Textarea, Checkbox, RadioGroup, Grid, GridItem } from '@so360/design-system';
+import { toast, Select, Button, Card, EmptyState, FormPageTemplate, IconButton, Stack, TextField, Textarea, Checkbox, RadioGroup, Grid, GridItem, Spinner } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
@@ -151,45 +151,42 @@ export const FlowBuilder = () => {
 
     if (!canAccessBuilder) {
         return (
-            <div className="min-h-screen bg-bg flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-fg-muted font-medium">Workflow Builder</p>
-                    <p className="text-sm text-fg-subtle mt-1">This feature is not available on your current plan.</p>
-                </div>
-            </div>
+            <FormPageTemplate title="Workflow Builder" trail={[{ label: 'Flow', onClick: () => navigate('/flow') }]}>
+                <EmptyState title="Workflow Builder" description="This feature is not available on your current plan." />
+            </FormPageTemplate>
         );
     }
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-screen bg-bg">
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
-            </div>
+            <FormPageTemplate title={isNew ? 'New Flow' : 'Edit Flow'} trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}>
+                <Spinner />
+            </FormPageTemplate>
         );
     }
 
     return (
-        <div className="min-h-screen bg-bg p-6">
-            <div>
-                <div className="flex items-center justify-between mb-8">
-                    <Button variant="ghost" onClick={() => navigate('/flow')}>
-                        <ArrowLeft className="w-5 h-5" />
-                        Back to Flows
-                    </Button>
-                    <Button
-                        onClick={handleSave}
-                        disabled={saving || !name || !moduleCode || states.length === 0}
-                    >
-                        <Save className="w-5 h-5" />
-                        {saving ? 'Saving...' : 'Save Flow'}
-                    </Button>
-                </div>
-
-                {/* Basic Info */}
-                <div className="bg-surface/50 border border-line rounded-lg p-6 mb-6">
-                    <h2 className="text-xl font-semibold text-fg mb-4">Flow Information</h2>
-                    <div className="space-y-4">
-                        <TextField
+        <FormPageTemplate
+            title={isNew ? 'New Flow' : 'Edit Flow'}
+            trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}
+            onCancel={() => navigate('/flow')}
+            primaryAction={
+                <Button
+                    onClick={handleSave}
+                    disabled={saving || !name || !moduleCode || states.length === 0}
+                >
+                    <Save className="w-5 h-5" />
+                    {saving ? 'Saving...' : 'Save Flow'}
+                </Button>
+            }
+            sections={[
+                {
+                    id: 'info',
+                    title: 'Flow Information',
+                    content: (
+                        <div className="md:col-span-2">
+                            <Stack gap="default">
+                                <TextField
                             name="flow-name"
                             label="Flow Name *"
                             value={name}
@@ -232,24 +229,18 @@ export const FlowBuilder = () => {
                                 />
                             </div>
                         )}
-                    </div>
-                </div>
-
-                {/* States */}
-                <div className="bg-surface/50 border border-line rounded-lg p-6 mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-fg">States</h2>
-                        <Button variant="secondary" size="sm" onClick={addState}>
-                            <Plus className="w-4 h-4" />
-                            Add State
-                        </Button>
-                    </div>
-                    <div className="space-y-3">
-                        {states.map((state, index) => (
-                            <div
-                                key={index}
-                                className="bg-surface border border-line rounded-lg p-4"
-                            >
+                            </Stack>
+                        </div>
+                    ),
+                },
+                {
+                    id: 'states',
+                    title: 'States',
+                    content: (
+                        <div className="md:col-span-2">
+                            <Stack gap="default">
+                                {states.map((state, index) => (
+                            <Card key={index}>
                                 <Grid columns="auto" gap="sm" className="mb-3">
                                     <GridItem span={6}>
                                         <TextField
@@ -315,26 +306,26 @@ export const FlowBuilder = () => {
                                     )}
                                     <IconButton className="ml-auto" label="Remove state" icon={<Trash2 className="w-4 h-4" />} onClick={() => removeState(index)} />
                                 </div>
-                            </div>
+                            </Card>
                         ))}
-                    </div>
-                </div>
-
-                {/* Transitions */}
-                <div className="bg-surface/50 border border-line rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-fg">Transitions</h2>
-                        <Button variant="secondary" size="sm" onClick={addTransition}>
-                            <Plus className="w-4 h-4" />
-                            Add Transition
-                        </Button>
-                    </div>
-                    <div className="space-y-3">
-                        {transitions.map((transition, index) => (
-                            <div
-                                key={index}
-                                className="bg-surface border border-line rounded-lg p-4"
-                            >
+                                <div>
+                                    <Button variant="secondary" size="sm" onClick={addState}>
+                                        <Plus className="w-4 h-4" />
+                                        Add State
+                                    </Button>
+                                </div>
+                            </Stack>
+                        </div>
+                    ),
+                },
+                {
+                    id: 'transitions',
+                    title: 'Transitions',
+                    content: (
+                        <div className="md:col-span-2">
+                            <Stack gap="default">
+                                {transitions.map((transition, index) => (
+                            <Card key={index}>
                                 <Grid columns="auto" gap="sm" className="mb-3">
                                     <GridItem span={6}>
                                         <TextField
@@ -410,11 +401,19 @@ export const FlowBuilder = () => {
                                     />
                                     <IconButton label="Remove transition" icon={<Trash2 className="w-4 h-4" />} onClick={() => removeTransition(index)} />
                                 </div>
-                            </div>
+                            </Card>
                         ))}
-                    </div>
-                </div>
-            </div>
-        </div>
+                                <div>
+                                    <Button variant="secondary" size="sm" onClick={addTransition}>
+                                        <Plus className="w-4 h-4" />
+                                        Add Transition
+                                    </Button>
+                                </div>
+                            </Stack>
+                        </div>
+                    ),
+                },
+            ]}
+        />
     );
 };

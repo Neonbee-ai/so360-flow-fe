@@ -45,8 +45,9 @@ export const Modal = ({ children, open, isOpen, title, description, footer, onCl
         children,
         footer ?? null)
     : null;
-export const Card = ({ children, ...rest }: any) => React.createElement('div', rest, children);
-export const Badge = ({ children, ...rest }: any) => React.createElement('span', rest, children);
+export const Card = ({ children, title, actions, footer, padding: _p, onClick, name: _n, ...rest }: any) =>
+  React.createElement('div', { onClick, ...rest }, title ? React.createElement('h3', null, title) : null, actions ?? null, children, footer ?? null);
+export const Badge = ({ children, tone: _t, size: _s, dot: _d, variant: _v, shape: _sh, ...rest }: any) => React.createElement('span', rest, children);
 export const Spinner = () => React.createElement('div', { 'data-testid': 'spinner' }, 'Loading...');
 export const Tooltip = ({ children }: any) => React.createElement('span', null, children);
 // Universal toast surface (shell owns the real viewport; tests spy on these).
@@ -71,3 +72,89 @@ export const FeatureRoute =({ children, loading, state, hiddenFallback, lockedFa
   if (state === 'disabled') return disabledFallback ?? null;
   return children;
 };
+
+// ---- Comb page templates & layout primitives (render semantic content so specs can assert on it) ----
+const h = React.createElement;
+export const Stack = ({ children, gap: _g, as: _a, ...rest }: any) => h('div', rest, children);
+export const Cluster = ({ children, gap: _g, justify: _j, wrap: _w, align: _al, as: _a, ...rest }: any) => h('div', rest, children);
+export const Split = ({ children, ratio: _r, collapseBelow: _c, ...rest }: any) => h('div', rest, children);
+export const StatusBadge = ({ children, label, status, tone: _t, size: _s, ...rest }: any) => h('span', rest, children ?? label ?? status);
+export const KpiCard = ({ label, value, hint, icon: _i, delta: _d, deltaLabel: _dl, loading: _l, onClick, name: _n, ...rest }: any) =>
+  h('div', { 'data-slot': 'kpi-card', onClick, ...rest }, h('span', null, label), h('span', null, value), hint ? h('span', null, hint) : null);
+export const EmptyState = ({ title, description, action, icon: _i, ...rest }: any) =>
+  h('div', rest, title ? h('p', null, title) : null, description ? h('p', null, description) : null,
+    action ? h('button', { type: 'button', onClick: action.onClick }, action.label) : null);
+const trailBack = (trail: any[] | undefined) => {
+  const last = trail && trail.length ? trail[trail.length - 1] : null;
+  return last ? h('button', { type: 'button', 'aria-label': `Back to ${last.label}`, onClick: last.onClick }, `← ${last.label}`) : null;
+};
+export const ListPageTemplate = ({
+  title, description, trail, count: _c, primaryAction, headerSecondaryActions, secondaryActions, overflowActions, kpis, views, search,
+  filterConfig, toolbarEnd, loading, isEmpty, empty, children, pagination, footer,
+}: any) =>
+  h('div', { 'data-comb-page': 'list' },
+    trailBack(trail),
+    h('h1', null, title),
+    description ? h('p', null, description) : null,
+    h('div', { 'data-slot': 'header-actions' }, headerSecondaryActions,
+      [...(secondaryActions || []), ...(overflowActions || [])].map((a: any) => h('button', { key: a.label, type: 'button', disabled: a.disabled, onClick: a.onSelect }, a.label)),
+      primaryAction),
+    kpis ?? null,
+    h('div', { 'data-slot': 'toolbar' }, views, search,
+      (filterConfig?.fields || []).map((f: any) =>
+        h('select', {
+          key: f.key, 'aria-label': f.label, name: f.key, value: (filterConfig.values?.[f.key] as string) ?? '',
+          onChange: (e: any) => filterConfig.onChange({ ...filterConfig.values, [f.key]: e.target.value }),
+        }, [h('option', { key: '', value: '' }, `All ${f.label}`), ...(f.options || []).map((o: any) => h('option', { key: o.value, value: o.value }, o.label))])),
+      toolbarEnd),
+    loading ? h('div', { 'data-testid': 'spinner' }, 'Loading...') : isEmpty ? empty : children,
+    pagination ?? null, footer ?? null);
+export const DetailPageTemplate = ({
+  title, trail, status, meta, primaryAction, secondaryActions, actions, overflowActions: _o, tabs, activeTab, onTabChange, loading, children, sidePanel,
+}: any) =>
+  h('div', { 'data-comb-page': 'detail' },
+    trailBack(trail),
+    h('h1', null, title), status ?? null, meta ? h('div', null, meta) : null,
+    h('div', { 'data-slot': 'header-actions' }, secondaryActions, actions, primaryAction),
+    tabs ? h('div', { role: 'tablist' }, tabs.map((t: any) => h('button', { key: t.id, role: 'tab', 'aria-selected': activeTab === t.id, onClick: () => onTabChange?.(t.id) }, t.label))) : null,
+    loading ? h('div', { 'data-testid': 'spinner' }, 'Loading...') : h(React.Fragment, null, h('div', null, children), sidePanel ? h('aside', null, sidePanel) : null));
+export const DashboardPageTemplate = ({
+  title, description, trail, meta, filters, toolbarEnd, secondaryActions, primaryAction, kpis, primary, secondary, bottom, children,
+}: any) =>
+  h('div', { 'data-comb-page': 'dashboard' },
+    trailBack(trail),
+    h('h1', null, title), description ? h('p', null, description) : null, meta ?? null,
+    h('div', { 'data-slot': 'header-actions' }, secondaryActions, primaryAction), filters ?? null, toolbarEnd ?? null,
+    h('div', { 'data-slot': 'kpis' }, kpis), primary ?? null, secondary ?? null, bottom ?? null, children ?? null);
+export const FormPageTemplate = ({
+  title, description, trail, status, meta, sections, children, onCancel, cancelLabel, secondaryAction, primaryAction, destructiveAction,
+}: any) =>
+  h('div', { 'data-comb-page': 'form' },
+    trailBack(trail), h('h1', null, title), description ? h('p', null, description) : null, status ?? null, meta ?? null,
+    (sections || []).map((s: any) => h('section', { key: s.id }, h('h2', null, s.title), s.content)), children ?? null,
+    h('div', { 'data-slot': 'footer' }, destructiveAction, onCancel ? h('button', { type: 'button', onClick: onCancel }, cancelLabel || 'Cancel') : null, secondaryAction, primaryAction));
+export const DataTable = ({ columns, rows, rowKey, loading, emptyState, onRowClick, rowActions, getRowProps, name: _n, ...rest }: any) => {
+  if (loading) return h('div', { 'data-testid': 'spinner' }, 'Loading...');
+  if (!rows || rows.length === 0) return h('div', null, emptyState ?? null);
+  return h('table', { 'data-testid': rest['data-testid'] },
+    h('thead', null, h('tr', null, columns.map((c: any) => h('th', { key: c.key }, c.header)))),
+    h('tbody', null, rows.map((r: any) => h('tr', { key: rowKey(r), onClick: onRowClick ? () => onRowClick(r) : undefined, ...(getRowProps ? getRowProps(r) : {}) },
+      columns.map((c: any) => h('td', { key: c.key }, c.render ? c.render(r) : r[c.key])),
+      rowActions ? h('td', null, rowActions(r).map((a: any) => h('button', { key: a.label, type: 'button', onClick: a.onSelect }, a.label))) : null))));
+};
+export const SearchInput = ({ value, onChange, placeholder, ...rest }: any) =>
+  h('input', { type: 'search', value, placeholder, 'aria-label': rest['aria-label'] ?? placeholder, onChange: (e: any) => onChange?.(e.target.value, e) });
+export const Tabs = ({ items, value, onChange, children, maxVisible: _m, moreLabel: _ml, end, variant: _v, name: _n, defaultValue: _d }: any) =>
+  h('div', null, h('div', { role: 'tablist' }, items.map((t: any) => h('button', { key: t.id, role: 'tab', 'aria-selected': value === t.id, onClick: () => onChange?.(t.id) }, t.label))), end ?? null,
+    typeof children === 'function' ? children(value) : null);
+export const Pagination = ({ currentPage, totalPages, totalItems, pageSize, onPageChange }: any) =>
+  h('div', { 'data-slot': 'pagination' },
+    h('span', null, `Showing ${(currentPage - 1) * pageSize + 1}\u2013${Math.min(currentPage * pageSize, totalItems)} of ${totalItems}`),
+    h('button', { type: 'button', 'aria-label': 'Previous page', disabled: currentPage <= 1, onClick: () => onPageChange(currentPage - 1) }, '\u2039'),
+    h('span', null, `Page ${currentPage} of ${totalPages}`),
+    h('button', { type: 'button', 'aria-label': 'Next page', disabled: currentPage >= totalPages, onClick: () => onPageChange(currentPage + 1) }, '\u203a'));
+export const DescriptionList = ({ items, title }: any) =>
+  h('dl', null, title ? h('h3', null, title) : null,
+    (items || []).filter((i: any) => !i.hidden).map((i: any) => h('div', { key: i.label }, h('dt', null, i.label), h('dd', null, i.value))));
+export const Progress = ({ value, max = 100, label, tone: _t, size: _s, variant: _v, showValue: _sv, ...rest }: any) =>
+  h('div', { role: 'progressbar', 'aria-valuenow': value, 'aria-valuemax': max, 'aria-label': label, ...rest });
