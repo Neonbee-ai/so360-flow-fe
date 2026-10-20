@@ -21,7 +21,6 @@ export default defineConfig(({ mode }) => {
                 'react-dom': { singleton: true, requiredVersion: '^19.2.0' },
                 'react-router-dom': { singleton: true, requiredVersion: '^7.12.0' },
                 'framer-motion': { singleton: true },
-                'lucide-react': { singleton: true },
                 axios: { singleton: true },
                 '@so360/shell-context': { singleton: true },
                 '@so360/design-system': { singleton: true },
