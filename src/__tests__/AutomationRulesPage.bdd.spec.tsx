@@ -44,7 +44,7 @@ describe('AutomationRulesPage', () => {
         renderPage();
         expect(await screen.findByText('Welcome leads')).toBeInTheDocument();
         expect(screen.getByText('crm.lead.created')).toBeInTheDocument();
-        expect(screen.getByText('Enabled')).toBeInTheDocument();
+        expect(screen.getAllByText('Enabled').length).toBeGreaterThan(1); // filter option + row badge
     });
 
     it('Given the feature flag is off, When the page renders, Then rules are not requested and a notice is shown', async () => {

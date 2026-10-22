@@ -45,7 +45,7 @@ export const AutomationRulesPage = () => {
         }
     }, [status, triggerType]);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => { if (featureOn) load(); }, [load, featureOn]);
 
     const toggle = async (rule: AutomationRule) => {
         try {

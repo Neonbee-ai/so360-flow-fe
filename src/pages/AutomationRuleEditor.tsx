@@ -35,6 +35,7 @@ export const AutomationRuleEditor = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -48,7 +49,11 @@ export const AutomationRuleEditor = () => {
                     if (!cancelled) setForm(ruleToForm(rule, cat.actions));
                 }
             } catch {
-                if (!cancelled) setErrors(['Could not load the automation catalog.']);
+                if (!cancelled) {
+                    const msg = 'Could not load the automation catalog.';
+                    setLoadError(msg);
+                    setErrors([msg]);
+                }
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -77,8 +82,8 @@ export const AutomationRuleEditor = () => {
 
     const save = async () => {
         const problems = validateForm(form, catalog.actions);
-        setErrors(problems);
-        if (problems.length) return;
+        setErrors(loadError ? [loadError, ...problems] : problems);
+        if (problems.length || loadError) return;
         setSaving(true);
         try {
             const payload = formToPayload(form, catalog.actions);
