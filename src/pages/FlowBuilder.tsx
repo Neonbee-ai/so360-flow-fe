@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus, Trash2 } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
-import { toast } from '@so360/design-system';
+import { toast, Select, Button, Card, EmptyState, FormPageTemplate, IconButton, Stack, TextField, Textarea, Checkbox, RadioGroup, Grid, GridItem, Spinner } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
@@ -117,7 +117,7 @@ export const FlowBuilder = () => {
             {
                 code: '',
                 name: '',
-                color: '#94a3b8',
+                color: '#94a3b8', // comb-exception: persisted default state colour (data, not styling)
                 is_initial: states.length === 0,
                 is_terminal: false,
             },
@@ -151,336 +151,269 @@ export const FlowBuilder = () => {
 
     if (!canAccessBuilder) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-slate-400 font-medium">Workflow Builder</p>
-                    <p className="text-sm text-slate-500 mt-1">This feature is not available on your current plan.</p>
-                </div>
-            </div>
+            <FormPageTemplate title="Workflow Builder" trail={[{ label: 'Flow', onClick: () => navigate('/flow') }]}>
+                <EmptyState title="Workflow Builder" description="This feature is not available on your current plan." />
+            </FormPageTemplate>
         );
     }
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-screen bg-slate-950">
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
-            </div>
+            <FormPageTemplate title={isNew ? 'New Flow' : 'Edit Flow'} trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}>
+                <Spinner />
+            </FormPageTemplate>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 p-6">
-            <div>
-                <div className="flex items-center justify-between mb-8">
-                    <button
-                        onClick={() => navigate('/flow')}
-                        className="flex items-center gap-2 text-slate-400 hover:text-slate-100"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                        Back to Flows
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving || !name || !moduleCode || states.length === 0}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        <Save className="w-5 h-5" />
-                        {saving ? 'Saving...' : 'Save Flow'}
-                    </button>
-                </div>
-
-                {/* Basic Info */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6">
-                    <h2 className="text-xl font-semibold text-slate-100 mb-4">Flow Information</h2>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-sm text-slate-400 mb-2 block">Flow Name *</label>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., Lead Approval Flow"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm text-slate-400 mb-2 block">Description</label>
-                            <textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                rows={3}
-                                placeholder="Describe this workflow..."
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm text-slate-400 mb-2 block">Module *</label>
-                            <select
-                                value={moduleCode}
-                                onChange={(e) => setModuleCode(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Select Module</option>
-                                {modules.map((mod) => (
-                                    <option key={mod.code} value={mod.code}>
-                                        {mod.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+        <FormPageTemplate
+            title={isNew ? 'New Flow' : 'Edit Flow'}
+            trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}
+            onCancel={() => navigate('/flow')}
+            primaryAction={
+                <Button
+                    onClick={handleSave}
+                    disabled={saving || !name || !moduleCode || states.length === 0}
+                >
+                    <Save className="w-5 h-5" />
+                    {saving ? 'Saving...' : 'Save Flow'}
+                </Button>
+            }
+            sections={[
+                {
+                    id: 'info',
+                    title: 'Flow Information',
+                    content: (
+                        <div className="md:col-span-2">
+                            <Stack gap="default">
+                                <TextField
+                            name="flow-name"
+                            label="Flow Name *"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="e.g., Lead Approval Flow"
+                        />
+                        <Textarea
+                            name="flow-description"
+                            label="Description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={3}
+                            placeholder="Describe this workflow..."
+                        />
+                        <Select
+                            name="module-code"
+                            label="Module *"
+                            value={moduleCode}
+                            onChange={(e) => setModuleCode(e.target.value)}
+                            options={[{ value: '', label: 'Select Module' }, ...modules.map((mod) => ({ value: mod.code, label: mod.name }))]}
+                        />
                         {moduleCode === 'module:projects:stages' && (
-                            <div className="p-4 rounded-lg bg-blue-950/40 border border-blue-800/50 space-y-2">
-                                <label className="text-sm font-semibold text-blue-300 block">
+                            <div className="p-4 rounded-lg bg-primary-container/40 border border-primary/50 space-y-2">
+                                <span className="text-sm font-semibold text-primary block">
                                     Project Scope & Applicability
-                                </label>
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                </span>
+                                <p className="text-xs text-fg-muted leading-relaxed">
                                     Define how these stages are applied across your organization. "All Projects" sets this flow as the default stage pipeline, while "Selective Projects" lets project managers opt-in or select custom stages during project setup.
                                 </p>
-                                <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                                    <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="scope"
-                                            value="all_projects"
-                                            checked={scope === 'all_projects'}
-                                            onChange={() => setScope('all_projects')}
-                                            className="text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700"
-                                        />
-                                        <span className="font-medium">All Projects in this Organization (Default)</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="scope"
-                                            value="selective_projects"
-                                            checked={scope === 'selective_projects'}
-                                            onChange={() => setScope('selective_projects')}
-                                            className="text-blue-600 focus:ring-blue-500 bg-slate-900 border-slate-700"
-                                        />
-                                        <span>Selective Projects (Project-Level Applicability)</span>
-                                    </label>
-                                </div>
+                                <RadioGroup
+                                    name="scope"
+                                    label="Scope"
+                                    orientation="horizontal"
+                                    value={scope}
+                                    onChange={(v) => setScope(v as typeof scope)}
+                                    options={[
+                                        { value: 'all_projects', label: 'All Projects in this Organization (Default)' },
+                                        { value: 'selective_projects', label: 'Selective Projects (Project-Level Applicability)' },
+                                    ]}
+                                />
                             </div>
                         )}
-                    </div>
-                </div>
-
-                {/* States */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-slate-100">States</h2>
-                        <button
-                            onClick={addState}
-                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700 flex items-center gap-2 text-sm"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Add State
-                        </button>
-                    </div>
-                    <div className="space-y-3">
-                        {states.map((state, index) => (
-                            <div
-                                key={index}
-                                className="bg-slate-900 border border-slate-800 rounded-lg p-4"
-                            >
-                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                    <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">Code *</label>
-                                        <input
-                                            type="text"
+                            </Stack>
+                        </div>
+                    ),
+                },
+                {
+                    id: 'states',
+                    title: 'States',
+                    content: (
+                        <div className="md:col-span-2">
+                            <Stack gap="default">
+                                {states.map((state, index) => (
+                            <Card key={index}>
+                                <Grid columns="auto" gap="sm" className="mb-3">
+                                    <GridItem span={6}>
+                                        <TextField
+                                            name={`state-code-${index}`}
+                                            label="Code *"
+                                            size="sm"
                                             value={state.code}
                                             onChange={(e) => {
                                                 const updated = [...states];
                                                 updated[index].code = e.target.value;
                                                 setStates(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
                                             placeholder="e.g., draft"
                                         />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">Name *</label>
-                                        <input
-                                            type="text"
+                                    </GridItem>
+                                    <GridItem span={6}>
+                                        <TextField
+                                            name={`state-name-${index}`}
+                                            label="Name *"
+                                            size="sm"
                                             value={state.name}
                                             onChange={(e) => {
                                                 const updated = [...states];
                                                 updated[index].name = e.target.value;
                                                 setStates(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
                                             placeholder="e.g., Draft"
                                         />
-                                    </div>
-                                </div>
+                                    </GridItem>
+                                </Grid>
                                 <div className="flex items-center gap-4 mb-3">
-                                    <label className="flex items-center gap-2 text-sm text-slate-400">
-                                        <input
-                                            type="checkbox"
-                                            checked={state.is_initial || false}
-                                            onChange={(e) => {
-                                                const updated = [...states];
-                                                updated[index].is_initial = e.target.checked;
-                                                setStates(updated);
-                                            }}
-                                            className="rounded"
-                                        />
-                                        Initial State
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm text-slate-400">
-                                        <input
-                                            type="checkbox"
-                                            checked={state.is_terminal || false}
-                                            onChange={(e) => {
-                                                const updated = [...states];
-                                                updated[index].is_terminal = e.target.checked;
-                                                setStates(updated);
-                                            }}
-                                            className="rounded"
-                                        />
-                                        Terminal State
-                                    </label>
+                                    <Checkbox
+                                        name={`state-is_initial-${index}`}
+                                        label="Initial State"
+                                        checked={state.is_initial || false}
+                                        onChange={(e) => {
+                                            const updated = [...states];
+                                            updated[index].is_initial = e.target.checked;
+                                            setStates(updated);
+                                        }}
+                                    />
+                                    <Checkbox
+                                        name={`state-is_terminal-${index}`}
+                                        label="Terminal State"
+                                        checked={state.is_terminal || false}
+                                        onChange={(e) => {
+                                            const updated = [...states];
+                                            updated[index].is_terminal = e.target.checked;
+                                            setStates(updated);
+                                        }}
+                                    />
                                     {moduleCode === 'module:projects:stages' && (
-                                        <label className="flex items-center gap-2 text-sm text-amber-400 font-medium">
-                                            <input
-                                                type="checkbox"
-                                                checked={state.is_mandatory || false}
-                                                onChange={(e) => {
-                                                    const updated = [...states];
-                                                    updated[index].is_mandatory = e.target.checked;
-                                                    setStates(updated);
-                                                }}
-                                                className="rounded text-amber-500 focus:ring-amber-400"
-                                            />
-                                            Mandatory for All Projects
-                                        </label>
+                                        <Checkbox
+                                        name={`state-is_mandatory-${index}`}
+                                        label="Mandatory for All Projects"
+                                        checked={state.is_mandatory || false}
+                                        onChange={(e) => {
+                                            const updated = [...states];
+                                            updated[index].is_mandatory = e.target.checked;
+                                            setStates(updated);
+                                        }}
+                                    />
                                     )}
-                                    <button
-                                        onClick={() => removeState(index)}
-                                        className="ml-auto text-red-400 hover:text-red-300"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                                    <IconButton className="ml-auto" label="Remove state" icon={<Trash2 className="w-4 h-4" />} onClick={() => removeState(index)} />
                                 </div>
-                            </div>
+                            </Card>
                         ))}
-                    </div>
-                </div>
-
-                {/* Transitions */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-slate-100">Transitions</h2>
-                        <button
-                            onClick={addTransition}
-                            className="px-3 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700 flex items-center gap-2 text-sm"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Add Transition
-                        </button>
-                    </div>
-                    <div className="space-y-3">
-                        {transitions.map((transition, index) => (
-                            <div
-                                key={index}
-                                className="bg-slate-900 border border-slate-800 rounded-lg p-4"
-                            >
-                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                    <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">Code *</label>
-                                        <input
-                                            type="text"
+                                <div>
+                                    <Button variant="secondary" size="sm" onClick={addState}>
+                                        <Plus className="w-4 h-4" />
+                                        Add State
+                                    </Button>
+                                </div>
+                            </Stack>
+                        </div>
+                    ),
+                },
+                {
+                    id: 'transitions',
+                    title: 'Transitions',
+                    content: (
+                        <div className="md:col-span-2">
+                            <Stack gap="default">
+                                {transitions.map((transition, index) => (
+                            <Card key={index}>
+                                <Grid columns="auto" gap="sm" className="mb-3">
+                                    <GridItem span={6}>
+                                        <TextField
+                                            name={`transition-code-${index}`}
+                                            label="Code *"
+                                            size="sm"
                                             value={transition.code}
                                             onChange={(e) => {
                                                 const updated = [...transitions];
                                                 updated[index].code = e.target.value;
                                                 setTransitions(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
                                             placeholder="e.g., submit"
                                         />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">Name *</label>
-                                        <input
-                                            type="text"
+                                    </GridItem>
+                                    <GridItem span={6}>
+                                        <TextField
+                                            name={`transition-name-${index}`}
+                                            label="Name *"
+                                            size="sm"
                                             value={transition.name}
                                             onChange={(e) => {
                                                 const updated = [...transitions];
                                                 updated[index].name = e.target.value;
                                                 setTransitions(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
                                             placeholder="e.g., Submit for Review"
                                         />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">From State *</label>
-                                        <select
+                                    </GridItem>
+                                </Grid>
+                                <Grid columns="auto" gap="sm">
+                                    <GridItem span={6}>
+                                        <Select
+                                            name={`transition-from_state-${index}`}
+                                            label="From State *"
+                                            size="sm"
                                             value={transition.from_state}
                                             onChange={(e) => {
                                                 const updated = [...transitions];
                                                 updated[index].from_state = e.target.value;
                                                 setTransitions(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
-                                        >
-                                            <option value="">Select State</option>
-                                            {states.map((s) => (
-                                                <option key={s.code} value={s.code}>
-                                                    {s.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-slate-500 mb-1 block">To State *</label>
-                                        <select
+                                            placeholder="Select State"
+                                            options={states.map((s) => ({ value: s.code, label: s.name }))}
+                                        />
+                                    </GridItem>
+                                    <GridItem span={6}>
+                                        <Select
+                                            name={`transition-to_state-${index}`}
+                                            label="To State *"
+                                            size="sm"
                                             value={transition.to_state}
                                             onChange={(e) => {
                                                 const updated = [...transitions];
                                                 updated[index].to_state = e.target.value;
                                                 setTransitions(updated);
                                             }}
-                                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 px-3 py-1.5 rounded text-sm"
-                                        >
-                                            <option value="">Select State</option>
-                                            {states.map((s) => (
-                                                <option key={s.code} value={s.code}>
-                                                    {s.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between mt-3">
-                                    <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={transition.requires_approval || false}
-                                            onChange={(e) => {
-                                                const updated = [...transitions];
-                                                updated[index].requires_approval = e.target.checked;
-                                                setTransitions(updated);
-                                            }}
-                                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-950"
+                                            placeholder="Select State"
+                                            options={states.map((s) => ({ value: s.code, label: s.name }))}
                                         />
-                                        Requires Approval
-                                    </label>
-                                    <button
-                                        onClick={() => removeTransition(index)}
-                                        className="text-red-400 hover:text-red-300"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                                    </GridItem>
+                                </Grid>
+                                <div className="flex items-center justify-between mt-3">
+                                    <Checkbox
+                                        name={`transition-requires_approval-${index}`}
+                                        label="Requires Approval"
+                                        checked={transition.requires_approval || false}
+                                        onChange={(e) => {
+                                            const updated = [...transitions];
+                                            updated[index].requires_approval = e.target.checked;
+                                            setTransitions(updated);
+                                        }}
+                                    />
+                                    <IconButton label="Remove transition" icon={<Trash2 className="w-4 h-4" />} onClick={() => removeTransition(index)} />
                                 </div>
-                            </div>
+                            </Card>
                         ))}
-                    </div>
-                </div>
-            </div>
-        </div>
+                                <div>
+                                    <Button variant="secondary" size="sm" onClick={addTransition}>
+                                        <Plus className="w-4 h-4" />
+                                        Add Transition
+                                    </Button>
+                                </div>
+                            </Stack>
+                        </div>
+                    ),
+                },
+            ]}
+        />
     );
 };

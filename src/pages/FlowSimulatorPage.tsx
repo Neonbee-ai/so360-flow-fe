@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, ChevronRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Select, Button, Card, Cluster, DetailPageTemplate, EmptyState, Stack } from '@so360/design-system';
+import { Play, ChevronRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition } from '../types/flow';
 import { useFlowFormatters } from '../utils/formatters';
@@ -85,64 +86,71 @@ export const FlowSimulatorPage = () => {
     const stateObj = getCurrentStateObj();
     const availableTransitions = getAvailableTransitions();
 
+    const trail = [{ label: 'Flows', onClick: () => navigate('/flow') }];
+
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen bg-slate-950">
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent" />
-            </div>
-        );
+        return <DetailPageTemplate trail={trail} title="Flow Simulator" loading />;
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 p-6">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-8">
-                <button onClick={() => navigate('/flow')} className="text-slate-400 hover:text-slate-100">
-                    <ArrowLeft className="w-5 h-5" />
-                </button>
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-100">Flow Simulator</h1>
-                    <p className="text-slate-400 text-sm mt-1">Walk through a flow definition step by step</p>
-                </div>
-            </div>
+        <DetailPageTemplate
+            trail={trail}
+            title="Flow Simulator"
+            meta="Walk through a flow definition step by step"
+            sidePanel={selectedFlow ? (
+                                        <Card title="Transition history">
+                        {history.length === 0 ? (
+                            <p className="text-fg-subtle text-sm">No transitions yet. Click a transition to simulate.</p>
+                        ) : (
+                            <Stack gap="default">
+                                {history.map((step, i) => (
+                                    <div key={i} className="relative pl-4 border-l-2 border-line">
+                                        <div className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-primary" />
+                                        <p className="text-fg text-sm font-medium">{step.transition_name}</p>
+                                        <p className="text-fg-subtle text-xs mt-0.5">
+                                            {step.from_state} → {step.to_state}
+                                        </p>
+                                        <p className="text-fg-subtle text-xs">{step.timestamp}</p>
+                                    </div>
+                                ))}
+                                <div className="relative pl-4 border-l-2 border-dashed border-line">
+                                    <div className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-line-strong animate-pulse" />
+                                    <p className="text-fg-muted text-sm">{currentState} (current)</p>
+                                </div>
+                            </Stack>
+                        )}
+                    </Card>
+            ) : undefined}
+        >
+            <Stack gap="default">
+                <Card>
+                    <Select
+                        label="Select Flow Definition"
+                        name="flow-definition"
+                        value={selectedFlowId}
+                        onChange={e => handleSelectFlow(e.target.value)}
+                        options={[{ value: '', label: 'Choose a flow to simulate...' }, ...flows.map((f: any) => ({ value: f.id, label: `${f.name} (${f.module_code})` }))]}
+                    />
+                </Card>
 
-            {/* Flow Selector */}
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 mb-6">
-                <label className="text-sm text-slate-400 mb-2 block">Select Flow Definition</label>
-                <select
-                    value={selectedFlowId}
-                    onChange={e => handleSelectFlow(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 text-slate-100 px-4 py-2 rounded-lg"
-                >
-                    <option value="">Choose a flow to simulate...</option>
-                    {flows.map((f: any) => (
-                        <option key={f.id} value={f.id}>{f.name} ({f.module_code})</option>
-                    ))}
-                </select>
-            </div>
-
-            {selectedFlow && (
-                <div className="grid grid-cols-3 gap-6">
-                    {/* State Machine Visual */}
-                    <div className="col-span-2 space-y-4">
+                {selectedFlow && (
+                    <>
                         {/* Current State */}
-                        <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold text-slate-100">Current State</h2>
-                                <button
-                                    onClick={resetSimulation}
-                                    className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1"
-                                >
+                        <Card
+                            title="Current state"
+                            actions={
+                                <Button variant="ghost" size="sm" onClick={resetSimulation}>
                                     Reset
-                                </button>
-                            </div>
+                                </Button>
+                            }
+                        >
                             {stateObj ? (
                                 <div
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
                                     style={{
                                         backgroundColor: (stateObj as any).color + '33',
-                                        border: `2px solid ${(stateObj as any).color || '#3b82f6'}`,
-                                        color: (stateObj as any).color || '#3b82f6',
+                                        border: `2px solid ${(stateObj as any).color || 'rgb(var(--nb-primary))'}`,
+                                        color: (stateObj as any).color || 'rgb(var(--nb-primary))',
                                     }}
                                 >
                                     {stateObj.is_terminal ? (
@@ -157,107 +165,81 @@ export const FlowSimulatorPage = () => {
                                     {stateObj.is_terminal && <span className="text-xs opacity-70">(terminal)</span>}
                                 </div>
                             ) : (
-                                <p className="text-slate-500 text-sm">No current state</p>
+                                <p className="text-fg-subtle text-sm">No current state</p>
                             )}
-                        </div>
+                        </Card>
 
                         {/* All States Overview */}
-                        <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                            <h2 className="text-lg font-semibold text-slate-100 mb-4">State Machine</h2>
-                            <div className="flex flex-wrap gap-2">
+                        <Card title="State machine">
+                            <Cluster gap="tight">
                                 {(selectedFlow.states || []).map((state: any) => (
                                     <div
                                         key={state.code}
                                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm"
                                         style={{
                                             backgroundColor: state.code === currentState
-                                                ? (state.color + '44') || '#3b82f644'
-                                                : 'rgb(var(--s-800) / 0.5)',
+                                                ? (state.color ? state.color + '44' : 'rgb(var(--nb-primary) / 0.27)')
+                                                : 'rgb(var(--nb-surface) / 0.5)',
                                             border: state.code === currentState
-                                                ? `2px solid ${state.color || '#3b82f6'}`
-                                                : '2px solid rgb(var(--s-700))',
-                                            color: state.code === currentState ? (state.color || '#3b82f6') : 'rgb(var(--s-400))',
+                                                ? `2px solid ${state.color || 'rgb(var(--nb-primary))'}`
+                                                : '2px solid rgb(var(--nb-border))',
+                                            color: state.code === currentState ? (state.color || 'rgb(var(--nb-primary))') : 'rgb(var(--nb-fg-muted))',
                                         }}
                                     >
                                         {state.code === currentState && <div className="w-2 h-2 rounded-full bg-current animate-pulse" />}
                                         {state.name}
                                     </div>
                                 ))}
-                            </div>
-                        </div>
+                            </Cluster>
+                        </Card>
 
                         {/* Available Transitions */}
-                        <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                            <h2 className="text-lg font-semibold text-slate-100 mb-4">Available Transitions</h2>
+                        <Card title="Available transitions">
                             {stateObj?.is_terminal ? (
-                                <div className="flex items-center gap-2 text-green-400 text-sm">
+                                <div className="flex items-center gap-2 text-success text-sm">
                                     <CheckCircle className="w-4 h-4" />
                                     Terminal state reached — simulation complete
                                 </div>
                             ) : availableTransitions.length === 0 ? (
-                                <div className="flex items-center gap-2 text-amber-400 text-sm">
+                                <div className="flex items-center gap-2 text-warning text-sm">
                                     <AlertCircle className="w-4 h-4" />
                                     No transitions available from this state
                                 </div>
                             ) : (
-                                <div className="space-y-2">
+                                <Stack gap="tight">
                                     {availableTransitions.map((t: any) => {
                                         const toState = (selectedFlow.states || []).find((s: any) => s.code === t.to_state);
                                         return (
-                                            <button
+                                            <Button
                                                 key={t.code}
+                                                variant="secondary"
                                                 onClick={() => applyTransition(t)}
-                                                className="w-full flex items-center justify-between bg-slate-900 border border-slate-700 hover:border-blue-500 hover:bg-slate-800 rounded-lg px-4 py-3 transition-colors text-left"
+                                                className="w-full !h-auto !justify-between py-nb-3 !text-left"
                                             >
                                                 <div>
-                                                    <p className="text-slate-100 text-sm font-medium">{t.name}</p>
-                                                    <p className="text-slate-500 text-xs mt-0.5">code: {t.code}</p>
+                                                    <p className="text-fg text-sm font-medium">{t.name}</p>
+                                                    <p className="text-fg-subtle text-xs mt-0.5">code: {t.code}</p>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-slate-400 text-sm">
+                                                <div className="flex items-center gap-2 text-fg-muted text-sm">
                                                     → {toState?.name || t.to_state}
                                                     <ChevronRight className="w-4 h-4" />
                                                 </div>
-                                            </button>
+                                            </Button>
                                         );
                                     })}
-                                </div>
+                                </Stack>
                             )}
-                        </div>
-                    </div>
+                        </Card>
+                    </>
+                )}
 
-                    {/* History Panel */}
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 h-fit">
-                        <h2 className="text-lg font-semibold text-slate-100 mb-4">Transition History</h2>
-                        {history.length === 0 ? (
-                            <p className="text-slate-500 text-sm">No transitions yet. Click a transition to simulate.</p>
-                        ) : (
-                            <div className="space-y-3">
-                                {history.map((step, i) => (
-                                    <div key={i} className="relative pl-4 border-l-2 border-slate-700">
-                                        <div className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-blue-500" />
-                                        <p className="text-slate-300 text-sm font-medium">{step.transition_name}</p>
-                                        <p className="text-slate-500 text-xs mt-0.5">
-                                            {step.from_state} → {step.to_state}
-                                        </p>
-                                        <p className="text-slate-600 text-xs">{step.timestamp}</p>
-                                    </div>
-                                ))}
-                                <div className="relative pl-4 border-l-2 border-dashed border-slate-700">
-                                    <div className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-slate-600 animate-pulse" />
-                                    <p className="text-slate-400 text-sm">{currentState} (current)</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {!selectedFlow && !loading && (
-                <div className="text-center py-16">
-                    <p className="text-slate-400 text-lg mb-2">Select a flow to begin simulation</p>
-                    <p className="text-slate-500 text-sm">Walk through state transitions interactively</p>
-                </div>
-            )}
-        </div>
+                {!selectedFlow && (
+                    <EmptyState
+                        title="Select a flow to begin simulation"
+                        description="Walk through state transitions interactively"
+                    />
+                )}
+            </Stack>
+        </DetailPageTemplate>
     );
 };

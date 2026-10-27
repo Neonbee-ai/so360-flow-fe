@@ -95,8 +95,8 @@ describe('FlowDashboard (extra)', () => {
         .mockResolvedValueOnce({ data: [{ id: 'f1', name: 'Any', module_code: 'crm', is_active: true, description: null, states: [], transitions: [] }] })
         .mockResolvedValueOnce({ data: [] });
       renderPage();
-      await waitFor(() => screen.getByText('All Modules'));
-      fireEvent.change(screen.getByDisplayValue('All Modules'), {
+      await waitFor(() => screen.getByLabelText('Module'));
+      fireEvent.change(screen.getByLabelText('Module'), {
         target: { value: 'module:crm:lead' },
       });
       await waitFor(() =>

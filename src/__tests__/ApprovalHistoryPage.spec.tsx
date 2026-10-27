@@ -95,14 +95,13 @@ describe('ApprovalHistoryPage', () => {
   describe('Given the back button', () => {
     it('When back arrow is clicked / Then calls navigate(-1)', () => {
       renderWithParams('deal', 'deal-id-001');
-      const backBtn = screen.getByTestId('icon-ArrowLeft').closest('button');
-      fireEvent.click(backBtn!);
+      fireEvent.click(screen.getByRole('button', { name: 'Back to Back' }));
       expect(mockNavigate).toHaveBeenCalledWith(-1);
     });
 
-    it('When page renders / Then back arrow icon is visible', () => {
+    it('When page renders / Then the trail back control is visible', () => {
       renderWithParams('deal', 'deal-id-002');
-      expect(screen.getByTestId('icon-ArrowLeft')).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Back to Back' })).toBeTruthy();
     });
   });
 

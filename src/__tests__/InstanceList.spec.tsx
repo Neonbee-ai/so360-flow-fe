@@ -85,15 +85,14 @@ describe('InstanceList', () => {
     it('When a status filter is clicked / Then instances are re-fetched', async () => {
       renderPage();
       await waitFor(() => expect(mockFlowApi.getAllInstances).toHaveBeenCalledTimes(1));
-      fireEvent.click(screen.getByText('completed'));
+      fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'completed' } });
       await waitFor(() => expect(mockFlowApi.getAllInstances).toHaveBeenCalledWith(expect.objectContaining({ status: 'completed' })));
     });
 
-    it('When the View button is clicked / Then it navigates to the instance viewer', async () => {
+    it('When an instance card is clicked / Then it navigates to the instance viewer', async () => {
       renderPage();
       await waitFor(() => expect(screen.getByText('Lead Flow')).toBeInTheDocument());
-      const viewBtns = screen.getAllByText('View');
-      fireEvent.click(viewBtns[0]);
+      fireEvent.click(screen.getByText('Lead Flow'));
       expect(mockNavigate).toHaveBeenCalledWith('/flow/instance/inst-1');
     });
   });

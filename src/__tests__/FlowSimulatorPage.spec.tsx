@@ -57,7 +57,7 @@ describe('FlowSimulatorPage', () => {
     it('When page first renders / Then shows spinner', () => {
       mockFlowApi.getFlowDefinitions.mockReturnValue(new Promise(() => {}));
       renderPage();
-      expect(document.querySelector('.animate-spin')).not.toBeNull();
+      expect(screen.getByTestId('spinner')).toBeInTheDocument();
     });
   });
 
@@ -96,7 +96,7 @@ describe('FlowSimulatorPage', () => {
       renderPage();
       await waitFor(() => screen.getByText('Choose a flow to simulate...'));
       fireEvent.change(screen.getByRole('combobox') as HTMLSelectElement, { target: { value: 'f1' } });
-      await waitFor(() => expect(screen.getByText('Current State')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('Current state')).toBeInTheDocument());
     });
 
     it('When flow is selected / Then shows available transition Submit', async () => {
