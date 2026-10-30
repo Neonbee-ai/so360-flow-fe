@@ -84,7 +84,7 @@ export const FlowDashboard = () => {
     ];
 
     return (
-        <ListPageTemplate
+        <ListPageTemplate trail={[]}
             title="Flow Definitions"
             description="Manage workflow definitions across all modules"
             count={loading ? undefined : flows.length}

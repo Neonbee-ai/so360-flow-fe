@@ -33,6 +33,8 @@ import path from 'node:path';
 const SCAN_ROOTS = ['src'];
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const ALLOWLIST_FILE = path.join(__dirname, 'comb-guard.allowlist.json');
+/** Module-home files (repo-relative) that may render a page template WITHOUT a `trail` (the module landing page has no parent). */
+const MODULE_HOME_FILES: string[] = [];
 // -----------------------------------------------------------------------------
 
 /** Path-level exclusions (applied to the repo-relative path). Mirrors EXCLUDE_RE in the bash script. */
@@ -119,6 +121,28 @@ const RULES: Rule[] = [
   },
 ];
 
+/**
+ * File-level rule `page-trail`: every `<*PageTemplate` / `<RecordPage` opening tag must carry a `trail` prop
+ * (the opening tag is read until its closing `>` at depth 0, so multi-line props are covered).
+ * Returns the 1-based line numbers of offending tags. A `comb-exception` marker on the tag line skips it.
+ * Mirrored in comb-guard-allowlist.sh (awk).
+ */
+const PAGE_TAG_RE = /<([A-Za-z]*PageTemplate|RecordPage)([^A-Za-z0-9_]|$)/;
+function scanPageTrail(source: string): number[] {
+  const lines = source.split('\n');
+  const out: number[] = [];
+  lines.forEach((text, i) => {
+    if (COMMENT_RE.test(text) || text.includes(EXCEPTION_MARK) || !PAGE_TAG_RE.test(text)) return;
+    let tag = '';
+    for (let j = i; j < Math.min(lines.length, i + 60); j++) {
+      tag += lines[j] + '\n';
+      if (/^[ \t]*\/?>/.test(lines[j]) || (j === i && /\/?>[ \t]*$/.test(lines[j]))) break;
+    }
+    if (!/(^|[^a-zA-Z0-9_])trail[=]/.test(tag)) out.push(i + 1);
+  });
+  return out;
+}
+
 interface Hit { file: string; line: number; rule: string }
 
 const COMPILED = RULES.map((r) => ({ ...r, res: r.patterns.map((p) => new RegExp(p)), skip: r.unless ? new RegExp(r.unless) : null }));
@@ -148,6 +172,9 @@ function scanRepo(): Hit[] {
     fs.readFileSync(abs, 'utf8').split('\n').forEach((text, i) => {
       for (const rule of scanLine(text, ext)) hits.push({ file: rel, line: i + 1, rule });
     });
+    if (ext === '.tsx' && !MODULE_HOME_FILES.includes(rel)) {
+      for (const line of scanPageTrail(fs.readFileSync(abs, 'utf8'))) hits.push({ file: rel, line, rule: 'page-trail' });
+    }
   }
   return hits;
 }
@@ -157,8 +184,14 @@ function loadAllowlist(): Record<string, string[]> {
   return JSON.parse(fs.readFileSync(ALLOWLIST_FILE, 'utf8')) as Record<string, string[]>;
 }
 
+const PAGE_TRAIL_RULE = {
+  id: 'page-trail',
+  message: 'Page template rendered without a `trail` prop',
+  fix: 'Pass trail={[...]} (module home pages go in MODULE_HOME_FILES)',
+};
+
 const fmt = (h: Hit): string => {
-  const r = RULES.find((x) => x.id === h.rule)!;
+  const r = h.rule === 'page-trail' ? PAGE_TRAIL_RULE : RULES.find((x) => x.id === h.rule)!;
   return `  ${h.file}:${h.line}  [${h.rule}] ${r.message} -> ${r.fix}`;
 };
 
@@ -190,6 +223,21 @@ describe('Comb guard: pages follow the Comb UI standard', () => {
       ['<table> {/* comb-exception: print layout */}', '.tsx', []],
     ];
     for (const [text, ext, expected] of cases) expect(scanLine(text, ext), text).toEqual(expected);
+  });
+
+  it('Given page-template tags / When scanned / Then only those without a trail prop are reported', () => {
+    const cases: Array<[string, number[]]> = [
+      ['<ListPageTemplate trail={[]} title="X">', []],
+      ['<ListPageTemplate title="X">', [1]],
+      ['<DetailPageTemplate\n  title="X"\n  trail={trail}\n>', []],
+      ['<DetailPageTemplate\n  title="X"\n>', [1]],
+      ['<RecordPage\n  title="X"\n/>', [1]],
+      ['<SettingsPageTemplate trail={t} />', []],
+      ['<PageTemplateHelper x />', []],
+      ['<ListPageTemplate title="Home"> {/* comb-exception: module home */}', []],
+      ['// <ListPageTemplate title="X">', []],
+    ];
+    for (const [src, expected] of cases) expect(scanPageTrail(src), src).toEqual(expected);
   });
 
   const hits = scanRepo();
