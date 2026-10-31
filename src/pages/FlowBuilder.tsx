@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Save, Plus, Trash2 } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
-import { toast, Select, Button, Card, EmptyState, FormPageTemplate, IconButton, Stack, TextField, Textarea, Checkbox, RadioGroup, Grid, GridItem, Spinner } from '@so360/design-system';
+import { toast, Select, Button, Card, EmptyState, FormPageTemplate, IconButton, Stack, TextField, Textarea, Checkbox, RadioGroup, Grid, GridItem, Skeleton } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
@@ -160,7 +160,7 @@ export const FlowBuilder = () => {
     if (loading) {
         return (
             <FormPageTemplate title={isNew ? 'New Flow' : 'Edit Flow'} trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}>
-                <Spinner />
+                <div role="status" aria-busy="true" className="p-4"><span className="sr-only">Loading…</span><Skeleton variant="rect" className="h-10 w-1/3 mb-4" /><Skeleton lines={6} /></div>
             </FormPageTemplate>
         );
     }

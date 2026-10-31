@@ -49,6 +49,7 @@ export const Card = ({ children, title, actions, footer, padding: _p, onClick, n
   React.createElement('div', { onClick, ...rest }, title ? React.createElement('h3', null, title) : null, actions ?? null, children, footer ?? null);
 export const Badge = ({ children, tone: _t, size: _s, dot: _d, variant: _v, shape: _sh, ...rest }: any) => React.createElement('span', rest, children);
 export const Spinner = () => React.createElement('div', { 'data-testid': 'spinner' }, 'Loading...');
+export const Skeleton = () => React.createElement('span', { 'data-testid': 'skeleton' });
 export const Tooltip = ({ children }: any) => React.createElement('span', null, children);
 // Universal toast surface (shell owns the real viewport; tests spy on these).
 export const toast = {

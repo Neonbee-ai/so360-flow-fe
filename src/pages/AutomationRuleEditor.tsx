@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, Save, Trash2 } from 'lucide-react';
 import {
-    toast, Button, Checkbox, Cluster, FormPageTemplate, IconButton, Select, Spinner, Stack, TextField, Textarea,
+    toast, Button, Checkbox, Cluster, FormPageTemplate, IconButton, Select, Skeleton, Stack, TextField, Textarea,
 } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { ActionCatalogEntry, ActionField, AutomationCatalog, ConditionOperator, TriggerType } from '../types/automation';
@@ -177,7 +177,7 @@ export const AutomationRuleEditor = () => {
     if (loading) {
         return (
             <FormPageTemplate title={isNew ? 'New automation rule' : 'Edit automation rule'} trail={listTrail}>
-                <Spinner />
+                <div role="status" aria-busy="true" className="p-4"><span className="sr-only">Loading…</span><Skeleton variant="rect" className="h-10 w-1/3 mb-4" /><Skeleton lines={6} /></div>
             </FormPageTemplate>
         );
     }
