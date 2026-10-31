@@ -10,7 +10,7 @@ import {
     EmptyState,
     KpiCard,
     Progress,
-    Spinner,
+    Skeleton,
     Stack,
     type DataTableColumn,
 } from '@so360/design-system';
@@ -32,7 +32,13 @@ export const ApprovalDashboard: React.FC = () => {
 
     const maxByEntityType = stats ? Math.max(...Object.values(stats.by_entity_type || {}), 1) : 1;
 
-    if (loading) return <Spinner />;
+    if (loading) return (
+        <div role="status" aria-busy="true" className="p-4">
+            <span className="sr-only">Loading…</span>
+            <div className="grid grid-cols-3 gap-4 mb-6">{[0, 1, 2].map((i) => <Skeleton key={i} variant="rect" className="h-24" />)}</div>
+            <Skeleton lines={6} />
+        </div>
+    );
 
     const recentColumns: DataTableColumn<any>[] = [
         {
