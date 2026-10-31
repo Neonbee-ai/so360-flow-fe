@@ -241,8 +241,8 @@ describe('ApprovalPoliciesPage', () => {
       api.getApprovalPolicies.mockResolvedValue({ data: [makePolicy({ is_active: false })] });
       renderPage();
       await waitFor(() => screen.getByText('Expense Approval'));
-      const dot = document.querySelector('.bg-fg-subtle');
-      expect(dot).not.toBeNull();
+      // Comb: status is a neutral "Inactive" Badge (no hand-built dot).
+      expect(screen.getByText('Inactive')).toBeInTheDocument();
     });
   });
 

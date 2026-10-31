@@ -159,7 +159,7 @@ describe('Given an InstanceList with UTC started_at / completed_at', () => {
     render(<MemoryRouter><InstanceList /></MemoryRouter>);
 
     await waitFor(() =>
-      expect(screen.getAllByText(FMT_DATE).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(new RegExp(`(Started|Completed) ${FMT_DATE}`)).length).toBeGreaterThan(0)
     );
   });
 
@@ -188,7 +188,7 @@ describe('Given an InstanceList with UTC started_at / completed_at', () => {
     render(<MemoryRouter><InstanceList /></MemoryRouter>);
 
     await waitFor(() =>
-      expect(screen.getAllByText(FMT_DATE).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(new RegExp(`(Started|Completed) ${FMT_DATE}`)).length).toBeGreaterThan(0)
     );
   });
 
@@ -222,7 +222,7 @@ describe('Given an InstanceList with UTC started_at / completed_at', () => {
     render(<MemoryRouter><InstanceList /></MemoryRouter>);
 
     await waitFor(() => {
-      const cells = screen.getAllByText(FMT_DATE);
+      const cells = screen.getAllByText(new RegExp(`(Started|Completed) ${FMT_DATE}`));
       expect(cells.length).toBeGreaterThanOrEqual(2);
     });
   });

@@ -77,7 +77,7 @@ describe('ApprovalPoliciesPage — page loads', () => {
     it('When the back arrow is clicked, Then it navigates to /flow', async () => {
       renderPage();
       await waitFor(() => screen.getByText('Approval Policies'));
-      fireEvent.click(screen.getByTestId('icon-ArrowLeft').closest('button')!);
+      fireEvent.click(screen.getByRole('button', { name: 'Back to Flows' }));
       expect(mockNavigate).toHaveBeenCalledWith('/flow');
     });
   });
