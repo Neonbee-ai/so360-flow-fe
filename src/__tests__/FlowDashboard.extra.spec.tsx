@@ -109,7 +109,7 @@ describe('FlowDashboard (extra)', () => {
     it('When loading / Then shows spinner', () => {
       api.getFlowDefinitions.mockReturnValue(new Promise(() => {}));
       renderPage();
-      expect(document.querySelector('.animate-spin')).not.toBeNull();
+      expect(screen.getByTestId('spinner')).toBeInTheDocument();
     });
   });
 

@@ -85,10 +85,25 @@ export const KpiCard = ({ label, value, hint, icon: _i, delta: _d, deltaLabel: _
 export const EmptyState = ({ title, description, action, icon: _i, ...rest }: any) =>
   h('div', rest, title ? h('p', null, title) : null, description ? h('p', null, description) : null,
     action ? h('button', { type: 'button', onClick: action.onClick }, action.label) : null);
-const trailBack = (trail: any[] | undefined) => {
-  const last = trail && trail.length ? trail[trail.length - 1] : null;
-  return last ? h('button', { type: 'button', 'aria-label': `Back to ${last.label}`, onClick: last.onClick }, `← ${last.label}`) : null;
+/** CombScope: module trail context. The stub keeps root/navigate so page headers can prepend the root crumb like the real DS. */
+const CombScopeCtx = React.createContext<any>(null);
+export const CombScope = ({ module, entity, root, navigate, children }: any) =>
+  h(CombScopeCtx.Provider, { value: { module, entity, root, navigate } }, children);
+export const useCombScope = () => React.useContext(CombScopeCtx);
+export const QuotaBar = ({ label, used, limit, unit, isUnlimited }: any) =>
+  h('div', { 'data-testid': 'quota-bar' }, label, ' ', isUnlimited ? `${used}${unit ? ` ${unit}` : ''}` : `${used} / ${limit}${unit ? ` ${unit}` : ''}`);
+const TrailHeader = ({ trail }: any) => {
+  const scope = React.useContext(CombScopeCtx);
+  const items: any[] = Array.isArray(trail) ? trail : [];
+  const root = scope?.root;
+  const crumbs = root && !(items[0] && (items[0].to === root.to || (!items[0].to && items[0].label === root.label))) ? [root, ...items] : items;
+  const last = items.length ? items[items.length - 1] : null;
+  const follow = (it: any) => (it.onClick ? it.onClick() : it.to && scope?.navigate ? scope.navigate(it.to) : undefined);
+  return h(React.Fragment, null,
+    scope ? h('nav', { 'aria-label': 'Breadcrumb' }, crumbs.map((c: any) => h('span', { key: `${c.label}-${c.to ?? ''}` }, c.label))) : null,
+    last ? h('button', { type: 'button', 'aria-label': `Back to ${last.label}`, onClick: () => follow(last) }, `← ${last.label}`) : null);
 };
+const trailBack = (trail: any[] | undefined) => h(TrailHeader, { trail });
 export const ListPageTemplate = ({
   title, description, trail, count: _c, primaryAction, headerSecondaryActions, secondaryActions, overflowActions, kpis, views, search,
   filterConfig, toolbarEnd, loading, isEmpty, empty, children, pagination, footer,

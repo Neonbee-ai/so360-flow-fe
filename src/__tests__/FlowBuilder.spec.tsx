@@ -120,7 +120,7 @@ describe('FlowBuilder', () => {
 
     it('When flags are not loaded / Then the "not available" notice is shown instead of the builder', () => {
       renderNew();
-      expect(screen.getByText('Workflow Builder')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Workflow Builder' })).toBeInTheDocument();
       expect(screen.getByText(/This feature is not available on your current plan/i)).toBeInTheDocument();
       expect(screen.queryByText('Flow Information')).not.toBeInTheDocument();
     });
