@@ -232,3 +232,17 @@ describe('InstanceViewer', () => {
     });
   });
 });
+
+describe('Given a malformed instance id in the URL', () => {
+  it('When the page loads / Then it shows Instance not found without calling the API', async () => {
+    render(
+      <MemoryRouter initialEntries={['/flow/instances/:instanceId']}>
+        <Routes>
+          <Route path="/flow/instances/:instanceId" element={<InstanceViewer />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    await waitFor(() => expect(screen.getByText('Instance not found')).toBeInTheDocument());
+    expect(api.getFlowInstanceContext).not.toHaveBeenCalled();
+  });
+});
