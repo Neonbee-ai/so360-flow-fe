@@ -23,10 +23,10 @@ export const MfeShellInitializer = ({ children }: { children: React.ReactNode })
 
     if (!isSynced) {
         return (
-            <div className="flex items-center justify-center h-screen bg-slate-950">
+            <div className="flex items-center justify-center h-screen bg-bg">
                 <div className="text-center">
-                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
-                    <p className="mt-4 text-slate-400">Initializing Flow...</p>
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+                    <p className="mt-4 text-fg-muted">Initializing Flow...</p>
                 </div>
             </div>
         );

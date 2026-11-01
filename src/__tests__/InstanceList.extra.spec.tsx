@@ -65,8 +65,8 @@ describe('InstanceList (extra)', () => {
     it('When clicked / Then navigates to /flow', async () => {
       api.getAllInstances.mockReturnValue(makePageOf([], 0));
       renderPage();
-      await waitFor(() => screen.getByText('Back to Dashboard'));
-      fireEvent.click(screen.getByText('Back to Dashboard'));
+      await waitFor(() => screen.getByRole('button', { name: 'Back to Dashboard' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Back to Dashboard' }));
       expect(mockNavigate).toHaveBeenCalledWith('/flow');
     });
   });
@@ -98,13 +98,7 @@ describe('InstanceList (extra)', () => {
       api.getAllInstances.mockReturnValue(makePageOf(INSTANCES, 25));
       renderPage();
       await waitFor(() => screen.getByText('Page 1 of 2'));
-      const buttons = screen.getAllByRole('button');
-      // ChevronRight button is at the end
-      const nextBtn = buttons.find(b => b.getAttribute('title') === null && !b.textContent);
-      // Find by disabled state — prev should be disabled on page 1
-      const [prevBtn, nextButton] = screen.getAllByRole('button').filter(
-        b => b.querySelector('svg')
-      ).slice(-2);
+      const nextButton = screen.getByRole('button', { name: 'Next page' });
       fireEvent.click(nextButton);
       await waitFor(() =>
         expect(api.getAllInstances).toHaveBeenCalledWith(
@@ -126,8 +120,8 @@ describe('InstanceList (extra)', () => {
     it('When deal is selected / Then fetches with entity_type=deal', async () => {
       api.getAllInstances.mockReturnValue(makePageOf([], 0));
       renderPage();
-      await waitFor(() => screen.getByText('All Types'));
-      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'deal' } });
+      await waitFor(() => screen.getByLabelText('Entity Type'));
+      fireEvent.change(screen.getByLabelText('Entity Type'), { target: { value: 'deal' } });
       await waitFor(() =>
         expect(api.getAllInstances).toHaveBeenCalledWith(
           expect.objectContaining({ entity_type: 'deal' })
@@ -140,8 +134,8 @@ describe('InstanceList (extra)', () => {
     it('When no results with active filter / Then shows filter hint', async () => {
       api.getAllInstances.mockReturnValue(makePageOf([], 0));
       renderPage();
-      await waitFor(() => screen.getByText('All Types'));
-      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'invoice' } });
+      await waitFor(() => screen.getByLabelText('Entity Type'));
+      fireEvent.change(screen.getByLabelText('Entity Type'), { target: { value: 'invoice' } });
       await waitFor(() =>
         expect(screen.getByText(/Try adjusting or clearing the filters/i)).toBeInTheDocument()
       );
@@ -152,8 +146,8 @@ describe('InstanceList (extra)', () => {
     it('When cancelled clicked / Then fetches with status=cancelled', async () => {
       api.getAllInstances.mockReturnValue(makePageOf([], 0));
       renderPage();
-      await waitFor(() => screen.getByText('all'));
-      fireEvent.click(screen.getByText('cancelled'));
+      await waitFor(() => screen.getByLabelText('Status'));
+      fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'cancelled' } });
       await waitFor(() =>
         expect(api.getAllInstances).toHaveBeenCalledWith(
           expect.objectContaining({ status: 'cancelled' })
@@ -169,8 +163,8 @@ describe('InstanceList (extra)', () => {
       );
       renderPage();
       await waitFor(() => screen.getByText('Lead Flow'));
-      // click the card container (not the View button)
-      const card = screen.getByText('Lead Flow').closest('div[class*=rounded]') as HTMLElement;
+      // click the card container 
+      const card = screen.getByText('Lead Flow').closest('tr') as HTMLElement;
       if (card) fireEvent.click(card);
       await waitFor(() =>
         expect(mockNavigate).toHaveBeenCalledWith('/flow/instance/inst-77')

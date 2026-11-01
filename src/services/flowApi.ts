@@ -15,6 +15,7 @@ import type {
     CreateApprovalRuleDto,
     CreateApprovalStepDto,
 } from '../types/flow';
+import type { AutomationCatalog, AutomationRule, AutomationRulePayload, AutomationRun } from '../types/automation';
 import { createRequestCache } from './requestCache';
 
 // Coalesces + briefly caches org-static reference reads (flow definitions,
@@ -166,4 +167,18 @@ export const flowApi = {
 
     getApprovalStats: () =>
         api.get('/approval/stats'),
+
+    // Automation rules ("when this happens, do that") — /v1/flow/automation/*
+    getAutomationCatalog: () => api.get<AutomationCatalog>('/automation/catalog'),
+    getAutomationRules: (params?: { enabled?: boolean; trigger_type?: string }) =>
+        api.get<AutomationRule[]>('/automation/rules', { params }),
+    getAutomationRule: (id: string) => api.get<AutomationRule>(`/automation/rules/${id}`),
+    createAutomationRule: (data: AutomationRulePayload) => api.post<AutomationRule>('/automation/rules', data),
+    updateAutomationRule: (id: string, data: Partial<AutomationRulePayload>) => api.put<AutomationRule>(`/automation/rules/${id}`, data),
+    deleteAutomationRule: (id: string) => api.delete(`/automation/rules/${id}`),
+    setAutomationRuleEnabled: (id: string, enabled: boolean) =>
+        api.post<AutomationRule>(`/automation/rules/${id}/${enabled ? 'enable' : 'disable'}`),
+    getAutomationRuns: (params?: { rule_id?: string; status?: string; limit?: number; offset?: number }) =>
+        api.get<{ data: AutomationRun[]; total: number; limit: number; offset: number }>('/automation/runs', { params }),
+    retryAutomationRun: (id: string) => api.post(`/automation/runs/${id}/retry`),
 };

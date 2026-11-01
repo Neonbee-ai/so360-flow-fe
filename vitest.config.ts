@@ -6,6 +6,11 @@ const stubs = path.resolve(__dirname, 'src/test/__mocks__');
 
 export default defineConfig({
   plugins: [react()],
+  // CI checks out this repo alone, so the shell-fe `file:` package @so360/theme
+  // (required by tailwind.config.js -> withComb) is absent. Specs never need
+  // generated CSS: use an inline empty PostCSS config so postcss.config.js and
+  // tailwind.config.js are never loaded under vitest.
+  css: { postcss: { plugins: [] } },
   resolve: {
     alias: {
       '@so360/shell-context': path.join(stubs, 'shell-context.ts'),

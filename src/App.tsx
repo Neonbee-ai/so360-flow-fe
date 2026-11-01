@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useShellBridge } from '@so360/shell-context';
-import { FeatureRoute } from '@so360/design-system';
+import { CombScope, FeatureRoute, Button } from '@so360/design-system';
 import { MfeShellInitializer } from './utils/initializeMfe';
 import { FlowDashboard } from './pages/FlowDashboard';
 import { FlowBuilder } from './pages/FlowBuilder';
@@ -12,33 +12,32 @@ import { ApprovalPoliciesPage } from './pages/ApprovalPoliciesPage';
 import { FlowSimulatorPage } from './pages/FlowSimulatorPage';
 import { ApprovalHistoryPage } from './pages/ApprovalHistoryPage';
 import { ApprovalDashboard } from './pages/ApprovalDashboard';
+import { AutomationRulesPage } from './pages/AutomationRulesPage';
+import { AutomationRunsPage } from './pages/AutomationRunsPage';
+import { AutomationRuleEditor } from './pages/AutomationRuleEditor';
 import './index.css';
 
 // Route-level upgrade prompt shown when a feature is `locked` (a higher plan unlocks it).
 const UpgradeLocked = () => {
     const navigate = useNavigate();
     return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-center px-6">
+        <div className="flex flex-col items-center justify-center py-nb-12 gap-4 text-center px-6">
             <div>
-                <h2 className="text-lg font-semibold text-slate-100">This feature is part of a higher plan</h2>
-                <p className="text-sm text-slate-400 mt-1">Upgrade your plan to unlock it.</p>
+                <h2 className="text-lg font-semibold text-fg">This feature is part of a higher plan</h2>
+                <p className="text-sm text-fg-muted mt-1">Upgrade your plan to unlock it.</p>
             </div>
-            <button
-                type="button"
-                onClick={() => navigate('/org/billing')}
-                className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
-            >
+            <Button type="button" onClick={() => navigate('/org/billing')}>
                 Upgrade plan
-            </button>
+            </Button>
         </div>
     );
 };
 
 // Route-level panel shown when a feature is `disabled` (admin turned it off — no upgrade path).
 const FeatureUnavailable = () => (
-    <div className="flex flex-col items-center justify-center min-h-[400px] gap-2 text-center px-6">
-        <h2 className="text-lg font-semibold text-slate-100">Feature unavailable</h2>
-        <p className="text-sm text-slate-400">This feature has been turned off for your organization.</p>
+    <div className="flex flex-col items-center justify-center py-nb-12 gap-2 text-center px-6">
+        <h2 className="text-lg font-semibold text-fg">Feature unavailable</h2>
+        <p className="text-sm text-fg-muted">This feature has been turned off for your organization.</p>
     </div>
 );
 
@@ -79,8 +78,8 @@ const PermissionGuard = ({ permission, children }: { permission: string | string
     if (allowed) return <>{children}</>;
     return (
         <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">You don&apos;t have access to this page</h2>
-            <p className="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
+            <h2 className="text-lg font-semibold text-fg-muted dark:text-fg">You don&apos;t have access to this page</h2>
+            <p className="mt-2 max-w-md text-sm text-fg-subtle dark:text-fg-muted">
                 Your role doesn&apos;t include permission for this page. Ask an administrator if you need it.
             </p>
         </div>
@@ -88,7 +87,9 @@ const PermissionGuard = ({ permission, children }: { permission: string | string
 };
 
 function App() {
+    const navigate = useNavigate();
     return (
+        <CombScope module="flow" root={{ label: 'Flow', to: '/flow' }} navigate={(to) => navigate(to)}>
         <MfeShellInitializer>
             <Routes>
                 {/* Landing route stays ungated — the Shell's module filter has already
@@ -102,11 +103,15 @@ function App() {
                 <Route path="instances" element={<PermissionGuard permission="instances.view"><FlagGuard flagKey="submodule:flow:advanced"><InstanceList /></FlagGuard></PermissionGuard>} />
                 <Route path="simulator" element={<PermissionGuard permission="workflows.read"><FlowSimulatorPage /></PermissionGuard>} />
                 <Route path="approvals/history/:entityType/:entityId" element={<PermissionGuard permission="instances.view"><ApprovalHistoryPage /></PermissionGuard>} />
+                <Route path="automation" element={<PermissionGuard permission="workflows.read"><FlagGuard flagKey="submodule:flow:automation_rules"><AutomationRulesPage /></FlagGuard></PermissionGuard>} />
+                <Route path="automation/runs" element={<PermissionGuard permission="instances.view"><FlagGuard flagKey="submodule:flow:automation_rules"><AutomationRunsPage /></FlagGuard></PermissionGuard>} />
+                <Route path="automation/:ruleId" element={<PermissionGuard permission="workflows.read"><FlagGuard flagKey="submodule:flow:automation_rules"><AutomationRuleEditor /></FlagGuard></PermissionGuard>} />
                 {/* Approval dashboard is the approver's personal work queue — left ungated. */}
                 <Route path="approvals/dashboard" element={<ApprovalDashboard />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </MfeShellInitializer>
+        </CombScope>
     );
 }
 

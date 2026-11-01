@@ -107,8 +107,8 @@ describe('FlowBuilder', () => {
 
     it('When the Back button is clicked / Then it navigates to the dashboard', async () => {
       renderExisting();
-      await waitFor(() => expect(screen.getByText('Back to Flows')).toBeInTheDocument());
-      fireEvent.click(screen.getByText('Back to Flows'));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Back to Flows' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Back to Flows' }));
       expect(mockNavigate).toHaveBeenCalledWith('/flow');
     });
   });
@@ -120,7 +120,7 @@ describe('FlowBuilder', () => {
 
     it('When flags are not loaded / Then the "not available" notice is shown instead of the builder', () => {
       renderNew();
-      expect(screen.getByText('Workflow Builder')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Workflow Builder' })).toBeInTheDocument();
       expect(screen.getByText(/This feature is not available on your current plan/i)).toBeInTheDocument();
       expect(screen.queryByText('Flow Information')).not.toBeInTheDocument();
     });

@@ -159,7 +159,7 @@ describe('Given an InstanceList with UTC started_at / completed_at', () => {
     render(<MemoryRouter><InstanceList /></MemoryRouter>);
 
     await waitFor(() =>
-      expect(screen.getAllByText(FMT_DATE).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(new RegExp(`(Started|Completed) ${FMT_DATE}`)).length).toBeGreaterThan(0)
     );
   });
 
@@ -188,7 +188,7 @@ describe('Given an InstanceList with UTC started_at / completed_at', () => {
     render(<MemoryRouter><InstanceList /></MemoryRouter>);
 
     await waitFor(() =>
-      expect(screen.getAllByText(FMT_DATE).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(new RegExp(`(Started|Completed) ${FMT_DATE}`)).length).toBeGreaterThan(0)
     );
   });
 
@@ -222,7 +222,7 @@ describe('Given an InstanceList with UTC started_at / completed_at', () => {
     render(<MemoryRouter><InstanceList /></MemoryRouter>);
 
     await waitFor(() => {
-      const cells = screen.getAllByText(FMT_DATE);
+      const cells = screen.getAllByText(new RegExp(`(Started|Completed) ${FMT_DATE}`));
       expect(cells.length).toBeGreaterThanOrEqual(2);
     });
   });
@@ -451,10 +451,10 @@ describe('Given PendingApprovals with UTC requested_at', () => {
 });
 
 // ---------------------------------------------------------------------------
-// PendingApprovals — modal panels capped at max-h-[90vh]
+// PendingApprovals — modals use the design-system dialog
 // ---------------------------------------------------------------------------
 
-describe('Given PendingApprovals modals / Then each panel is capped at max-h-[90vh]', () => {
+describe('Given PendingApprovals modals / Then each opens as a dialog', () => {
   beforeEach(() => vi.resetAllMocks());
 
   const renderPending = async () => {
@@ -480,29 +480,24 @@ describe('Given PendingApprovals modals / Then each panel is capped at max-h-[90
     await screen.findAllByText('Modal Approval');
   };
 
-  const cappedPanels = () =>
-    Array.from(document.querySelectorAll('div')).filter(el =>
-      el.className.includes('max-h-[90vh]')
-    );
-
-  it('When the Approve modal is opened / Then a max-h-[90vh] panel exists', async () => {
+  it('When the Approve modal is opened / Then a dialog is shown', async () => {
     await renderPending();
     fireEvent.click(screen.getByRole('button', { name: /Approve/i }));
     await screen.findByText(/Approve: Modal Approval/);
-    expect(cappedPanels().length).toBeGreaterThan(0);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('When the Reject modal is opened / Then a max-h-[90vh] panel exists', async () => {
+  it('When the Reject modal is opened / Then a dialog is shown', async () => {
     await renderPending();
     fireEvent.click(screen.getByRole('button', { name: /Reject/i }));
     await screen.findByText(/Reject: Modal Approval/);
-    expect(cappedPanels().length).toBeGreaterThan(0);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('When the Delegate modal is opened / Then a max-h-[90vh] panel exists', async () => {
+  it('When the Delegate modal is opened / Then a dialog is shown', async () => {
     await renderPending();
     fireEvent.click(screen.getByRole('button', { name: /Delegate/i }));
     await screen.findByText(/Delegate: Modal Approval/);
-    expect(cappedPanels().length).toBeGreaterThan(0);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

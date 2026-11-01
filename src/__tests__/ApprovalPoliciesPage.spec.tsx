@@ -60,7 +60,7 @@ describe('ApprovalPoliciesPage', () => {
     it('When loading / Then shows spinner', () => {
       api.getApprovalPolicies.mockReturnValue(new Promise(() => {}));
       renderPage();
-      expect(document.querySelector('.animate-spin')).not.toBeNull();
+      expect(screen.getByTestId('spinner')).toBeInTheDocument();
     });
   });
 
@@ -241,8 +241,8 @@ describe('ApprovalPoliciesPage', () => {
       api.getApprovalPolicies.mockResolvedValue({ data: [makePolicy({ is_active: false })] });
       renderPage();
       await waitFor(() => screen.getByText('Expense Approval'));
-      const dot = document.querySelector('.bg-slate-500');
-      expect(dot).not.toBeNull();
+      // Comb: status is a neutral "Inactive" Badge (no hand-built dot).
+      expect(screen.getByText('Inactive')).toBeInTheDocument();
     });
   });
 
@@ -287,7 +287,7 @@ describe('ApprovalPoliciesPage', () => {
     it('When flags are loaded and feature is enabled / Then the simulate button appears for each policy row', async () => {
       renderPage();
       await waitFor(() => expect(screen.getByText('Expense Approval')).toBeInTheDocument());
-      expect(document.querySelector('[title="Test policy"]')).not.toBeNull();
+      expect(document.querySelector('[aria-label="Test policy"]')).not.toBeNull();
     });
   });
 });
