@@ -7,6 +7,7 @@ import { ApprovalHistory } from '../components/ApprovalHistory';
 import type { FlowInstance, FlowHistory, FlowDefinition } from '../types/flow';
 import { FlowStateGraph } from '../components/FlowStateGraph';
 import { useFlowFormatters } from '../utils/formatters';
+import { isMalformedRouteParam } from '../utils/routeParam';
 
 interface InstanceContext {
     instance: FlowInstance;
@@ -31,9 +32,15 @@ export const InstanceViewer = () => {
     const [transitioning, setTransitioning] = useState(false);
 
     useEffect(() => {
-        if (instanceId) {
-            loadInstanceContext();
+        // A malformed id (e.g. an unfilled `:instanceId` link) can never
+        // resolve: show the not-found state without a request the API rejects.
+        if (isMalformedRouteParam(instanceId)) {
+            setContext(null);
+            setError(null);
+            setLoading(false);
+            return;
         }
+        loadInstanceContext();
     }, [instanceId]);
 
     const loadInstanceContext = async () => {
