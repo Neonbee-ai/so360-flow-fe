@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Badge, Button, DataTable, EmptyState, ListPageTemplate, type DataTableColumn, type MenuItem } from '@so360/design-system';
-import { Plus, Workflow } from 'lucide-react';
+import { Badge, Button, DataTable, EmptyState, IconButton, ListPageTemplate, Menu, toast, useConfirm, type DataTableColumn, type MenuItem } from '@so360/design-system';
+import { MoreVertical, Plus, Workflow } from 'lucide-react';
 import { useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition } from '../types/flow';
@@ -11,6 +11,8 @@ export const FlowDashboard = () => {
     const shell = useShellBridge();
     const canAccessAutomation = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:automation_rules') ?? false);
     const canCreateFlow = (shell?.permissionsLoaded === true) && (shell?.hasPermission?.('workflows.create') ?? false) && (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:definitions:create') ?? true);
+    const canManageFlow = (shell?.permissionsLoaded === true) && (shell?.hasPermission?.('workflows.update') ?? false) && (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true);
+    const [confirm, confirmDialog] = useConfirm();
     const canStartInstance = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('action:flow:instances:start') ?? true);
     const canAccessBuilder = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true);
     const canAccessPolicies = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:approval_policies') ?? true);
@@ -44,7 +46,7 @@ export const FlowDashboard = () => {
     const loadFlows = async () => {
         try {
             setLoading(true);
-            const response = await flowApi.getFlowDefinitions(selectedModule || undefined);
+            const response = await flowApi.getFlowDefinitions(selectedModule || undefined, { includeInactive: true });
             setFlows(response.data);
         } catch (error) {
             console.error('Failed to load flows:', error);
@@ -52,6 +54,43 @@ export const FlowDashboard = () => {
             setLoading(false);
         }
     };
+
+    const toggleActive = async (flow: FlowDefinition) => {
+        const next = !flow.is_active;
+        setFlows((prev) => prev.map((f) => (f.id === flow.id ? { ...f, is_active: next } : f)));
+        try {
+            await flowApi.setFlowActive(flow.id, next);
+            toast.success(next ? `"${flow.name}" enabled` : `"${flow.name}" disabled`);
+        } catch (error) {
+            setFlows((prev) => prev.map((f) => (f.id === flow.id ? { ...f, is_active: flow.is_active } : f)));
+            // Error toast comes from the flowApi interceptor.
+            console.error('Failed to toggle flow:', error);
+        }
+    };
+
+    const deleteFlow = async (flow: FlowDefinition) => {
+        const ok = await confirm({
+            title: 'Delete flow?',
+            message: `"${flow.name}" will be deleted. This is blocked while it has live instances.`,
+            confirmLabel: 'Delete',
+            intent: 'danger',
+        });
+        if (!ok) return;
+        try {
+            await flowApi.deleteFlowDefinition(flow.id);
+            setFlows((prev) => prev.filter((f) => f.id !== flow.id));
+            toast.success(`"${flow.name}" deleted`);
+        } catch (error) {
+            // 409 (live instances) message is toasted by the flowApi interceptor; the row stays.
+            console.error('Failed to delete flow:', error);
+        }
+    };
+
+    const rowMenu = (flow: FlowDefinition): MenuItem[] => [
+        { label: 'Edit', onSelect: () => navigate(`/flow/builder/${flow.id}`) },
+        { label: flow.is_active ? 'Disable' : 'Enable', onSelect: () => { void toggleActive(flow); } },
+        { label: 'Delete', danger: true, onSelect: () => { void deleteFlow(flow); } },
+    ];
 
     const columns: DataTableColumn<FlowDefinition>[] = [
         {
@@ -72,6 +111,20 @@ export const FlowDashboard = () => {
             header: 'Status',
             render: (flow) => <Badge tone={flow.is_active ? 'success' : 'neutral'} size="sm">{flow.is_active ? 'Active' : 'Inactive'}</Badge>,
         },
+        ...(canManageFlow ? [{
+            key: 'actions',
+            header: '',
+            align: 'right' as const,
+            render: (flow: FlowDefinition) => (
+                <span onClick={(e) => e.stopPropagation()}>
+                    <Menu
+                        name={`flow-row-${flow.id}`}
+                        trigger={<IconButton label={`Actions for ${flow.name}`} icon={<MoreVertical className="w-4 h-4" />} />}
+                        items={rowMenu(flow)}
+                    />
+                </span>
+            ),
+        }] : []),
     ];
 
     const overflowActions: MenuItem[] = [
@@ -127,6 +180,7 @@ export const FlowDashboard = () => {
                     />
                 }
             />
+            {confirmDialog}
         </ListPageTemplate>
     );
 };
