@@ -81,7 +81,7 @@ describe('FlowDashboard', () => {
       renderPage();
       await waitFor(() => expect(mockFlowApi.getFlowDefinitions).toHaveBeenCalledTimes(1));
       fireEvent.change(screen.getByLabelText('Module'), { target: { value: 'module:crm:lead' } });
-      await waitFor(() => expect(mockFlowApi.getFlowDefinitions).toHaveBeenCalledWith('module:crm:lead'));
+      await waitFor(() => expect(mockFlowApi.getFlowDefinitions).toHaveBeenCalledWith('module:crm:lead', { includeInactive: true }));
     });
 
     it('When the New Flow button is clicked / Then it navigates to the new builder', async () => {
