@@ -94,8 +94,8 @@ describe('Given the Flow Definitions list', () => {
     api.deleteFlowDefinition.mockResolvedValue({ data: { deleted: true } });
     await renderDashboard();
     openRowMenu();
+    // useConfirm is stubbed in the DS mock and resolves true (no dialog to click).
     fireEvent.click(await screen.findByText('Delete'));
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete', hidden: false }));
     await waitFor(() => expect(api.deleteFlowDefinition).toHaveBeenCalledWith('f1'));
     await waitFor(() => expect(screen.queryByText('Lead Flow')).not.toBeInTheDocument());
   });
@@ -104,8 +104,8 @@ describe('Given the Flow Definitions list', () => {
     api.deleteFlowDefinition.mockRejectedValue({ response: { status: 409 } });
     await renderDashboard();
     openRowMenu();
+    // useConfirm is stubbed in the DS mock and resolves true (no dialog to click).
     fireEvent.click(await screen.findByText('Delete'));
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete', hidden: false }));
     await waitFor(() => expect(api.deleteFlowDefinition).toHaveBeenCalled());
     expect(screen.getByText('Lead Flow')).toBeInTheDocument();
   });

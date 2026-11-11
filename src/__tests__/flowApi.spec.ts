@@ -44,7 +44,14 @@ describe('flowApi', () => {
       const flowApi = await getApi();
       mockAxiosInstance.get.mockResolvedValue({ data: { id: 'f1' } });
       await flowApi.getFlowDefinition('f1');
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/definitions/f1');
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/definitions/f1', undefined);
+    });
+
+    it('When getFlowDefinition is called with includeInactive / Then sends include_inactive=true', async () => {
+      const flowApi = await getApi();
+      mockAxiosInstance.get.mockResolvedValue({ data: { id: 'f1' } });
+      await flowApi.getFlowDefinition('f1', { includeInactive: true });
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/definitions/f1', { params: { include_inactive: true } });
     });
 
     it('When startFlowInstance is called / Then posts to /instances/start', async () => {
