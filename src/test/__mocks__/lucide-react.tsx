@@ -65,3 +65,4 @@ export const History = createIcon('History');
 export const FlaskConical = createIcon('FlaskConical');
 export const GripVertical = createIcon('GripVertical');
 export const Power = createIcon('Power');
+export const MoreVertical = createIcon('MoreVertical');
