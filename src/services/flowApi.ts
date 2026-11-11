@@ -72,17 +72,32 @@ export const flowApi = {
         return api.post<FlowDefinition>('/definitions', data);
     },
 
-    getFlowDefinitions: (moduleCode?: string) =>
+    /** `includeInactive` is for the Definitions admin list (disabled flows must stay visible to re-enable). */
+    getFlowDefinitions: (moduleCode?: string, opts?: { includeInactive?: boolean }) =>
         refCache.run(
-            `flow-defs|${orgKey()}|${moduleCode ?? ''}`,
-            () => api.get<FlowDefinition[]>('/definitions', { params: { module_code: moduleCode } }),
+            `flow-defs|${orgKey()}|${moduleCode ?? ''}|${opts?.includeInactive ? 'all' : 'active'}`,
+            () => api.get<FlowDefinition[]>('/definitions', {
+                params: { module_code: moduleCode, ...(opts?.includeInactive ? { include_inactive: true } : {}) },
+            }),
         ),
     getAllInstances: (params?: { entity_type?: string; status?: string; limit?: number; offset?: number }) =>
         api.get<{ data: FlowInstance[]; total: number; limit: number; offset: number }>('/instances', { params }),
 
 
-    getFlowDefinition: (flowId: string) =>
-        api.get<FlowDefinition>(`/definitions/${flowId}`),
+    getFlowDefinition: (flowId: string, opts?: { includeInactive?: boolean }) =>
+        api.get<FlowDefinition>(`/definitions/${flowId}`, opts?.includeInactive ? { params: { include_inactive: true } } : undefined),
+
+    /** Enable/disable via the partial PUT (`{ is_active }` only). */
+    setFlowActive: (flowId: string, isActive: boolean) => {
+        refCache.invalidate(`flow-defs|${orgKey()}`);
+        return api.put<FlowDefinition>(`/definitions/${flowId}`, { is_active: isActive });
+    },
+
+    /** Soft delete; 409 when live instances exist. */
+    deleteFlowDefinition: (flowId: string) => {
+        refCache.invalidate(`flow-defs|${orgKey()}`);
+        return api.delete(`/definitions/${flowId}`);
+    },
 
     updateFlowDefinition: (flowId: string, data: Partial<CreateFlowDefinitionDto>) => {
         refCache.invalidate(`flow-defs|${orgKey()}`);

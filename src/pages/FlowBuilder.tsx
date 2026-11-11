@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Save, Plus, Trash2 } from 'lucide-react';
 import { useActivity, useShellBridge } from '@so360/shell-context';
-import { toast, Select, Button, Card, EmptyState, FormPageTemplate, IconButton, Stack, TextField, Textarea, Checkbox, RadioGroup, Grid, GridItem, Skeleton } from '@so360/design-system';
+import { toast, Select, Button, Card, EmptyState, FormPageTemplate, IconButton, Stack, Switch, TextField, Textarea, Checkbox, RadioGroup, Grid, GridItem, Skeleton, useConfirm } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
@@ -16,6 +16,9 @@ export const FlowBuilder = () => {
 
     const [loading, setLoading] = useState(!isNew);
     const [saving, setSaving] = useState(false);
+    const [isActive, setIsActive] = useState(true);
+    const [confirm, confirmDialog] = useConfirm();
+    const canManageFlow = (shell?.permissionsLoaded === true) && (shell?.hasPermission?.('workflows.update') ?? false);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [moduleCode, setModuleCode] = useState('');
@@ -50,9 +53,10 @@ export const FlowBuilder = () => {
 
     const loadFlow = async () => {
         try {
-            const response = await flowApi.getFlowDefinition(flowId!);
+            const response = await flowApi.getFlowDefinition(flowId!, { includeInactive: true });
             const flow = response.data;
             setName(flow.name);
+            setIsActive(flow.is_active !== false);
             setDescription(flow.description || '');
             setModuleCode(flow.module_code);
             setScope(flow.metadata?.scope || (flow.metadata?.is_default ? 'all_projects' : 'all_projects'));
@@ -108,6 +112,36 @@ export const FlowBuilder = () => {
             // Error toast comes from the flowApi interceptor.
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleToggleActive = async (next: boolean) => {
+        const prev = isActive;
+        setIsActive(next);
+        try {
+            await flowApi.setFlowActive(flowId!, next);
+            toast.success(next ? 'Flow enabled' : 'Flow disabled');
+        } catch (error) {
+            setIsActive(prev);
+            console.error('Failed to toggle flow:', error);
+        }
+    };
+
+    const handleDelete = async () => {
+        const ok = await confirm({
+            title: 'Delete flow?',
+            message: `"${name}" will be deleted. This is blocked while it has live instances.`,
+            confirmLabel: 'Delete',
+            intent: 'danger',
+        });
+        if (!ok) return;
+        try {
+            await flowApi.deleteFlowDefinition(flowId!);
+            toast.success('Flow deleted');
+            navigate('/flow');
+        } catch (error) {
+            // 409 message is toasted by the flowApi interceptor; stay on the page.
+            console.error('Failed to delete flow:', error);
         }
     };
 
@@ -170,6 +204,15 @@ export const FlowBuilder = () => {
             title={isNew ? 'New Flow' : 'Edit Flow'}
             trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}
             onCancel={() => navigate('/flow')}
+            status={!isNew && canManageFlow ? (
+                <Switch name="flow-active" label="Active" checked={isActive} onCheckedChange={(v) => { void handleToggleActive(v); }} />
+            ) : undefined}
+            destructiveAction={!isNew && canManageFlow ? (
+                <Button variant="danger" onClick={() => { void handleDelete(); }}>
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                </Button>
+            ) : undefined}
             primaryAction={
                 <Button
                     onClick={handleSave}
@@ -414,6 +457,8 @@ export const FlowBuilder = () => {
                     ),
                 },
             ]}
-        />
+        >
+            {confirmDialog}
+        </FormPageTemplate>
     );
 };
