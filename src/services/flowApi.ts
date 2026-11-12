@@ -133,8 +133,14 @@ export const flowApi = {
     performApprovalAction: (data: ApprovalActionDto) =>
         api.post('/approval/action', data),
 
-    getPendingApprovals: () =>
-        api.get<PendingApproval[]>('/approval/pending'),
+    // Optional paging (BE: limit max 100, offset, include_total=true). Without params
+    // it is the legacy bare array. With paging, an up-to-date BE answers
+    // { data, total }; an old BE ignores the params and answers a bare array.
+    getPendingApprovals: (params?: { limit?: number; offset?: number; include_total?: boolean }) =>
+        api.get<PendingApproval[] | { data: PendingApproval[]; total: number }>(
+            '/approval/pending',
+            params ? { params } : undefined,
+        ),
 
     getApprovalHistory: (entityType: string, entityId: string) =>
         api.get<ApprovalHistory[]>(`/approval/history/${entityType}/${entityId}`),

@@ -17,6 +17,12 @@ import {
 import { flowApi } from '../services/flowApi';
 import type { ApprovalStats } from '../types/flow';
 
+/** Rows of a pending-approvals response, whether bare array (old BE) or { data, total }. */
+export function pendingApprovalRows(body: any): any[] {
+    if (Array.isArray(body)) return body;
+    return Array.isArray(body?.data) ? body.data : [];
+}
+
 export const ApprovalDashboard: React.FC = () => {
     const navigate = useNavigate();
     const [stats, setStats] = useState<ApprovalStats | null>(null);
@@ -26,7 +32,7 @@ export const ApprovalDashboard: React.FC = () => {
     useEffect(() => {
         Promise.all([
             flowApi.getApprovalStats().then(res => setStats(res.data)),
-            flowApi.getPendingApprovals().then(res => setRecentApprovals(res.data?.slice(0, 20) || [])),
+            flowApi.getPendingApprovals({ limit: 20, include_total: true }).then(res => setRecentApprovals(pendingApprovalRows(res.data).slice(0, 20))),
         ]).catch(() => {}).finally(() => setLoading(false));
     }, []);
 
