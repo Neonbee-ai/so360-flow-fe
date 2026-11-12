@@ -37,6 +37,18 @@ export const useConfirm = () => {
   const ref = (globalThis as any).__confirmMock ?? ((..._a: any[]) => Promise.resolve(true));
   return [ref, null] as const;
 };
+// Menu mock: trigger toggles an inline list of item buttons; selecting an item runs onSelect and closes.
+export const Menu = ({ trigger, items }: any) => {
+  const [open, setOpen] = React.useState(false);
+  return React.createElement(React.Fragment, null,
+    React.createElement('span', { onClick: () => setOpen((o: boolean) => !o) }, trigger),
+    open
+      ? React.createElement('div', { role: 'menu' }, (items || []).filter((i: any) => i && i.label).map((i: any) =>
+          React.createElement('button', { key: i.label, type: 'button', role: 'menuitem', onClick: () => { setOpen(false); i.onSelect?.(); } }, i.label)))
+      : null);
+};
+export const Switch = ({ label, name, checked, onCheckedChange, description: _d, hideLabel: _h, labelPosition: _lp, ...rest }: any) =>
+  React.createElement('button', { type: 'button', role: 'switch', id: name, 'aria-label': label, 'aria-checked': !!checked, onClick: () => onCheckedChange?.(!checked), ...rest });
 export const Modal = ({ children, open, isOpen, title, description, footer, onClose: _c, size: _s, closeOnOverlayClick: _co, dismissible: _d, bodyPadding: _b, initialFocusRef: _i, formId: _f, submitLabel: _sl, cancelLabel: _cl, submitLoading: _sd, submitDisabled: _sdis, ...rest }: any) =>
   open || isOpen
     ? React.createElement('div', { 'data-testid': 'modal', role: 'dialog', ...rest },
