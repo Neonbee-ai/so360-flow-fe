@@ -118,7 +118,7 @@ export const InstanceViewer = () => {
     if (notFound || (!error && !context)) {
         return (
             <DetailPageTemplate trail={trail} title="Flow Instance">
-                <RecordNotFound listPath="/flow/instances" listLabel="Instances" />
+                <RecordNotFound listPath="/flow/instances" listLabel="Instances" title="Instance not found" />
             </DetailPageTemplate>
         );
     }

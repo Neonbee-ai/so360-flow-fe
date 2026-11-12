@@ -137,10 +137,9 @@ export const flowApi = {
     // it is the legacy bare array. With paging, an up-to-date BE answers
     // { data, total }; an old BE ignores the params and answers a bare array.
     getPendingApprovals: (params?: { limit?: number; offset?: number; include_total?: boolean }) =>
-        api.get<PendingApproval[] | { data: PendingApproval[]; total: number }>(
-            '/approval/pending',
-            params ? { params } : undefined,
-        ),
+        params
+            ? api.get<PendingApproval[] | { data: PendingApproval[]; total: number }>('/approval/pending', { params })
+            : api.get<PendingApproval[]>('/approval/pending'),
 
     getApprovalHistory: (entityType: string, entityId: string) =>
         api.get<ApprovalHistory[]>(`/approval/history/${entityType}/${entityId}`),

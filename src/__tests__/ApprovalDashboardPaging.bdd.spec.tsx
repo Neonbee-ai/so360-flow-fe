@@ -34,10 +34,10 @@ describe('ApprovalDashboard pending approvals paging', () => {
     api.getApprovalStats.mockResolvedValue({ data: { pending_count: 1, overdue_count: 0, avg_cycle_hours: 1, by_entity_type: {} } });
   });
 
-  it('Given the dashboard mounts / When it loads / Then it asks for limit=20 with include_total', async () => {
+  it('Given the dashboard mounts / When it loads / Then it asks for limit=5 (the rows the card shows) with include_total', async () => {
     api.getPendingApprovals.mockResolvedValue({ data: { data: [row(1)], total: 1 } });
     render(<MemoryRouter><ApprovalDashboard /></MemoryRouter>);
-    await waitFor(() => expect(api.getPendingApprovals).toHaveBeenCalledWith({ limit: 20, include_total: true }));
+    await waitFor(() => expect(api.getPendingApprovals).toHaveBeenCalledWith({ limit: 5, include_total: true }));
   });
 
   it('Given a paging BE answering { data, total } / When rendered / Then the rows show', async () => {
@@ -46,10 +46,10 @@ describe('ApprovalDashboard pending approvals paging', () => {
     expect(await screen.findByText('Lead 1')).toBeInTheDocument();
   });
 
-  it('Given an old BE answering a bare array of 30 / When rendered / Then only the first 20 show', async () => {
+  it('Given an old BE answering a bare array of 30 / When rendered / Then only the first 5 show', async () => {
     api.getPendingApprovals.mockResolvedValue({ data: Array.from({ length: 30 }, (_, i) => row(i + 1)) });
     render(<MemoryRouter><ApprovalDashboard /></MemoryRouter>);
-    expect(await screen.findByText('Lead 20')).toBeInTheDocument();
-    expect(screen.queryByText('Lead 21')).not.toBeInTheDocument();
+    expect(await screen.findByText('Lead 5')).toBeInTheDocument();
+    expect(screen.queryByText('Lead 6')).not.toBeInTheDocument();
   });
 });

@@ -17,6 +17,9 @@ import {
 import { flowApi } from '../services/flowApi';
 import type { ApprovalStats } from '../types/flow';
 
+/** The Recent Pending card shows this many rows, so fetch only that many. */
+const RECENT_PENDING_ROWS = 5;
+
 /** Rows of a pending-approvals response, whether bare array (old BE) or { data, total }. */
 export function pendingApprovalRows(body: any): any[] {
     if (Array.isArray(body)) return body;
@@ -32,7 +35,7 @@ export const ApprovalDashboard: React.FC = () => {
     useEffect(() => {
         Promise.all([
             flowApi.getApprovalStats().then(res => setStats(res.data)),
-            flowApi.getPendingApprovals({ limit: 20, include_total: true }).then(res => setRecentApprovals(pendingApprovalRows(res.data).slice(0, 20))),
+            flowApi.getPendingApprovals({ limit: RECENT_PENDING_ROWS, include_total: true }).then(res => setRecentApprovals(pendingApprovalRows(res.data).slice(0, RECENT_PENDING_ROWS))),
         ]).catch(() => {}).finally(() => setLoading(false));
     }, []);
 
@@ -91,7 +94,7 @@ export const ApprovalDashboard: React.FC = () => {
                 >
                     <DataTable
                         columns={recentColumns}
-                        rows={recentApprovals.slice(0, 5)}
+                        rows={recentApprovals}
                         rowKey={(a) => a.id}
                         onRowClick={() => navigate('/flow/approvals/pending')}
                         emptyState={<EmptyState title="No pending approvals" />}
