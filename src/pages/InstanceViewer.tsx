@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GitBranch, Database, History } from 'lucide-react';
+import RecordNotFound, { isNotFoundError } from '../components/RecordNotFound';
 import { toast, useConfirm, Badge, Button, Card, Cluster, DescriptionList, DetailPageTemplate, EmptyState, Stack } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import { ApprovalHistory } from '../components/ApprovalHistory';
@@ -29,6 +30,7 @@ export const InstanceViewer = () => {
     const [context, setContext] = useState<InstanceContext | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [notFound, setNotFound] = useState(false);
     const [transitioning, setTransitioning] = useState(false);
 
     useEffect(() => {
@@ -47,11 +49,14 @@ export const InstanceViewer = () => {
         try {
             setLoading(true);
             setError(null);
+            setNotFound(false);
             const response = await flowApi.getFlowInstanceContext(instanceId!);
+            if (!response.data) setNotFound(true);
             setContext(response.data);
         } catch (err: any) {
             console.error('Failed to load instance:', err);
-            setError(err.response?.data?.message || 'Failed to load instance');
+            if (isNotFoundError(err)) setNotFound(true);
+            else setError(err.response?.data?.message || 'Failed to load instance');
         } finally {
             setLoading(false);
         }
@@ -108,6 +113,14 @@ export const InstanceViewer = () => {
 
     if (loading) {
         return <DetailPageTemplate trail={trail} title="Flow Instance" loading />;
+    }
+
+    if (notFound || (!error && !context)) {
+        return (
+            <DetailPageTemplate trail={trail} title="Flow Instance">
+                <RecordNotFound listPath="/flow/instances" listLabel="Instances" />
+            </DetailPageTemplate>
+        );
     }
 
     if (error || !context) {
