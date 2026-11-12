@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Save, Plus, Trash2 } from 'lucide-react';
+import RecordNotFound, { isNotFoundError } from '../components/RecordNotFound';
 import { useActivity, useShellBridge } from '@so360/shell-context';
 import { toast, Select, Button, Card, EmptyState, FormPageTemplate, IconButton, Stack, Switch, TextField, Textarea, Checkbox, RadioGroup, Grid, GridItem, Skeleton, useConfirm } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
@@ -18,6 +19,7 @@ export const FlowBuilder = () => {
     const canAccessBuilder = (shell?.effectiveFlagsLoaded !== false) && (shell?.isFeatureEnabled?.('submodule:flow:builder') ?? true);
 
     const [loading, setLoading] = useState(!isNew);
+    const [notFound, setNotFound] = useState(false);
     const [saving, setSaving] = useState(false);
     const [isActive, setIsActive] = useState(true);
     const [confirm, confirmDialog] = useConfirm();
@@ -62,6 +64,7 @@ export const FlowBuilder = () => {
         try {
             const response = await flowApi.getFlowDefinition(flowId!, { includeInactive: true });
             const flow = response.data;
+            if (!flow) { setNotFound(true); return; }
             setName(flow.name);
             setIsActive(flow.is_active !== false);
             setDescription(flow.description || '');
@@ -73,6 +76,7 @@ export const FlowBuilder = () => {
             setTransitionKeys((flow.transitions || []).map(nextRowKey));
         } catch (error) {
             console.error('Failed to load flow:', error);
+            if (isNotFoundError(error)) setNotFound(true);
         } finally {
             setLoading(false);
         }
@@ -208,6 +212,14 @@ export const FlowBuilder = () => {
         return (
             <FormPageTemplate title={isNew ? 'New Flow' : 'Edit Flow'} trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}>
                 <div role="status" aria-busy="true" className="p-4"><span className="sr-only">Loading…</span><Skeleton variant="rect" className="h-10 w-1/3 mb-4" /><Skeleton lines={6} /></div>
+            </FormPageTemplate>
+        );
+    }
+
+    if (notFound) {
+        return (
+            <FormPageTemplate title="Edit Flow" trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}>
+                <RecordNotFound listPath="/flow" listLabel="Flows" />
             </FormPageTemplate>
         );
     }
