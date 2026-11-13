@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, UserPlus, AlertCircle, Clock } from 'lucide-react';
 import { Badge, Card, EmptyState, Stack } from '@so360/design-system';
+import RecordNotFound, { isNotFoundError } from './RecordNotFound';
 import { flowApi } from '../services/flowApi';
 import type { ApprovalHistory as ApprovalHistoryType, ApprovalAction } from '../types/flow';
 import { useFlowFormatters } from '../utils/formatters';
@@ -15,6 +16,7 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
     const [history, setHistory] = useState<ApprovalHistoryType[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
         fetchHistory();
@@ -23,10 +25,12 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
     const fetchHistory = async () => {
         try {
             setLoading(true);
+            setNotFound(false);
             const response = await flowApi.getApprovalHistory(entityType, entityId);
             setHistory(response.data);
         } catch (err: any) {
-            setError(err.message || 'Failed to load approval history');
+            if (isNotFoundError(err)) setNotFound(true);
+            else setError(err.message || 'Failed to load approval history');
         } finally {
             setLoading(false);
         }
@@ -84,6 +88,10 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
         );
     }
 
+    if (notFound) {
+        return <RecordNotFound listPath="/flow" listLabel="Flows" />;
+    }
+
     if (error) {
         return (
             <Card>
@@ -94,7 +102,11 @@ export const ApprovalHistory: React.FC<ApprovalHistoryProps> = ({ entityType, en
 
     if (history.length === 0) {
         return (
-            <EmptyState icon={Clock} title="No approval history for this entity" />
+            <EmptyState
+                icon={Clock}
+                title="No approval history for this entity"
+                description="It has no approvals yet, or this record doesn't exist or you don't have access to it."
+            />
         );
     }
 
