@@ -43,6 +43,10 @@ vi.mock('../pages/FlowSimulatorPage', () => ({
   FlowSimulatorPage: () => <div>FlowSimulatorPage</div>,
 }));
 
+vi.mock('../pages/AutomationRuleEditor', () => ({
+  AutomationRuleEditor: () => <div>AutomationRuleEditor</div>,
+}));
+
 import App from '../App';
 
 beforeEach(() => {
@@ -57,9 +61,9 @@ describe('App', () => {
       expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
     });
 
-    it('When navigating to /builder/:flowId / Then FlowBuilder is rendered', () => {
+    it('When navigating to /builder/:flowId / Then FlowBuilder is rendered (lazy chunk resolves behind Suspense)', async () => {
       render(<MemoryRouter initialEntries={['/builder/f1']}><App /></MemoryRouter>);
-      expect(screen.getByText('FlowBuilder')).toBeInTheDocument();
+      expect(await screen.findByText('FlowBuilder')).toBeInTheDocument();
     });
 
     it('When navigating to /approvals/pending / Then PendingApprovals is rendered', () => {
@@ -82,9 +86,14 @@ describe('App', () => {
       expect(screen.getByText('InstanceList')).toBeInTheDocument();
     });
 
-    it('When navigating to /simulator / Then FlowSimulatorPage is rendered', () => {
+    it('When navigating to /simulator / Then FlowSimulatorPage is rendered (lazy chunk resolves behind Suspense)', async () => {
       render(<MemoryRouter initialEntries={['/simulator']}><App /></MemoryRouter>);
-      expect(screen.getByText('FlowSimulatorPage')).toBeInTheDocument();
+      expect(await screen.findByText('FlowSimulatorPage')).toBeInTheDocument();
+    });
+
+    it('When navigating to /automation/:ruleId with automation enabled / Then the lazy AutomationRuleEditor resolves', async () => {
+      render(<MemoryRouter initialEntries={['/automation/r1']}><App /></MemoryRouter>);
+      expect(await screen.findByText('AutomationRuleEditor')).toBeInTheDocument();
     });
 
     it('When navigating to an unknown route / Then it redirects to FlowDashboard', () => {

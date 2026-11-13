@@ -88,6 +88,36 @@ describe('FlowBuilder', () => {
     });
   });
 
+  describe('Given two state rows exist (perf: stable row keys)', () => {
+    it('When the first state row is removed, Then the second row keeps its DOM node and typed value', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add State'));
+      fireEvent.click(screen.getByText('Add State'));
+      const [first, second] = screen.getAllByPlaceholderText('e.g., draft') as HTMLInputElement[];
+      fireEvent.change(first, { target: { value: 'alpha' } });
+      fireEvent.change(second, { target: { value: 'beta' } });
+
+      fireEvent.click(screen.getAllByLabelText('Remove state')[0]);
+
+      const remaining = screen.getAllByPlaceholderText('e.g., draft') as HTMLInputElement[];
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0]).toBe(second);
+      expect(remaining[0].value).toBe('beta');
+    });
+
+    it('When a state is removed that a transition references, Then the transition rows stay aligned with their keys', () => {
+      renderNew();
+      fireEvent.click(screen.getByText('Add State'));
+      fireEvent.click(screen.getByText('Add Transition'));
+      fireEvent.click(screen.getByText('Add Transition'));
+      expect(screen.getAllByLabelText('Remove transition')).toHaveLength(2);
+
+      fireEvent.click(screen.getAllByLabelText('Remove transition')[0]);
+
+      expect(screen.getAllByLabelText('Remove transition')).toHaveLength(1);
+    });
+  });
+
   describe('Given an existing flow is loaded', () => {
     it('When the page loads / Then it shows the flow name', async () => {
       renderExisting();

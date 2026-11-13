@@ -9,6 +9,8 @@ import { RoleSelector } from '../components/RoleSelector';
 type ApproverType = 'ROLE' | 'USER' | 'DYNAMIC_FIELD' | 'DEPARTMENT_HEAD';
 
 interface LocalApprovalStep {
+    /** Client-only stable row key (never sent to the API); survives reorder/edit/remove. */
+    uid: string;
     step_order: number;
     approver_type: ApproverType;
     // Shape depends on approver_type: { role_id } for ROLE, { user_id } for
@@ -87,7 +89,9 @@ const defaultPolicy = (): LocalApprovalPolicy => ({
     steps: [], conditions: [], is_active: true, priority: 0,
 });
 
+let stepUidSeq = 0;
 const defaultStep = (order: number): LocalApprovalStep => ({
+    uid: `step-${++stepUidSeq}`,
     step_order: order, approver_type: 'ROLE', approver_config: { role_id: '' },
     sla_hours: 48, can_delegate: false,
 });
@@ -494,7 +498,7 @@ export const ApprovalPoliciesPage = () => {
                                 {form.steps.length > 0 && (
                                     <div className="flex items-center gap-1 mb-3 overflow-x-auto pb-1">
                                         {form.steps.map((step, i) => (
-                                            <React.Fragment key={i}>
+                                            <React.Fragment key={step.uid}>
                                                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-fg text-xs font-bold">{step.step_order}</div>
                                                 {i < form.steps.length - 1 && <div className="flex-1 h-0.5 bg-line-strong min-w-4" />}
                                             </React.Fragment>
@@ -503,7 +507,7 @@ export const ApprovalPoliciesPage = () => {
                                 )}
 
                                 {form.steps.map((step, i) => (
-                                    <div key={i} draggable onDragStart={() => handleDragStart(i)} onDragOver={e => handleDragOver(e, i)}
+                                    <div key={step.uid} draggable onDragStart={() => handleDragStart(i)} onDragOver={e => handleDragOver(e, i)}
                                         className="bg-surface border border-line rounded-lg p-4 mb-3 cursor-move">
                                         <div className="flex items-center justify-between mb-3">
                                             <div className="flex items-center gap-2">
