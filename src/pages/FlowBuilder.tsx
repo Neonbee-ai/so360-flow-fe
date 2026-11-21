@@ -7,6 +7,9 @@ import { toast, Select, Button, Card, EmptyState, FormPageTemplate, IconButton, 
 import { flowApi } from '../services/flowApi';
 import type { FlowDefinition, FlowState, FlowTransition } from '../types/flow';
 
+let rowKeySeq = 0;
+const nextRowKey = () => `row-${++rowKeySeq}`;
+
 export const FlowBuilder = () => {
     const { flowId } = useParams<{ flowId: string }>();
     const navigate = useNavigate();
@@ -27,6 +30,10 @@ export const FlowBuilder = () => {
     const [scope, setScope] = useState<'all_projects' | 'selective_projects'>('all_projects');
     const [states, setStates] = useState<FlowState[]>([]);
     const [transitions, setTransitions] = useState<FlowTransition[]>([]);
+    // Client-only row keys, parallel to states/transitions (same order, same length), so removing or
+    // inserting a row does not remount the others and lose their input state. Never sent to the API.
+    const [stateKeys, setStateKeys] = useState<string[]>([]);
+    const [transitionKeys, setTransitionKeys] = useState<string[]>([]);
 
     const modules = [
         { code: 'module:crm:lead', name: 'CRM - Leads' },
@@ -65,6 +72,8 @@ export const FlowBuilder = () => {
             setScope(flow.metadata?.scope || (flow.metadata?.is_default ? 'all_projects' : 'all_projects'));
             setStates(flow.states || []);
             setTransitions(flow.transitions || []);
+            setStateKeys((flow.states || []).map(nextRowKey));
+            setTransitionKeys((flow.transitions || []).map(nextRowKey));
         } catch (error) {
             console.error('Failed to load flow:', error);
             if (isNotFoundError(error)) setNotFound(true);
@@ -160,15 +169,17 @@ export const FlowBuilder = () => {
                 is_terminal: false,
             },
         ]);
+        setStateKeys([...stateKeys, nextRowKey()]);
     };
 
     const removeState = (index: number) => {
         setStates(states.filter((_, i) => i !== index));
+        setStateKeys(stateKeys.filter((_, i) => i !== index));
         // Remove transitions involving this state
         const stateCode = states[index].code;
-        setTransitions(
-            transitions.filter((t) => t.from_state !== stateCode && t.to_state !== stateCode)
-        );
+        const keepTransition = transitions.map((t) => t.from_state !== stateCode && t.to_state !== stateCode);
+        setTransitions(transitions.filter((_, i) => keepTransition[i]));
+        setTransitionKeys(transitionKeys.filter((_, i) => keepTransition[i]));
     };
 
     const addTransition = () => {
@@ -181,10 +192,12 @@ export const FlowBuilder = () => {
                 to_state: '',
             },
         ]);
+        setTransitionKeys([...transitionKeys, nextRowKey()]);
     };
 
     const removeTransition = (index: number) => {
         setTransitions(transitions.filter((_, i) => i !== index));
+        setTransitionKeys(transitionKeys.filter((_, i) => i !== index));
     };
 
     if (!canAccessBuilder) {
@@ -295,7 +308,7 @@ export const FlowBuilder = () => {
                         <div className="md:col-span-2">
                             <Stack gap="default">
                                 {states.map((state, index) => (
-                            <Card key={index}>
+                            <Card key={stateKeys[index] ?? index}>
                                 <Grid columns="auto" gap="sm" className="mb-3">
                                     <GridItem span={6}>
                                         <TextField
@@ -380,7 +393,7 @@ export const FlowBuilder = () => {
                         <div className="md:col-span-2">
                             <Stack gap="default">
                                 {transitions.map((transition, index) => (
-                            <Card key={index}>
+                            <Card key={transitionKeys[index] ?? index}>
                                 <Grid columns="auto" gap="sm" className="mb-3">
                                     <GridItem span={6}>
                                         <TextField

@@ -1,20 +1,20 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useShellBridge } from '@so360/shell-context';
-import { CombScope, FeatureRoute, Button } from '@so360/design-system';
+import { CombScope, FeatureRoute, Button, Skeleton } from '@so360/design-system';
 import { MfeShellInitializer } from './utils/initializeMfe';
 import { FlowDashboard } from './pages/FlowDashboard';
-import { FlowBuilder } from './pages/FlowBuilder';
+const FlowBuilder = lazy(() => import('./pages/FlowBuilder').then((m) => ({ default: m.FlowBuilder })));
 import { PendingApprovals } from './pages/PendingApprovals';
 import { InstanceViewer } from './pages/InstanceViewer';
 import { InstanceList } from './pages/InstanceList';
 import { ApprovalPoliciesPage } from './pages/ApprovalPoliciesPage';
-import { FlowSimulatorPage } from './pages/FlowSimulatorPage';
+const FlowSimulatorPage = lazy(() => import('./pages/FlowSimulatorPage').then((m) => ({ default: m.FlowSimulatorPage })));
 import { ApprovalHistoryPage } from './pages/ApprovalHistoryPage';
 import { ApprovalDashboard } from './pages/ApprovalDashboard';
 import { AutomationRulesPage } from './pages/AutomationRulesPage';
 import { AutomationRunsPage } from './pages/AutomationRunsPage';
-import { AutomationRuleEditor } from './pages/AutomationRuleEditor';
+const AutomationRuleEditor = lazy(() => import('./pages/AutomationRuleEditor').then((m) => ({ default: m.AutomationRuleEditor })));
 import './index.css';
 
 // Route-level upgrade prompt shown when a feature is `locked` (a higher plan unlocks it).
@@ -91,6 +91,7 @@ function App() {
     return (
         <CombScope module="flow" root={{ label: 'Flow', to: '/flow' }} navigate={(to) => navigate(to)}>
         <MfeShellInitializer>
+            <Suspense fallback={<Skeleton className="h-64 w-full" />}>
             <Routes>
                 {/* Landing route stays ungated — the Shell's module filter has already
                     established the user belongs in Flow, and gating the module's default
@@ -110,6 +111,7 @@ function App() {
                 <Route path="approvals/dashboard" element={<ApprovalDashboard />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </Suspense>
         </MfeShellInitializer>
         </CombScope>
     );

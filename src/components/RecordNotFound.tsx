@@ -8,6 +8,8 @@ export interface RecordNotFoundProps {
     listPath: string;
     /** Human name of that list, e.g. "Tickets". */
     listLabel: string;
+    /** Heading, e.g. "Instance not found". Defaults to "Record not found". */
+    title?: string;
 }
 
 /** True when a failed fetch means the record is missing or not accessible (404/403). */
@@ -21,12 +23,12 @@ export function isNotFoundError(e: unknown): boolean {
  * Shown by detail pages once loading has ended and the record came back 404/403/null,
  * e.g. when a link carries another organisation's id.
  */
-const RecordNotFound: React.FC<RecordNotFoundProps> = ({ listPath, listLabel }) => {
+const RecordNotFound: React.FC<RecordNotFoundProps> = ({ listPath, listLabel, title = 'Record not found' }) => {
     const navigate = useNavigate();
     return (
         <EmptyState
             icon={SearchX}
-            title="Record not found"
+            title={title}
             description="This record doesn't exist or you don't have access to it."
             action={{ label: `Back to ${listLabel}`, onClick: () => navigate(listPath) }}
         />

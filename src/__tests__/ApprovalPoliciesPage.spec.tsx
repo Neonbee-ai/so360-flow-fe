@@ -140,6 +140,22 @@ describe('ApprovalPoliciesPage', () => {
       expect(screen.getByText('Step 1')).toBeInTheDocument();
     });
 
+    it('When the first of two steps is removed, Then the second step keeps its DOM node (stable key) and is renumbered Step 1', async () => {
+      renderPage();
+      await waitFor(() => screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('New Policy'));
+      fireEvent.click(screen.getByText('Add Step'));
+      fireEvent.click(screen.getByText('Add Step'));
+      const secondCard = screen.getAllByLabelText('Remove step')[1].closest('[draggable]');
+
+      fireEvent.click(screen.getAllByLabelText('Remove step')[0]);
+
+      const cards = screen.getAllByLabelText('Remove step');
+      expect(cards).toHaveLength(1);
+      expect(cards[0].closest('[draggable]')).toBe(secondCard);
+      expect(screen.getByText('Step 1')).toBeInTheDocument();
+    });
+
     it('When a step is added / Then it defaults to approver type ROLE with a role selector', async () => {
       renderPage();
       await waitFor(() => screen.getByText('New Policy'));
