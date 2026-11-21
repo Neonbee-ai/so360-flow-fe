@@ -32,7 +32,8 @@ export const PendingApprovals: React.FC = () => {
     const fetchPendingApprovals = useCallback(async () => {
         try {
             const response = await flowApi.getPendingApprovals();
-            setApprovals(response.data);
+            const body = response.data;
+            setApprovals(Array.isArray(body) ? body : body.data);
             setError(null);
         } catch (err: any) {
             setError(err.message || 'Failed to load pending approvals');
