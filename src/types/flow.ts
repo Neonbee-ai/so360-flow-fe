@@ -39,7 +39,8 @@ export interface FlowDefinition {
     is_draft?: boolean;
     is_system_flow?: boolean;
     version?: number;
-    subscription_tier_required?: 'starter' | 'growth' | 'enterprise';
+    /** Feature flag the tenant plan must enable (Command Center plan config). */
+    required_flag_key?: string;
     industry_tags?: string[];
     created_by: string;
     created_at: string;
@@ -90,7 +91,8 @@ export interface CreateFlowDefinitionDto {
     transitions: FlowTransition[];
     metadata?: Record<string, any>;
     is_draft?: boolean;
-    subscription_tier_required?: 'starter' | 'growth' | 'enterprise';
+    /** Feature flag the tenant plan must enable (Command Center plan config). */
+    required_flag_key?: string;
     industry_tags?: string[];
 }
 
