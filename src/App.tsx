@@ -3,18 +3,51 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useShellBridge } from '@so360/shell-context';
 import { CombScope, FeatureRoute, Button, Skeleton } from '@so360/design-system';
 import { MfeShellInitializer } from './utils/initializeMfe';
-import { FlowDashboard } from './pages/FlowDashboard';
-const FlowBuilder = lazy(() => import('./pages/FlowBuilder').then((m) => ({ default: m.FlowBuilder })));
-import { PendingApprovals } from './pages/PendingApprovals';
-import { InstanceViewer } from './pages/InstanceViewer';
-import { InstanceList } from './pages/InstanceList';
-import { ApprovalPoliciesPage } from './pages/ApprovalPoliciesPage';
-const FlowSimulatorPage = lazy(() => import('./pages/FlowSimulatorPage').then((m) => ({ default: m.FlowSimulatorPage })));
-import { ApprovalHistoryPage } from './pages/ApprovalHistoryPage';
-import { ApprovalDashboard } from './pages/ApprovalDashboard';
-import { AutomationRulesPage } from './pages/AutomationRulesPage';
-import { AutomationRunsPage } from './pages/AutomationRunsPage';
-const AutomationRuleEditor = lazy(() => import('./pages/AutomationRuleEditor').then((m) => ({ default: m.AutomationRuleEditor })));
+import { preloadRouteChunk } from './utils/routePreload';
+
+// Every page is route-lazy so the exposed ./App chunk carries only the router + guards.
+const loadFlowDashboard = () => import('./pages/FlowDashboard');
+const loadFlowBuilder = () => import('./pages/FlowBuilder');
+const loadPendingApprovals = () => import('./pages/PendingApprovals');
+const loadInstanceViewer = () => import('./pages/InstanceViewer');
+const loadInstanceList = () => import('./pages/InstanceList');
+const loadApprovalPoliciesPage = () => import('./pages/ApprovalPoliciesPage');
+const loadFlowSimulatorPage = () => import('./pages/FlowSimulatorPage');
+const loadApprovalHistoryPage = () => import('./pages/ApprovalHistoryPage');
+const loadApprovalDashboard = () => import('./pages/ApprovalDashboard');
+const loadAutomationRulesPage = () => import('./pages/AutomationRulesPage');
+const loadAutomationRunsPage = () => import('./pages/AutomationRunsPage');
+const loadAutomationRuleEditor = () => import('./pages/AutomationRuleEditor');
+const FlowDashboard = lazy(() => loadFlowDashboard().then((m) => ({ default: m.FlowDashboard })));
+const FlowBuilder = lazy(() => loadFlowBuilder().then((m) => ({ default: m.FlowBuilder })));
+const PendingApprovals = lazy(() => loadPendingApprovals().then((m) => ({ default: m.PendingApprovals })));
+const InstanceViewer = lazy(() => loadInstanceViewer().then((m) => ({ default: m.InstanceViewer })));
+const InstanceList = lazy(() => loadInstanceList().then((m) => ({ default: m.InstanceList })));
+const ApprovalPoliciesPage = lazy(() => loadApprovalPoliciesPage().then((m) => ({ default: m.ApprovalPoliciesPage })));
+const FlowSimulatorPage = lazy(() => loadFlowSimulatorPage().then((m) => ({ default: m.FlowSimulatorPage })));
+const ApprovalHistoryPage = lazy(() => loadApprovalHistoryPage().then((m) => ({ default: m.ApprovalHistoryPage })));
+const ApprovalDashboard = lazy(() => loadApprovalDashboard().then((m) => ({ default: m.ApprovalDashboard })));
+const AutomationRulesPage = lazy(() => loadAutomationRulesPage().then((m) => ({ default: m.AutomationRulesPage })));
+const AutomationRunsPage = lazy(() => loadAutomationRunsPage().then((m) => ({ default: m.AutomationRunsPage })));
+const AutomationRuleEditor = lazy(() => loadAutomationRuleEditor().then((m) => ({ default: m.AutomationRuleEditor })));
+
+// A deep link downloads its page chunk at module eval, in parallel with the Shell context sync,
+// so the lazy page costs no extra round trip. The landing route is the `/flow` root.
+const FLOW_ROUTE_PRELOADS = [
+    { pattern: /\/approvals\/pending\/?$/, load: loadPendingApprovals },
+    { pattern: /\/approvals\/policies\/?$/, load: loadApprovalPoliciesPage },
+    { pattern: /\/approvals\/history\/[^/]+\/[^/]+\/?$/, load: loadApprovalHistoryPage },
+    { pattern: /\/approvals\/dashboard\/?$/, load: loadApprovalDashboard },
+    { pattern: /\/instance\/[^/]+\/?$/, load: loadInstanceViewer },
+    { pattern: /\/instances\/?$/, load: loadInstanceList },
+    { pattern: /\/builder\/[^/]+\/?$/, load: loadFlowBuilder },
+    { pattern: /\/simulator\/?$/, load: loadFlowSimulatorPage },
+    { pattern: /\/automation\/runs\/?$/, load: loadAutomationRunsPage },
+    { pattern: /\/automation\/[^/]+\/?$/, load: loadAutomationRuleEditor },
+    { pattern: /\/automation\/?$/, load: loadAutomationRulesPage },
+    { pattern: /\/flow\/?$/, load: loadFlowDashboard },
+];
+if (typeof window !== 'undefined') preloadRouteChunk(window.location.pathname, FLOW_ROUTE_PRELOADS);
 import './index.css';
 
 // Route-level upgrade prompt shown when a feature is `locked` (a higher plan unlocks it).
