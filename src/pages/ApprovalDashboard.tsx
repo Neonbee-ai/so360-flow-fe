@@ -40,7 +40,7 @@ export const ApprovalDashboard: React.FC = () => {
 
     const maxByEntityType = stats ? Math.max(...Object.values(stats.by_entity_type || {}), 1) : 1;
 
-    if (loading) return <DashboardPageTemplate title="Approval Dashboard" trail={[{ label: 'Flow', onClick: () => navigate('/flow') }]} loading loadingKpis={4} />;
+    if (loading) return <DashboardPageTemplate title="Approval Dashboard" trail={[{ label: 'Flow', onClick: () => navigate('/flow') }]} loading loadingKpis={3} />;
 
     const recentColumns: DataTableColumn<any>[] = [
         {
