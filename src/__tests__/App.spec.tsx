@@ -56,9 +56,9 @@ beforeEach(() => {
 
 describe('App', () => {
   describe('Given the MFE shell is initialized', () => {
-    it('When navigating to / / Then FlowDashboard is rendered', () => {
+    it('When navigating to / / Then FlowDashboard is rendered', async () => {
       render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>);
-      expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
+      expect(await screen.findByText('FlowDashboard')).toBeInTheDocument();
     });
 
     it('When navigating to /builder/:flowId / Then FlowBuilder is rendered (lazy chunk resolves behind Suspense)', async () => {
@@ -66,24 +66,24 @@ describe('App', () => {
       expect(await screen.findByText('FlowBuilder')).toBeInTheDocument();
     });
 
-    it('When navigating to /approvals/pending / Then PendingApprovals is rendered', () => {
+    it('When navigating to /approvals/pending / Then PendingApprovals is rendered', async () => {
       render(<MemoryRouter initialEntries={['/approvals/pending']}><App /></MemoryRouter>);
-      expect(screen.getByText('PendingApprovals')).toBeInTheDocument();
+      expect(await screen.findByText('PendingApprovals')).toBeInTheDocument();
     });
 
-    it('When navigating to /approvals/policies / Then ApprovalPoliciesPage is rendered', () => {
+    it('When navigating to /approvals/policies / Then ApprovalPoliciesPage is rendered', async () => {
       render(<MemoryRouter initialEntries={['/approvals/policies']}><App /></MemoryRouter>);
-      expect(screen.getByText('ApprovalPoliciesPage')).toBeInTheDocument();
+      expect(await screen.findByText('ApprovalPoliciesPage')).toBeInTheDocument();
     });
 
-    it('When navigating to /instance/:id / Then InstanceViewer is rendered', () => {
+    it('When navigating to /instance/:id / Then InstanceViewer is rendered', async () => {
       render(<MemoryRouter initialEntries={['/instance/i1']}><App /></MemoryRouter>);
-      expect(screen.getByText('InstanceViewer')).toBeInTheDocument();
+      expect(await screen.findByText('InstanceViewer')).toBeInTheDocument();
     });
 
-    it('When navigating to /instances / Then InstanceList is rendered', () => {
+    it('When navigating to /instances / Then InstanceList is rendered', async () => {
       render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
-      expect(screen.getByText('InstanceList')).toBeInTheDocument();
+      expect(await screen.findByText('InstanceList')).toBeInTheDocument();
     });
 
     it('When navigating to /simulator / Then FlowSimulatorPage is rendered (lazy chunk resolves behind Suspense)', async () => {
@@ -96,9 +96,9 @@ describe('App', () => {
       expect(await screen.findByText('AutomationRuleEditor')).toBeInTheDocument();
     });
 
-    it('When navigating to an unknown route / Then it redirects to FlowDashboard', () => {
+    it('When navigating to an unknown route / Then it redirects to FlowDashboard', async () => {
       render(<MemoryRouter initialEntries={['/nonexistent']}><App /></MemoryRouter>);
-      expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
+      expect(await screen.findByText('FlowDashboard')).toBeInTheDocument();
     });
   });
 
@@ -111,16 +111,16 @@ describe('App', () => {
       hasAnyPermission: (...cs: string[]) => cs.some((c) => codes.includes(c)),
     });
 
-    it('When the user holds the page code / Then the page renders', () => {
+    it('When the user holds the page code / Then the page renders', async () => {
       mockShellBridge = bridgeWith(['instances.view']);
       render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
-      expect(screen.getByText('InstanceList')).toBeInTheDocument();
+      expect(await screen.findByText('InstanceList')).toBeInTheDocument();
     });
 
-    it('When the user lacks the page code / Then the page is withheld with a notice', () => {
+    it('When the user lacks the page code / Then the page is withheld with a notice', async () => {
       mockShellBridge = bridgeWith(['workflows.read']);
       render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
-      expect(screen.getByText(/don't have access to this page/i)).toBeInTheDocument();
+      expect(await screen.findByText(/don't have access to this page/i)).toBeInTheDocument();
       expect(screen.queryByText('InstanceList')).not.toBeInTheDocument();
     });
 
@@ -131,33 +131,33 @@ describe('App', () => {
       expect(screen.queryByText(/don't have access/i)).not.toBeInTheDocument();
     });
 
-    it('When the landing route is opened with no page codes / Then it stays reachable', () => {
+    it('When the landing route is opened with no page codes / Then it stays reachable', async () => {
       mockShellBridge = bridgeWith([]);
       render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>);
-      expect(screen.getByText('FlowDashboard')).toBeInTheDocument();
+      expect(await screen.findByText('FlowDashboard')).toBeInTheDocument();
       expect(screen.queryByText(/don't have access/i)).not.toBeInTheDocument();
     });
 
-    it('When the plan flag is locked AND the code is missing / Then the permission notice wins over the upgrade prompt', () => {
+    it('When the plan flag is locked AND the code is missing / Then the permission notice wins over the upgrade prompt', async () => {
       mockShellBridge = { ...bridgeWith([]), getFeatureState: () => 'locked' };
       render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
-      expect(screen.getByText(/don't have access to this page/i)).toBeInTheDocument();
+      expect(await screen.findByText(/don't have access to this page/i)).toBeInTheDocument();
       expect(screen.queryByText(/upgrade plan/i)).not.toBeInTheDocument();
     });
   });
 
   describe('Given FlagGuard on advanced-flow routes (5-state model)', () => {
     describe('When submodule:flow:advanced is enabled', () => {
-      it('When navigating to /instance/:id / Then InstanceViewer is rendered', () => {
+      it('When navigating to /instance/:id / Then InstanceViewer is rendered', async () => {
         mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: () => 'enabled' };
         render(<MemoryRouter initialEntries={['/instance/i1']}><App /></MemoryRouter>);
-        expect(screen.getByText('InstanceViewer')).toBeInTheDocument();
+        expect(await screen.findByText('InstanceViewer')).toBeInTheDocument();
       });
 
-      it('When navigating to /instances / Then InstanceList is rendered', () => {
+      it('When navigating to /instances / Then InstanceList is rendered', async () => {
         mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: () => 'enabled' };
         render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
-        expect(screen.getByText('InstanceList')).toBeInTheDocument();
+        expect(await screen.findByText('InstanceList')).toBeInTheDocument();
       });
     });
 
@@ -182,19 +182,19 @@ describe('App', () => {
     });
 
     describe('When submodule:flow:advanced is locked', () => {
-      it('When navigating to /instances / Then the upgrade prompt is shown instead of the page', () => {
+      it('When navigating to /instances / Then the upgrade prompt is shown instead of the page', async () => {
         mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: () => 'locked' };
         render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
-        expect(screen.getByText(/upgrade plan/i)).toBeInTheDocument();
+        expect(await screen.findByText(/upgrade plan/i)).toBeInTheDocument();
         expect(screen.queryByText('InstanceList')).not.toBeInTheDocument();
       });
     });
 
     describe('When submodule:flow:advanced is disabled', () => {
-      it('When navigating to /instances / Then the unavailable panel is shown and NO upgrade prompt', () => {
+      it('When navigating to /instances / Then the unavailable panel is shown and NO upgrade prompt', async () => {
         mockShellBridge = { permissionsLoaded: true, hasPermission: () => true, hasAnyPermission: () => true, getFeatureState: () => 'disabled' };
         render(<MemoryRouter initialEntries={['/instances']}><App /></MemoryRouter>);
-        expect(screen.getByText(/feature unavailable/i)).toBeInTheDocument();
+        expect(await screen.findByText(/feature unavailable/i)).toBeInTheDocument();
         expect(screen.queryByText(/upgrade plan/i)).not.toBeInTheDocument();
         expect(screen.queryByText('InstanceList')).not.toBeInTheDocument();
       });

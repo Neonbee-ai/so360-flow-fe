@@ -66,6 +66,26 @@ describe('Production build configuration (MFE perf contract)', () => {
     });
   });
 
+  describe('Given the manual chunk rules', () => {
+    const manualChunks = () => config.build?.rollupOptions?.output?.manualChunks;
+
+    it('Given the federation importShared runtime, When chunks are assigned, Then it gets its own chunk (never hoisted into a vendor chunk)', () => {
+      // Otherwise Rollup hoists importShared into a vendor manual chunk and the
+      // exposed ./App statically imports that whole chunk on every open.
+      expect(manualChunks()('\0virtual:__federation_fn_import')).toBe('__federation_fn_import');
+      expect(manualChunks()('__federation_fn_import')).toBe('__federation_fn_import');
+    });
+
+    it('Given lucide-react modules, When chunks are assigned, Then they share one icons chunk', () => {
+      expect(manualChunks()('/repo/node_modules/lucide-react/dist/esm/icons/play.js')).toBe('icons');
+    });
+
+    it('Given ordinary app and node_modules files, When chunks are assigned, Then Rollup default chunking applies', () => {
+      expect(manualChunks()('/repo/src/pages/FlowDashboard.tsx')).toBeUndefined();
+      expect(manualChunks()('/repo/node_modules/react/index.js')).toBeUndefined();
+    });
+  });
+
   describe('Given the module federation shared dependency list', () => {
     it('Then the federation plugin declares a shared map', () => {
       expect(captured.federation).toBeDefined();
