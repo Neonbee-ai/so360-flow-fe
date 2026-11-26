@@ -107,7 +107,7 @@ export const AutomationRulesPage = () => {
 
     return (
         <>
-            <ListPageTemplate
+            <ListPageTemplate loadingColumns={5}
                 title="Automations"
                 trail={[]}
                 description="When something happens, do something automatically."

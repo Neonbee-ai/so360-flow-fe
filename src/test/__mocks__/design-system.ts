@@ -61,7 +61,13 @@ export const Card = ({ children, title, actions, footer, padding: _p, onClick, n
   React.createElement('div', { onClick, ...rest }, title ? React.createElement('h3', null, title) : null, actions ?? null, children, footer ?? null);
 export const Badge = ({ children, tone: _t, size: _s, dot: _d, variant: _v, shape: _sh, ...rest }: any) => React.createElement('span', rest, children);
 export const Spinner = () => React.createElement('div', { 'data-testid': 'spinner' }, 'Loading...');
-export const Skeleton = () => React.createElement('span', { 'data-testid': 'skeleton' });
+const SkeletonBase = () => React.createElement('span', { 'data-testid': 'skeleton' });
+const skeletonPreset = (props: any) => React.createElement('div', { 'data-testid': props?.['data-testid'] ?? 'skeleton', 'aria-busy': true }, React.createElement('span', { className: 'sr-only' }, 'Loading…'));
+export const Skeleton = Object.assign(SkeletonBase, Object.fromEntries(
+  ['Page', 'Header', 'Toolbar', 'List', 'Dashboard', 'Fields', 'Settings', 'Canvas', 'Form', 'Detail', 'Table', 'Cards', 'Kpis'].map((k) => [k, skeletonPreset])));
+const quotaNode = (q: any) => (q && typeof q === 'object' && 'label' in q
+  ? React.createElement('div', { 'data-testid': 'quota-bar' }, q.label, ' ', q.isUnlimited ? `${q.used}` : `${q.used} / ${q.limit}`)
+  : (q ?? null));
 export const Tooltip = ({ children }: any) => React.createElement('span', null, children);
 // Universal toast surface (shell owns the real viewport; tests spy on these).
 export const toast = {
@@ -118,7 +124,7 @@ const TrailHeader = ({ trail }: any) => {
 const trailBack = (trail: any[] | undefined) => h(TrailHeader, { trail });
 export const ListPageTemplate = ({
   title, description, trail, count: _c, primaryAction, headerSecondaryActions, secondaryActions, overflowActions, kpis, views, search,
-  filterConfig, toolbarEnd, loading, isEmpty, empty, children, pagination, footer,
+  filterConfig, toolbarEnd, loading, quota, notice, isEmpty, empty, children, pagination, footer,
 }: any) =>
   h('div', { 'data-comb-page': 'list' },
     trailBack(trail),
@@ -127,7 +133,7 @@ export const ListPageTemplate = ({
     h('div', { 'data-slot': 'header-actions' }, headerSecondaryActions,
       [...(secondaryActions || []), ...(overflowActions || [])].map((a: any) => h('button', { key: a.label, type: 'button', disabled: a.disabled, onClick: a.onSelect }, a.label)),
       primaryAction),
-    kpis ?? null,
+    notice ?? null, quotaNode(quota), kpis ?? null,
     h('div', { 'data-slot': 'toolbar' }, views, search,
       (filterConfig?.fields || []).map((f: any) =>
         h('select', {
@@ -147,19 +153,20 @@ export const DetailPageTemplate = ({
     tabs ? h('div', { role: 'tablist' }, tabs.map((t: any) => h('button', { key: t.id, role: 'tab', 'aria-selected': activeTab === t.id, onClick: () => onTabChange?.(t.id) }, t.label))) : null,
     loading ? h('div', { 'data-testid': 'spinner' }, 'Loading...') : h(React.Fragment, null, h('div', null, children), sidePanel ? h('aside', null, sidePanel) : null));
 export const DashboardPageTemplate = ({
-  title, description, trail, meta, filters, toolbarEnd, secondaryActions, primaryAction, kpis, primary, secondary, bottom, children,
+  title, description, trail, meta, filters, toolbarEnd, secondaryActions, primaryAction, kpis, primary, secondary, bottom, children, loading, notice, quota,
 }: any) =>
   h('div', { 'data-comb-page': 'dashboard' },
     trailBack(trail),
     h('h1', null, title), description ? h('p', null, description) : null, meta ?? null,
     h('div', { 'data-slot': 'header-actions' }, secondaryActions, primaryAction), filters ?? null, toolbarEnd ?? null,
-    h('div', { 'data-slot': 'kpis' }, kpis), primary ?? null, secondary ?? null, bottom ?? null, children ?? null);
+    notice ?? null, quotaNode(quota),
+    loading ? h('div', { 'data-testid': 'spinner' }, 'Loading...') : h(React.Fragment, null, h('div', { 'data-slot': 'kpis' }, kpis), primary ?? null, secondary ?? null, bottom ?? null, children ?? null));
 export const FormPageTemplate = ({
-  title, description, trail, status, meta, sections, children, onCancel, cancelLabel, secondaryAction, primaryAction, destructiveAction,
+  title, description, trail, status, meta, sections, children, onCancel, cancelLabel, secondaryAction, primaryAction, destructiveAction, loading,
 }: any) =>
   h('div', { 'data-comb-page': 'form' },
     trailBack(trail), h('h1', null, title), description ? h('p', null, description) : null, status ?? null, meta ?? null,
-    (sections || []).map((s: any) => h('section', { key: s.id }, h('h2', null, s.title), s.content)), children ?? null,
+    loading ? h('div', { role: 'status' }, h('span', { className: 'sr-only' }, 'Loading…')) : [(sections || []).map((s: any) => h('section', { key: s.id }, h('h2', null, s.title), s.content)), children ?? null],
     h('div', { 'data-slot': 'footer' }, destructiveAction, onCancel ? h('button', { type: 'button', onClick: onCancel }, cancelLabel || 'Cancel') : null, secondaryAction, primaryAction));
 export const DataTable = ({ columns, rows, rowKey, loading, emptyState, onRowClick, rowActions, getRowProps, name: _n, ...rest }: any) => {
   if (loading) return h('div', { 'data-testid': 'spinner' }, 'Loading...');

@@ -285,7 +285,7 @@ export const PendingApprovals: React.FC = () => {
             <ListPageTemplate trail={[]}
                 title="Pending Approvals"
                 description={`${approvals.length} approval${approvals.length !== 1 ? 's' : ''} awaiting your action`}
-                loading={loading}
+                loading={loading} loadingColumns={5}
             >
                 <Stack gap="default">
                     {error && (

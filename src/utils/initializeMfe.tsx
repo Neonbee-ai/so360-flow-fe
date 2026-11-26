@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useShellBridge } from '@so360/shell-context';
+import { Skeleton } from '@so360/design-system';
 
 export const MfeShellInitializer = ({ children }: { children: React.ReactNode }) => {
     const shell = useShellBridge();
@@ -23,12 +24,10 @@ export const MfeShellInitializer = ({ children }: { children: React.ReactNode })
 
     if (!isSynced) {
         return (
-            <div className="flex items-center justify-center h-screen bg-bg">
-                <div className="text-center">
-                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
-                    <p className="mt-4 text-fg-muted">Initializing Flow...</p>
-                </div>
-            </div>
+            <>
+                <Skeleton.Page template="list" />
+                <span className="sr-only">Initializing Flow...</span>
+            </>
         );
     }
 
