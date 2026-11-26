@@ -36,6 +36,19 @@ export default defineConfig(({ mode }) => {
         minify: 'esbuild',
         cssCodeSplit: false,
         emptyOutDir: false,
+        rollupOptions: {
+            output: {
+                // The federation runtime (importShared / __federation_fn_import) MUST keep its own chunk:
+                // a vendor manual chunk that imports React through it would absorb it and the exposed
+                // ./App would statically import that whole vendor chunk on every open.
+                // lucide-react is tree-shaken per remote into one `icons` chunk shared by all lazy pages.
+                manualChunks(id: string) {
+                    if (id.includes('__federation_fn_import')) return '__federation_fn_import';
+                    if (id.includes('node_modules/lucide-react')) return 'icons';
+                    return undefined;
+                },
+            },
+        },
     },
     server: {
         port: 3022,
