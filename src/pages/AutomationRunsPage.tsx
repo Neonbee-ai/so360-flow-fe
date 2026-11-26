@@ -65,7 +65,7 @@ export const AutomationRunsPage = () => {
     ];
 
     return (
-        <ListPageTemplate loadingColumns={6}
+        <ListPageTemplate
             title="Automation run history"
             trail={[{ label: 'Automations', onClick: () => navigate('/flow/automation') }]}
             description={ruleId ? 'Runs for the selected rule.' : 'Every time an automation rule fired.'}

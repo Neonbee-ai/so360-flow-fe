@@ -361,7 +361,7 @@ export const ApprovalPoliciesPage = () => {
                 )}
             </Modal>
 
-            <ListPageTemplate loadingColumns={2}
+            <ListPageTemplate
                 title="Approval Policies"
                 description="Define multi-step approval workflows"
                 trail={trail}

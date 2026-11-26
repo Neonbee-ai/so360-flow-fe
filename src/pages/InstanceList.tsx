@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, CheckCircle, Clock, RefreshCw } from 'lucide-react';
-import { Badge, Button, DataTable, EmptyState, IconButton, ListPageTemplate, Pagination, type DataTableColumn } from '@so360/design-system';
+import { Badge, Banner, Button, DataTable, EmptyState, IconButton, ListPageTemplate, Pagination, type DataTableColumn } from '@so360/design-system';
 import { useQuota, useShell, useSandboxLimit } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowInstance, FlowDefinition } from '../types/flow';
@@ -145,7 +145,12 @@ export const InstanceList = () => {
 
     return (
         <ListPageTemplate
-            quota={quotaData ? { label: 'Flows', used: quotaData.current_usage, limit: quotaData.limit, isUnlimited: quotaData.is_unlimited } : undefined} loadingColumns={5}
+            quota={quotaData ? { label: 'Flows', used: quotaData.current_usage, limit: quotaData.limit, isUnlimited: quotaData.is_unlimited } : undefined}
+            notice={isSandboxMode && isLimited(total) ? (
+                <Banner variant="warning" name="sandbox-limit" title="Sandbox">
+                    Showing {sandboxEntryLimit} of {total} records. Switch to Production to view all.
+                </Banner>
+            ) : undefined}
             title="Flow Instances"
             trail={[{ label: 'Dashboard', onClick: () => navigate('/flow') }]}
             description={
@@ -189,13 +194,6 @@ export const InstanceList = () => {
                 ) : undefined
             }
         >
-            {isSandboxMode && isLimited(total) && (
-                <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-warning/10 border border-warning/25 rounded-lg text-warning text-sm">
-                    <span className="font-semibold">Sandbox:</span>
-                    <span>Showing {sandboxEntryLimit} of {total} records. Switch to Production to view all.</span>
-                </div>
-            )}
-
             {error && (
                 <div className="mb-4 bg-danger-container/20 border border-danger/30 rounded-lg p-4 flex items-center justify-between">
                     <p className="text-danger">{error}</p>
