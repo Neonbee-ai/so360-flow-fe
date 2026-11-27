@@ -164,7 +164,7 @@ export const FlowDashboard = () => {
                 onChange: (values) => setSelectedModule((values.module as string) || ''),
                 onClear: () => setSelectedModule(''),
             }}
-            loading={loading}
+            loading={loading} loadingColumns={6}
         >
             <DataTable
                 columns={columns}
