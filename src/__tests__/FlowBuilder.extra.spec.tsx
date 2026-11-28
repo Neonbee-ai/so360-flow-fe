@@ -175,12 +175,12 @@ describe('FlowBuilder — transition management', () => {
 
 describe('FlowBuilder — save new flow', () => {
   describe('Given the name, module, and at least one state are filled in', () => {
-    it('When all required fields are complete, Then the Save Flow button is enabled', async () => {
+    it('When all required fields are complete, Then the Save flow button is enabled', async () => {
       renderNew();
       fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
       fireEvent.change(screen.getByRole('combobox'), { target: { value: 'module:crm:lead' } });
       fireEvent.click(screen.getByText('Add State'));
-      const saveBtn = screen.getByText('Save Flow').closest('button');
+      const saveBtn = screen.getByText('Save flow').closest('button');
       expect(saveBtn).not.toBeDisabled();
     });
 
@@ -189,7 +189,7 @@ describe('FlowBuilder — save new flow', () => {
       fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
       fireEvent.change(screen.getByRole('combobox'), { target: { value: 'module:crm:lead' } });
       fireEvent.click(screen.getByText('Add State'));
-      fireEvent.click(screen.getByText('Save Flow').closest('button')!);
+      fireEvent.click(screen.getByText('Save flow').closest('button')!);
       await waitFor(() => {
         expect(api.createFlowDefinition).toHaveBeenCalledWith(expect.objectContaining({ name: 'My Flow', module_code: 'module:crm:lead' }));
         expect(mockNavigate).toHaveBeenCalledWith('/flow');
@@ -203,7 +203,7 @@ describe('FlowBuilder — save existing flow', () => {
     it('When Save is clicked, Then updateFlowDefinition is called with the flow id', async () => {
       renderExisting();
       await waitFor(() => screen.getByDisplayValue('Existing Flow'));
-      fireEvent.click(screen.getByText('Save Flow').closest('button')!);
+      fireEvent.click(screen.getByText('Save flow').closest('button')!);
       await waitFor(() => {
         expect(api.updateFlowDefinition).toHaveBeenCalledWith('f1', expect.objectContaining({ name: 'Existing Flow' }));
       });
@@ -212,7 +212,7 @@ describe('FlowBuilder — save existing flow', () => {
     it('When Save is clicked, Then the user is navigated to /flow', async () => {
       renderExisting();
       await waitFor(() => screen.getByDisplayValue('Existing Flow'));
-      fireEvent.click(screen.getByText('Save Flow').closest('button')!);
+      fireEvent.click(screen.getByText('Save flow').closest('button')!);
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/flow');
       });
@@ -264,7 +264,7 @@ describe('FlowBuilder — save button state label', () => {
       fireEvent.change(screen.getByPlaceholderText(/lead approval flow/i), { target: { value: 'My Flow' } });
       fireEvent.change(screen.getByRole('combobox'), { target: { value: 'module:crm:lead' } });
       fireEvent.click(screen.getByText('Add State'));
-      fireEvent.click(screen.getByText('Save Flow').closest('button')!);
+      fireEvent.click(screen.getByText('Save flow').closest('button')!);
       expect(screen.getByText('Saving...')).toBeInTheDocument();
       // Advance all timers to drain the pending promise and prevent async leak after teardown
       await vi.runAllTimersAsync();

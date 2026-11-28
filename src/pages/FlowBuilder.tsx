@@ -210,13 +210,13 @@ export const FlowBuilder = () => {
 
     if (loading) {
         return (
-            <FormPageTemplate title={isNew ? 'New Flow' : 'Edit Flow'} trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]} loading />
+            <FormPageTemplate title={isNew ? 'New flow' : 'Edit flow'} trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]} loading />
         );
     }
 
     if (notFound) {
         return (
-            <FormPageTemplate title="Edit Flow" trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}>
+            <FormPageTemplate title="Edit flow" trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}>
                 <RecordNotFound listPath="/flow" listLabel="Flows" />
             </FormPageTemplate>
         );
@@ -224,7 +224,7 @@ export const FlowBuilder = () => {
 
     return (
         <FormPageTemplate
-            title={isNew ? 'New Flow' : 'Edit Flow'}
+            title={isNew ? 'New flow' : 'Edit flow'}
             trail={[{ label: 'Flows', onClick: () => navigate('/flow') }]}
             onCancel={() => navigate('/flow')}
             status={!isNew && canManageFlow ? (
@@ -242,7 +242,7 @@ export const FlowBuilder = () => {
                     disabled={saving || !name || !moduleCode || states.length === 0}
                 >
                     <Save className="w-5 h-5" />
-                    {saving ? 'Saving...' : 'Save Flow'}
+                    {saving ? 'Saving...' : 'Save flow'}
                 </Button>
             }
             sections={[

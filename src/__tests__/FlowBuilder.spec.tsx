@@ -71,7 +71,7 @@ describe('FlowBuilder', () => {
 
     it('When the page loads / Then the save button is disabled without required fields', () => {
       renderNew();
-      const saveBtn = screen.getByText('Save Flow').closest('button');
+      const saveBtn = screen.getByText('Save flow').closest('button');
       expect(saveBtn).toBeDisabled();
     });
 
@@ -155,9 +155,9 @@ describe('FlowBuilder', () => {
       expect(screen.queryByText('Flow Information')).not.toBeInTheDocument();
     });
 
-    it('When flags are not loaded / Then the Save Flow button is absent', () => {
+    it('When flags are not loaded / Then the Save flow button is absent', () => {
       renderNew();
-      expect(screen.queryByText('Save Flow')).not.toBeInTheDocument();
+      expect(screen.queryByText('Save flow')).not.toBeInTheDocument();
     });
   });
 
@@ -172,9 +172,9 @@ describe('FlowBuilder', () => {
       expect(screen.queryByText(/not available on your current plan/i)).not.toBeInTheDocument();
     });
 
-    it('When flags are loaded and builder is enabled / Then the Save Flow button is present', () => {
+    it('When flags are loaded and builder is enabled / Then the Save flow button is present', () => {
       renderNew();
-      expect(screen.getByText('Save Flow')).toBeInTheDocument();
+      expect(screen.getByText('Save flow')).toBeInTheDocument();
     });
   });
 });
