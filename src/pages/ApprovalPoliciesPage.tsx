@@ -365,11 +365,12 @@ export const ApprovalPoliciesPage = () => {
                 title="Approval Policies"
                 description="Define multi-step approval workflows"
                 trail={trail}
-                primaryAction={
-                    <Button onClick={() => { setShowForm(true); setEditingId(null); setForm(defaultPolicy()); }}>
-                        <Plus className="w-4 h-4" /> New Policy
-                    </Button>
-                }
+                primaryAction={{
+                    id: 'new-policy',
+                    label: 'New policy',
+                    icon: <Plus />,
+                    onSelect: () => { setShowForm(true); setEditingId(null); setForm(defaultPolicy()); },
+                }}
             >
                 <Stack gap="default">
             {/* Form */}

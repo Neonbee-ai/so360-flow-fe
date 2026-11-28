@@ -87,7 +87,7 @@ describe('FlowDashboard', () => {
     it('When the New Flow button is clicked / Then it navigates to the new builder', async () => {
       renderPage();
       await waitFor(() => expect(screen.getByText('Lead Approval')).toBeInTheDocument());
-      fireEvent.click(screen.getByText('New Flow'));
+      fireEvent.click(screen.getByText('New flow'));
       expect(mockNavigate).toHaveBeenCalledWith('/flow/builder/new');
     });
   });
@@ -114,7 +114,7 @@ describe('FlowDashboard', () => {
     it('When flags are not loaded / Then the New Flow button is absent (canCreateFlow false)', async () => {
       renderPage();
       await waitFor(() => expect(screen.getByText('Flow Definitions')).toBeInTheDocument());
-      expect(screen.queryByText('New Flow')).not.toBeInTheDocument();
+      expect(screen.queryByText('New flow')).not.toBeInTheDocument();
     });
 
     it('When flags are not loaded / Then the Approval Policies button is absent (canAccessPolicies false)', async () => {
@@ -134,7 +134,7 @@ describe('FlowDashboard', () => {
 
     it('When flags are loaded and create is enabled / Then the New Flow button is shown', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText('New Flow')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('New flow')).toBeInTheDocument());
     });
 
     it('When flags are loaded and policies is enabled / Then the Approval Policies button is shown', async () => {

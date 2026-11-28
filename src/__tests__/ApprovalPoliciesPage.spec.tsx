@@ -119,31 +119,31 @@ describe('ApprovalPoliciesPage', () => {
 
     it('When New Policy is clicked / Then shows form', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       expect(screen.getByText('New Approval Policy')).toBeInTheDocument();
     });
 
     it('When form is open / Then Save is disabled without required fields', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       const saveBtn = screen.getByText('Save Policy').closest('button');
       expect(saveBtn).toBeDisabled();
     });
 
     it('When Add Step is clicked / Then adds a step row', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       fireEvent.click(screen.getByText('Add Step'));
       expect(screen.getByText('Step 1')).toBeInTheDocument();
     });
 
     it('When the first of two steps is removed, Then the second step keeps its DOM node (stable key) and is renumbered Step 1', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       fireEvent.click(screen.getByText('Add Step'));
       fireEvent.click(screen.getByText('Add Step'));
       const secondCard = screen.getAllByLabelText('Remove step')[1].closest('[draggable]');
@@ -158,8 +158,8 @@ describe('ApprovalPoliciesPage', () => {
 
     it('When a step is added / Then it defaults to approver type ROLE with a role selector', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       fireEvent.click(screen.getByText('Add Step'));
       expect(screen.getByText('Approver Type')).toBeInTheDocument();
       expect(screen.getByText('Role')).toBeInTheDocument();
@@ -167,8 +167,8 @@ describe('ApprovalPoliciesPage', () => {
 
     it('When approver type is switched to DEPARTMENT_HEAD / Then shows the auto-resolved explainer and no role/user/field input', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       fireEvent.click(screen.getByText('Add Step'));
       const typeSelect = screen.getAllByRole('combobox').find(el =>
         Array.from(el.querySelectorAll('option')).some(o => o.textContent === "Submitter's department head"),
@@ -184,8 +184,8 @@ describe('ApprovalPoliciesPage', () => {
 
     it('When approver type is switched to USER / Then shows a user id input', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       fireEvent.click(screen.getByText('Add Step'));
       const typeSelect = screen.getAllByRole('combobox').find(el =>
         Array.from(el.querySelectorAll('option')).some(o => o.textContent === 'Specific user'),
@@ -197,8 +197,8 @@ describe('ApprovalPoliciesPage', () => {
 
     it('When a DEPARTMENT_HEAD step is saved / Then createApprovalStep is called with approver_type DEPARTMENT_HEAD (not hardcoded ROLE)', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       fireEvent.change(screen.getByPlaceholderText(/Manager Approval/), { target: { value: 'Test Policy' } });
       const selects = screen.getAllByRole('combobox');
       const moduleSelect = selects.find(s => s.querySelector('option[value="module:crm:deal"]'));
@@ -220,8 +220,8 @@ describe('ApprovalPoliciesPage', () => {
 
     it('When Add Condition is clicked / Then adds a condition row', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       const moduleSelect = screen.getAllByRole('combobox')[0];
       fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
       fireEvent.click(screen.getByText('Add Condition'));
@@ -230,8 +230,8 @@ describe('ApprovalPoliciesPage', () => {
 
     it('When Cancel is clicked / Then hides the form', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       expect(screen.getByText('New Approval Policy')).toBeInTheDocument();
       fireEvent.click(screen.getByText('Cancel'));
       expect(screen.queryByText('New Approval Policy')).not.toBeInTheDocument();
@@ -240,8 +240,8 @@ describe('ApprovalPoliciesPage', () => {
     it('When form is submitted with valid data / Then calls createApprovalPolicy', async () => {
       api.createApprovalPolicy.mockResolvedValue({ data: {} });
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       fireEvent.change(screen.getByPlaceholderText(/Manager Approval/), { target: { value: 'Test Policy' } });
       const selects = screen.getAllByRole('combobox');
       const moduleSelect = selects.find(s => s.querySelector('option[value="module:crm:deal"]'));
@@ -275,7 +275,7 @@ describe('ApprovalPoliciesPage', () => {
       );
       // canAccessPolicies === false → renders the "not available" notice, not the policy list
       expect(screen.getByText(/This feature is not available on your current plan/i)).toBeInTheDocument();
-      expect(screen.queryByText('New Policy')).not.toBeInTheDocument();
+      expect(screen.queryByText('New policy')).not.toBeInTheDocument();
     });
 
     it('When flags are not loaded / Then the simulate button is absent for any policy row', async () => {
@@ -296,7 +296,7 @@ describe('ApprovalPoliciesPage', () => {
 
     it('When flags are loaded and feature is enabled / Then the full policies page with New Policy button is shown', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText('New Policy')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('New policy')).toBeInTheDocument());
       expect(screen.queryByText(/not available on your current plan/i)).not.toBeInTheDocument();
     });
 

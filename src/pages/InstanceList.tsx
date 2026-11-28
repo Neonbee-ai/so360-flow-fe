@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, CheckCircle, Clock, RefreshCw } from 'lucide-react';
-import { Badge, Banner, Button, DataTable, EmptyState, IconButton, ListPageTemplate, Pagination, type DataTableColumn } from '@so360/design-system';
+import { Badge, Banner, Button, DataTable, EmptyState, ListPageTemplate, Pagination, type DataTableColumn } from '@so360/design-system';
 import { useQuota, useShell, useSandboxLimit } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
 import type { FlowInstance, FlowDefinition } from '../types/flow';
@@ -145,8 +145,8 @@ export const InstanceList = () => {
 
     return (
         <ListPageTemplate
-            quota={quotaData ? { label: 'Flows', used: quotaData.current_usage, limit: quotaData.limit, isUnlimited: quotaData.is_unlimited } : undefined}
-            notice={isSandboxMode && isLimited(total) ? (
+            meta={quotaData ? { kind: 'quota', label: 'Flows', used: quotaData.current_usage, limit: quotaData.limit, isUnlimited: quotaData.is_unlimited } : undefined}
+            banner={isSandboxMode && isLimited(total) ? (
                 <Banner variant="warning" name="sandbox-limit" title="Sandbox">
                     Showing {sandboxEntryLimit} of {total} records. Switch to Production to view all.
                 </Banner>
@@ -159,7 +159,7 @@ export const InstanceList = () => {
                     : 'View and manage active workflow instances'
             }
             count={loading ? undefined : total}
-            filterConfig={{
+            filters={{
                 fields: [
                     { key: 'status', label: 'Status', type: 'select', options: STATUS_OPTIONS },
                     { key: 'entity_type', label: 'Entity Type', type: 'select', options: ENTITY_TYPE_OPTIONS },
@@ -174,14 +174,9 @@ export const InstanceList = () => {
                     setEntityTypeFilter('');
                 },
             }}
-            toolbarEnd={
-                <IconButton
-                    label="Refresh"
-                    icon={<RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />}
-                    onClick={loadInstances}
-                    disabled={loading}
-                />
-            }
+            moreActions={[
+                { id: 'refresh', label: 'Refresh', kind: 'refresh', icon: <RefreshCw />, onSelect: loadInstances, disabled: loading },
+            ]}
             pagination={
                 totalPages > 1 ? (
                     <Pagination

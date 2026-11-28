@@ -66,7 +66,7 @@ describe('ApprovalPoliciesPage — page loads', () => {
 
     it('When the page loads, Then it shows the "New Policy" button', async () => {
       renderPage();
-      await waitFor(() => expect(screen.getByText('New Policy')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('New policy')).toBeInTheDocument());
     });
 
     it('When there are no policies, Then it shows the empty state message', async () => {
@@ -132,15 +132,15 @@ describe('ApprovalPoliciesPage — create form', () => {
   describe('Given the "New Policy" button is clicked', () => {
     it('When clicked, Then the create policy form is shown', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => expect(screen.getByText('New Approval Policy')).toBeInTheDocument());
     });
 
     it('When the form opens, Then the Policy Name input is present', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
       const nameInput = screen.getByPlaceholderText(/manager approval/i);
       expect(nameInput).toBeInTheDocument();
@@ -148,8 +148,8 @@ describe('ApprovalPoliciesPage — create form', () => {
 
     it('When the form opens, Then the module select lists available module options', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
       expect(screen.getByText('Procurement PR')).toBeInTheDocument();
       expect(screen.getByText('Accounting Expense')).toBeInTheDocument();
@@ -157,8 +157,8 @@ describe('ApprovalPoliciesPage — create form', () => {
 
     it('When a module is selected, Then the entity_type is auto-set without crashing', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
       const moduleSelect = screen.getAllByRole('combobox')[0];
       fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
@@ -167,8 +167,8 @@ describe('ApprovalPoliciesPage — create form', () => {
 
     it('When "Add Step" is clicked, Then a new step row is added', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
       fireEvent.click(screen.getByText('Add Step'));
       await waitFor(() => {
@@ -178,8 +178,8 @@ describe('ApprovalPoliciesPage — create form', () => {
 
     it('When a module is selected and "Add Condition" is clicked, Then a condition row appears', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
       // Select module first (required to enable Add Condition)
       const moduleSelect = screen.getAllByRole('combobox')[0];
@@ -193,8 +193,8 @@ describe('ApprovalPoliciesPage — create form', () => {
 
     it('When the form opens with no conditions, Then the empty conditions message is shown', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => {
         expect(screen.getByText(/no conditions — policy applies to all entities/i)).toBeInTheDocument();
       });
@@ -202,8 +202,8 @@ describe('ApprovalPoliciesPage — create form', () => {
 
     it('When Save Policy is clicked without filling in name or module, Then createApprovalPolicy is not called', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
       const saveBtn = screen.getByText(/save policy/i).closest('button');
       expect(saveBtn).toBeInTheDocument();
@@ -213,8 +213,8 @@ describe('ApprovalPoliciesPage — create form', () => {
 
     it('When the form is filled and Save is clicked, Then createApprovalPolicy is called with the correct args', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
 
       const nameInput = screen.getByPlaceholderText(/manager approval/i);
@@ -237,8 +237,8 @@ describe('ApprovalPoliciesPage — create form', () => {
 
     it('When save completes, Then the form closes and policies are refreshed', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
 
       fireEvent.change(screen.getByPlaceholderText(/manager approval/i), { target: { value: 'My Policy' } });
@@ -260,8 +260,8 @@ describe('ApprovalPoliciesPage — condition manipulation', () => {
   describe('Given a condition row has been added', () => {
     it('When the condition value input is edited, Then it reflects the new value', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
       // Select module to enable Add Condition
       const moduleSelect = screen.getAllByRole('combobox')[0];
@@ -275,8 +275,8 @@ describe('ApprovalPoliciesPage — condition manipulation', () => {
 
     it('When the remove condition button is clicked, Then the condition row is removed', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
       const moduleSelect = screen.getAllByRole('combobox')[0];
       fireEvent.change(moduleSelect, { target: { value: 'module:accounting:expense' } });
@@ -295,8 +295,8 @@ describe('ApprovalPoliciesPage — approval mode toggle', () => {
   describe('Given the create form is open', () => {
     it('When the mode select is changed to PARALLEL, Then the value updates', async () => {
       renderPage();
-      await waitFor(() => screen.getByText('New Policy'));
-      fireEvent.click(screen.getByText('New Policy'));
+      await waitFor(() => screen.getByText('New policy'));
+      fireEvent.click(screen.getByText('New policy'));
       await waitFor(() => screen.getByText('New Approval Policy'));
       const modeSelect = screen.getAllByRole('combobox').find(s =>
         Array.from((s as HTMLSelectElement).options).some((o: any) => o.value === 'PARALLEL')

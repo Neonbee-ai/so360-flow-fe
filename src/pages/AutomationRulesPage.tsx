@@ -112,14 +112,14 @@ export const AutomationRulesPage = () => {
                 trail={[]}
                 description="When something happens, do something automatically."
                 count={loading ? undefined : rules.length}
-                primaryAction={canCreate ? (
-                    <Button onClick={() => navigate('/flow/automation/new')}>
-                        <Plus className="w-4 h-4" />
-                        New rule
-                    </Button>
-                ) : undefined}
+                primaryAction={canCreate ? {
+                    id: 'new-rule',
+                    label: 'New rule',
+                    icon: <Plus />,
+                    onSelect: () => navigate('/flow/automation/new'),
+                } : undefined}
                 overflowActions={[{ label: 'Run history', onSelect: () => navigate('/flow/automation/runs') }]}
-                filterConfig={{
+                filters={{
                     fields: [
                         { key: 'status', label: 'Status', type: 'select', options: [{ value: 'on', label: 'Enabled' }, { value: 'off', label: 'Disabled' }] },
                         { key: 'trigger_type', label: 'Type', type: 'select', options: Object.entries(TRIGGER_LABEL).map(([value, label]) => ({ value, label })) },

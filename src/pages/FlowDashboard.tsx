@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Badge, Button, DataTable, EmptyState, IconButton, ListPageTemplate, Menu, toast, useConfirm, type DataTableColumn, type MenuItem } from '@so360/design-system';
+import { Badge, DataTable, EmptyState, IconButton, ListPageTemplate, Menu, toast, useConfirm, type DataTableColumn, type MenuItem } from '@so360/design-system';
 import { MoreVertical, Plus, Workflow } from 'lucide-react';
 import { useShellBridge } from '@so360/shell-context';
 import { flowApi } from '../services/flowApi';
@@ -142,21 +142,20 @@ export const FlowDashboard = () => {
             description="Manage workflow definitions across all modules"
             count={loading ? undefined : flows.length}
             primaryAction={
-                canCreateFlow ? (
-                    <Button onClick={() => navigate('/flow/builder/new')}>
-                        <Plus className="w-4 h-4" />
-                        New Flow
-                    </Button>
-                ) : undefined
+                canCreateFlow ? {
+                    id: 'new-flow',
+                    label: 'New flow',
+                    icon: <Plus />,
+                    onSelect: () => navigate('/flow/builder/new'),
+                } : undefined
             }
             overflowActions={overflowActions}
-            filterConfig={{
+            filters={{
                 fields: [
                     {
                         key: 'module',
                         label: 'Module',
                         type: 'select',
-                        quick: true,
                         options: modules.map((mod) => ({ value: mod.code, label: mod.name })),
                     },
                 ],

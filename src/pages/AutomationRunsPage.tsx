@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { History, RefreshCw } from 'lucide-react';
 import { useShellBridge } from '@so360/shell-context';
 import {
-    toast, Badge, DataTable, EmptyState, IconButton, ListPageTemplate, Pagination, type DataTableColumn,
+    toast, Badge, DataTable, EmptyState, ListPageTemplate, Pagination, type DataTableColumn,
 } from '@so360/design-system';
 import { flowApi } from '../services/flowApi';
 import type { AutomationRun, RunStatus } from '../types/automation';
@@ -70,13 +70,15 @@ export const AutomationRunsPage = () => {
             trail={[{ label: 'Automations', onClick: () => navigate('/flow/automation') }]}
             description={ruleId ? 'Runs for the selected rule.' : 'Every time an automation rule fired.'}
             count={loading ? undefined : total}
-            filterConfig={{
+            filters={{
                 fields: [{ key: 'status', label: 'Status', type: 'select', options: STATUSES.map((s) => ({ value: s, label: s })) }],
                 values: { status },
                 onChange: (v) => { setPage(0); setStatus((v.status as string) || ''); },
                 onClear: () => { setPage(0); setStatus(''); },
             }}
-            toolbarEnd={<IconButton label="Refresh" icon={<RefreshCw className="w-5 h-5" />} onClick={load} disabled={loading} />}
+            moreActions={[
+                { id: 'refresh', label: 'Refresh', kind: 'refresh', icon: <RefreshCw />, onSelect: load, disabled: loading },
+            ]}
             pagination={total > PAGE_SIZE ? (
                 <Pagination currentPage={page + 1} totalPages={Math.ceil(total / PAGE_SIZE)} totalItems={total} pageSize={PAGE_SIZE} onPageChange={(p) => setPage(p - 1)} />
             ) : undefined}

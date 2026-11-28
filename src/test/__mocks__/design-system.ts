@@ -122,27 +122,37 @@ const TrailHeader = ({ trail }: any) => {
     last ? h('button', { type: 'button', 'aria-label': `Back to ${last.label}`, onClick: () => follow(last) }, `← ${last.label}`) : null);
 };
 const trailBack = (trail: any[] | undefined) => h(TrailHeader, { trail });
+const isPA = (v: any) => !!v && typeof v === 'object' && !Array.isArray(v) && !React.isValidElement(v) && typeof v.id === 'string' && typeof v.label === 'string';
+const paButton = (a: any) => h('button', {
+  key: a.id, type: 'button', 'data-comb-action': a.id, 'aria-label': a.kind && a.kind !== 'action' && a.kind !== 'danger' ? a.label : undefined,
+  disabled: !!a.disabled || undefined, 'aria-disabled': a.disabled ? 'true' : undefined, onClick: a.disabled ? undefined : a.onSelect,
+}, a.kind && a.kind !== 'action' && a.kind !== 'danger' ? (a.icon ?? null) : [a.icon ?? null, a.label]);
+const renderAct = (a: any, i?: number) => (isPA(a) ? paButton(a) : React.isValidElement(a) ? React.cloneElement(a, { key: i }) : a);
 export const ListPageTemplate = ({
-  title, description, trail, count: _c, primaryAction, headerSecondaryActions, secondaryActions, overflowActions, kpis, views, search,
-  filterConfig, toolbarEnd, loading, quota, notice, isEmpty, empty, children, pagination, footer,
-}: any) =>
-  h('div', { 'data-comb-page': 'list' },
+  title, description, trail, count: _c, primaryAction, headerSecondaryActions, secondaryActions, moreActions, overflowActions, kpis, views, search,
+  filterConfig, filters, toolbarEnd, loading, quota, meta, notice, banner, isEmpty, empty, children, pagination, footer,
+}: any) => {
+  const fc = filterConfig ?? (filters && !React.isValidElement(filters) ? filters : undefined);
+  return h('div', { 'data-comb-page': 'list' },
     trailBack(trail),
     h('h1', null, title),
     description ? h('p', null, description) : null,
     h('div', { 'data-slot': 'header-actions' }, headerSecondaryActions,
-      [...(secondaryActions || []), ...(overflowActions || [])].map((a: any) => h('button', { key: a.label, type: 'button', disabled: a.disabled, onClick: a.onSelect }, a.label)),
-      primaryAction),
-    notice ?? null, quotaNode(quota), kpis ?? null,
+      (secondaryActions || []).map((a: any, i: number) => (isPA(a) ? paButton(a) : h('button', { key: a.label ?? i, type: 'button', disabled: a.disabled, onClick: a.onSelect }, a.label))),
+      (moreActions || []).map(paButton),
+      (overflowActions || []).map((a: any) => h('button', { key: a.label, type: 'button', disabled: a.disabled, onClick: a.onSelect }, a.label)),
+      isPA(primaryAction) ? paButton(primaryAction) : primaryAction),
+    notice ?? null, banner && !isPA(banner) && React.isValidElement(banner) ? banner : null, quotaNode(quota ?? meta), kpis ?? null,
     h('div', { 'data-slot': 'toolbar' }, views, search,
-      (filterConfig?.fields || []).map((f: any) =>
+      (fc?.fields || []).map((f: any) =>
         h('select', {
-          key: f.key, 'aria-label': f.label, name: f.key, value: (filterConfig.values?.[f.key] as string) ?? '',
-          onChange: (e: any) => filterConfig.onChange({ ...filterConfig.values, [f.key]: e.target.value }),
+          key: f.key, 'aria-label': f.label, name: f.key, value: (fc.values?.[f.key] as string) ?? '',
+          onChange: (e: any) => fc.onChange({ ...fc.values, [f.key]: e.target.value }),
         }, [h('option', { key: '', value: '' }, `All ${f.label}`), ...(f.options || []).map((o: any) => h('option', { key: o.value, value: o.value }, o.label))])),
-      toolbarEnd),
+      React.isValidElement(filters) ? filters : null, toolbarEnd),
     loading ? h('div', { 'data-testid': 'spinner' }, 'Loading...') : isEmpty ? empty : children,
     pagination ?? null, footer ?? null);
+};
 export const DetailPageTemplate = ({
   title, trail, status, meta, primaryAction, secondaryActions, actions, overflowActions: _o, tabs, activeTab, onTabChange, loading, children, sidePanel,
 }: any) =>
